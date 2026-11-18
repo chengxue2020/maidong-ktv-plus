@@ -4,7 +4,9 @@
     <item android:id="@android:id/background">
         <shape>
             <corners android:radius="5.0dip" />
-            <solid android:color="#00000000" />
+            <!-- 原来的槽是全透明(#00000000)，进度为 0 或很低时整条进度条完全看不见，
+                 看起来就像"没有进度条"。这里给一个淡淡的可见底色，让轨道始终有轮廓。 -->
+            <solid android:color="#33FFFFFF" />
         </shape>
     </item>
     <item android:id="@android:id/progress">

@@ -206,7 +206,7 @@ class SongListAdapter(
                     max = 100
                     progress = state.progress
                     progressDrawable = ContextCompat.getDrawable(context, R.drawable.bg_download_progress)
-                }, LinearLayout.LayoutParams(dp(90), dp(8)).apply { marginEnd = dp(6) })
+                }, LinearLayout.LayoutParams(dp(120), dp(8)).apply { marginEnd = dp(8) })
             }
             when {
                 state.failed || state.paused -> addView(
@@ -275,15 +275,16 @@ class SongListAdapter(
         card.id = cardId(songIndex)
         val state = stateFor(song)
         val stateText = when {
-            state.current -> "正在播放"
-            state.queued -> "已点"
-            state.downloading -> "正在下载百分之${state.progress}"
-            state.local -> "已下载"
-            else -> "未下载"
+            state.current -> KtvRaw.display(R.string.ui_p_108)
+            state.queued -> KtvRaw.display(R.string.ui_a_0229)
+            state.downloading -> KtvRaw.display(R.string.ui_p_109, state.progress)
+            state.local -> KtvRaw.display(R.string.ui_p_110)
+            else -> KtvRaw.display(R.string.ui_p_111)
         }
         card.setAccessibleFocus(
             FOCUS_PREFIX + songKey(song),
-            "歌曲，${song.title.orEmpty()}，歌手，${song.singer.orEmpty()}，$stateText，双击点歌，长按查看更多",
+            KtvRaw.display(R.string.ui_p_116,
+                song.title.orEmpty(), song.singer.orEmpty(), stateText),
         )
         (card as? ViewGroup)?.descendantFocusability = ViewGroup.FOCUS_BLOCK_DESCENDANTS
         installPressAnimation(card)

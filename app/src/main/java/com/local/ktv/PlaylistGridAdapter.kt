@@ -52,7 +52,7 @@ class PlaylistGridAdapter(
         val name = playlist.getOrNull(1).orEmpty()
         setAccessibleFocus(
             "focus:playlist:${playlist.getOrNull(0) ?: name}",
-            "歌单，$name",
+            KtvRaw.display(R.string.ui_a_0843, KtvRaw.displayPlaylistName(name)),
         )
 
         addView(ImageView(context).apply {
@@ -69,7 +69,7 @@ class PlaylistGridAdapter(
         }, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(82), Gravity.TOP))
 
         addView(TextView(context).apply {
-            text = playlist.getOrNull(1).orEmpty()
+            text = KtvRaw.displayPlaylistName(name)
             textSize = 15f
             setTextColor(Color.WHITE)
             gravity = Gravity.CENTER
@@ -95,6 +95,8 @@ class PlaylistGridAdapter(
     /**
      * 按歌单/分类名挑主题图标: 关键词命中即用专属矢量图, 未命中回退默认音符封面。
      * 顺序敏感: 具体词在前, 泛化词在后。
+     * 以下是曲库返回的固定中文分类键，仅用于图标匹配，不直接显示。
+     * 界面显示统一走 KtvRaw.displayPlaylistName()。
      */
     private fun iconRes(name: String): Int = when {
         name.contains("祝福") || name.contains("生日") || name.contains("喜庆") ||

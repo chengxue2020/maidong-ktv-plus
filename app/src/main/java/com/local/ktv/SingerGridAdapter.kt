@@ -49,7 +49,7 @@ class SingerGridAdapter(
             gravity = Gravity.TOP or Gravity.CENTER_HORIZONTAL
             isFocusable = true
             isClickable = true
-            setAccessibleFocus("focus:singer:${singer.getOrNull(0) ?: name}", "歌星，$name")
+            setAccessibleFocus("focus:singer:${singer.getOrNull(0) ?: name}", KtvRaw.display(R.string.ui_a_0844, name))
 
             val avatar = ImageView(context).apply {
                 importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO

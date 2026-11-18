@@ -12,6 +12,7 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
+import com.local.ktv.R
 import com.local.ktv.Song
 import com.local.ktv.TvFocusStyler
 
@@ -56,17 +57,17 @@ class PlayerControllerView @JvmOverloads constructor(
     }
 
     fun updateSongInfo(song: Song?) {
-        songTitle.text = song?.title ?: "暂无歌曲"
+        songTitle.text = song?.title ?: context.getString(R.string.ui_a_0759)
         songSinger.text = song?.singer.orEmpty()
     }
 
     fun updatePlayState(playing: Boolean) {
-        playPause.text = if (playing) "暂停" else "播放"
+        playPause.text = if (playing) context.getString(R.string.ui_a_0309) else context.getString(R.string.ui_a_0310)
     }
 
     fun setVocalMode(original: Boolean) {
         originalVocal = original
-        vocalSwitch.text = if (original) "伴唱" else "原唱"
+        vocalSwitch.text = if (original) context.getString(R.string.ui_a_0306) else context.getString(R.string.ui_a_0305)
     }
 
     fun show() {
@@ -98,7 +99,7 @@ class PlayerControllerView @JvmOverloads constructor(
     private fun buildTopBar() = LinearLayout(context).apply {
         orientation = LinearLayout.VERTICAL
         setPadding(dp(16), dp(12), dp(16), dp(8))
-        songTitle = label("暂无歌曲", GOLD, 20).also {
+        songTitle = label(context.getString(R.string.ui_a_0759), GOLD, 20).also {
             it.gravity = Gravity.CENTER_VERTICAL
             addView(it, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT))
         }
@@ -111,7 +112,7 @@ class PlayerControllerView @JvmOverloads constructor(
     private fun buildMiddle() = LinearLayout(context).apply {
         orientation = LinearLayout.VERTICAL
         gravity = Gravity.CENTER
-        playPause = button("播放", TEXT_WHITE, 22) { listener?.onPlayPause() }
+        playPause = button(context.getString(R.string.ui_a_0310), TEXT_WHITE, 22) { listener?.onPlayPause() }
         addView(playPause, LinearLayout.LayoutParams(dp(96), dp(96)))
     }
 
@@ -119,14 +120,14 @@ class PlayerControllerView @JvmOverloads constructor(
         orientation = LinearLayout.HORIZONTAL
         gravity = Gravity.CENTER_VERTICAL
         setPadding(dp(12), dp(8), dp(12), dp(12))
-        addControl("上一首") { listener?.onPrev() }
-        vocalSwitch = button("原唱", ACCENT_RED, 16) {
+        addControl(context.getString(R.string.ui_a_0977)) { listener?.onPrev() }
+        vocalSwitch = button(context.getString(R.string.ui_a_0305), ACCENT_RED, 16) {
             // MainActivity 确认目标模式后会通过 setVocalMode 回写，避免按钮先翻转造成提示相反。
             listener?.onVocalSwitch(!originalVocal)
         }.also { addView(it, LinearLayout.LayoutParams(0, dp(48), 1f)) }
-        addControl("音量") { listener?.onVolume() }
-        addControl("全屏") { listener?.onFullScreen() }
-        addControl("下一首") { listener?.onNext() }
+        addControl(context.getString(R.string.ui_a_0012)) { listener?.onVolume() }
+        addControl(context.getString(R.string.ui_a_0717)) { listener?.onFullScreen() }
+        addControl(context.getString(R.string.ui_a_0978)) { listener?.onNext() }
     }
 
     private fun LinearLayout.addControl(text: String, action: () -> Unit) {

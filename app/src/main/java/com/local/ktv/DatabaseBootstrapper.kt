@@ -52,11 +52,11 @@ object DatabaseBootstrapper {
     /** 同步状态文案(用于设置界面展示)。 */
     fun syncStatusText(now: Long = System.currentTimeMillis()): String {
         val last = lastSyncAt()
-        if (last <= 0L) return "未同步"
+        if (last <= 0L) return KtvRaw.display(R.string.ui_p_112)
         val remaining = syncRemainingMs(now)
-        if (remaining <= 0L) return "已到期"
+        if (remaining <= 0L) return KtvRaw.display(R.string.ui_p_113)
         val days = (remaining + DAY_MS - 1) / DAY_MS
-        return "$days 天后同步"
+        return KtvRaw.display(R.string.ui_p_114, days)
     }
 
     /** 远端曲库版本（官方 Muse）；失败返回 null。 */
@@ -104,10 +104,10 @@ object DatabaseBootstrapper {
             // 用真实写入探针区分"真的写不进去" vs "其实能写"。
             val probe = runCatching { AppPaths.probeWrite(target.parentFile!!) }.getOrDefault("?")
             return IllegalStateException(
-                "曲库写入被系统拒绝（探针 $probe，可用 ${formatSize(free)}）\n原始错误：$chain",
+                KtvRaw.display(R.string.ui_p_db_write_denied, probe, formatSize(free), chain),
                 error,
             )
         }
-        return IllegalStateException("曲库下载失败：$chain（可用 ${formatSize(free)}）", error)
+        return IllegalStateException(KtvRaw.display(R.string.ui_p_db_dl_fail, chain, formatSize(free)), error)
     }
 }

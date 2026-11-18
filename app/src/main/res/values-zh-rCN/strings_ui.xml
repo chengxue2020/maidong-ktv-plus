@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 界面文案国际化：默认（中文）。values-en/strings_ui.xml 提供对应英文。 -->
+<!-- 命名统一使用 ui_ 前缀，避免与反编译遗留的 1370 条资源冲突。 -->
+<resources>
+    <!-- 左侧导航 -->
+    <string name="ui_nav_home">🏠 主页</string>
+    <string name="ui_nav_songs">🎵 点歌</string>
+    <string name="ui_nav_singers">🎤 歌星</string>
+    <string name="ui_nav_rank">🏆 排行榜</string>
+    <string name="ui_nav_language">🌐 语种</string>
+    <string name="ui_nav_wordcount">🔢 字数</string>
+    <string name="ui_nav_favorites">⭐ 收藏</string>
+    <string name="ui_nav_playlist">📋 歌单</string>
+    <string name="ui_nav_queue">📝 已点</string>
+    <string name="ui_nav_sang">🎵 已唱</string>
+    <string name="ui_nav_download">⬇️ 下载</string>
+    <string name="ui_nav_udisk">💾 U盘</string>
+    <string name="ui_nav_movie">🎬 影片</string>
+    <string name="ui_nav_party">🎉 派对</string>
+    <string name="ui_nav_network">📡 网络</string>
+    <string name="ui_nav_screen">🖥️ 屏幕</string>
+    <string name="ui_nav_app">📦 应用</string>
+    <string name="ui_nav_maintenance">🔧 维护</string>
+    <string name="ui_nav_broadcast">📻 广播</string>
+    <string name="ui_nav_settings">⚙️ 设置</string>
+
+    <!-- 顶栏 / 通用状态 -->
+    <string name="ui_brand">麦动</string>
+    <string name="ui_header_home">首页</string>
+    <string name="ui_status_ready">准备就绪</string>
+    <string name="ui_on">已开启</string>
+    <string name="ui_off">已关闭</string>
+    <string name="ui_none">无</string>
+    <string name="ui_not_playing">未播放</string>
+    <string name="ui_no_lyrics">暂无歌词</string>
+    <string name="ui_loading">正在加载…</string>
+
+    <!-- 设置主页 -->
+    <string name="ui_set_account">i歌霸账号</string>
+    <string name="ui_set_account_login">登录或注册自己的账号</string>
+    <string name="ui_set_action_settings">设置</string>
+    <string name="ui_set_data">数据设置</string>
+    <string name="ui_set_data_sub">数据库、歌曲下载、歌曲文件相关设置</string>
+    <string name="ui_set_playback">播放设置</string>
+    <string name="ui_set_playback_sub">播放器、视频窗口相关设置</string>
+    <string name="ui_set_sound">声音设置</string>
+    <string name="ui_set_update">应用更新</string>
+    <string name="ui_set_action_update">检查更新</string>
+    <string name="ui_set_about">关于</string>
+    <string name="ui_set_action_view">查看</string>
+    <string name="ui_set_language">语言</string>
+    <string name="ui_set_language_sub">切换应用界面显示语言</string>
+    <string name="ui_set_language_action">切换</string>
+    <string name="ui_set_lang_zh">简体中文</string>
+    <string name="ui_set_lang_en">English</string>
+    <string name="ui_lang_short_zh">中文</string>
+    <string name="ui_lang_short_en">EN</string>
+    <string name="ui_set_language_switched">已切换为简体中文</string>
+
+    <!-- 设置分区名称 -->
+    <string name="ui_sec_network">网络设置</string>
+    <string name="ui_sec_data">数据设置</string>
+    <string name="ui_sec_playback">播放设置</string>
+    <string name="ui_sec_sound">声音设置</string>
+    <string name="ui_sec_display">界面设置</string>
+
+    <!-- 数据设置条目 -->
+    <string name="ui_sec_library">曲库</string>
+    <string name="ui_sec_usb_add">U盘加歌</string>
+    <string name="ui_sec_net_add">网盘加歌</string>
+    <string name="ui_sec_add_usb_sub">扫描 maidongktv 歌曲保存目录</string>
+    <string name="ui_sec_add_net_sub">扫描网盘歌曲目录并加入曲库检索</string>
+    <string name="ui_sec_netconfig">网盘设置</string>
+    <string name="ui_sec_netconfig_sub">配置 OpenList 服务和歌曲保存目录</string>
+    <string name="ui_sec_save_location">歌曲保存位置</string>
+    <string name="ui_sec_storage_cloud">OpenList 网盘</string>
+    <string name="ui_sec_storage_usb">U盘存储</string>
+    <string name="ui_sec_storage_local">本地存储</string>
+    <string name="ui_sec_action_select">选择</string>
+    <string name="ui_sec_reserve">预留存储空间</string>
+    <string name="ui_sec_auto_delete">自动删歌</string>
+    <string name="ui_sec_auto_delete_sub">当剩余存储空间低于预留空间时，自动删除最久未使用的歌曲</string>
+    <string name="ui_sec_reset">重置曲库</string>
+    <string name="ui_sec_reset_sub">清除本机缓存和已下载歌曲，恢复内置曲库，保留U盘</string>
+    <string name="ui_sec_action_reset">重置</string>
+    <string name="ui_sec_permission">硬盘读写权限</string>
+
+    <!-- 播放设置条目 -->
+    <string name="ui_play_clear_downloads">开机清空下载列表</string>
+    <string name="ui_play_clear_downloads_sub">开机时删除本地已下载歌曲并清理数据库状态</string>
+    <string name="ui_play_autofull">自动全屏</string>
+    <string name="ui_play_autofull_sub">设置多久未操作后自动进入全屏</string>
+    <string name="ui_play_action_set">设置间隔</string>
+    <string name="ui_play_decoder">解码器</string>
+    <string name="ui_play_current_decoder">当前播放内核</string>
+    <string name="ui_play_avsync">音画同步</string>
+    <string name="ui_play_subtitle">歌曲片头字幕</string>
+
+    <!-- 通用按钮 -->
+    <string name="ui_cancel">取消</string>
+    <string name="ui_ok">确定</string>
+    <string name="ui_close">关闭</string>
+    <string name="ui_view">查看</string>
+    <string name="ui_reset">重置</string>
+    <string name="ui_update">更新</string>
+    <string name="ui_retry">重试</string>
+
+    <!-- 主界面按钮 / 分类 -->
+    <string name="ui_search">⌕ 搜索</string>
+    <string name="ui_original">原唱</string>
+    <string name="ui_next_song">切歌</string>
+    <string name="ui_pause">暂停</string>
+    <string name="ui_repeat">重唱</string>
+    <string name="ui_tune">调音</string>
+    <string name="ui_guess">💗 猜你想唱</string>
+    <string name="ui_scan">▣ 扫码点歌</string>
+    <string name="ui_exit">↩ 退出</string>
+    <string name="ui_back_home">‹ 主页</string>
+    <string name="ui_back">↩ 返回</string>
+    <string name="ui_prev_page">上一页</string>
+    <string name="ui_next_page">下一页</string>
+    <string name="ui_handwrite">手写</string>
+    <string name="ui_system">系统</string>
+    <string name="ui_tab_often">常唱</string>
+    <string name="ui_tab_favorites">收藏</string>
+    <string name="ui_tab_category">分类</string>
+    <string name="ui_tab_rank">排行榜</string>
+    <string name="ui_tab_song">歌名</string>
+    <string name="ui_tab_singer">歌星</string>
+    <string name="ui_tab_local">本地</string>
+    <string name="ui_downloading">下载中…</string>
+    <string name="ui_queue">已点</string>
+    <string name="ui_btn_settings">⚙ 设置</string>
+    <string name="ui_now_next">当前：%1$s    下一首：%2$s</string>
+    <string name="ui_now_next_init">当前：未播放    下一首：无</string>
+    <string name="ui_exit_confirm_title">退出确认</string>
+    <string name="ui_exit_confirm_msg">确定要退出麦动吗?</string>
+    <string name="ui_exit_confirm_ok">确定退出</string>
+    <string name="ui_db_init">正在初始化曲库…</string>
+    <string name="ui_db_init_after_clean">已清理旧歌曲缓存，正在初始化新曲库…</string>
+    <string name="ui_db_reset">正在清理本机缓存并恢复内置曲库…</string>
+    <string name="ui_db_not_found">未找到可用曲库</string>
+    <string name="ui_db_init_failed">曲库初始化失败：%1$s</string>
+    <string name="ui_db_fail_hint">%1$s
+请检查网络或空间后重试</string>
+    <string name="ui_db_clean_failed">旧歌曲缓存清理失败：%1$s</string>
+    <string name="ui_search_hint">搜索  输入首字母搜索</string>
+
+    <!-- plus 独有界面文案 -->
+    <string name="ui_plus_now_unknown">当前: 未知  下首: 未知</string>
+    <string name="ui_plus_downloading">下载中...</string>
+
+    <string name="ui_plus_settings_title">⚙  系统设置</string>
+    <string name="ui_plus_onekey_order">一键点歌(0首)</string>
+</resources>

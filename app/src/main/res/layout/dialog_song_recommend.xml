@@ -43,7 +43,7 @@
         android:minWidth="150dp"
         android:paddingStart="15dp"
         android:paddingEnd="15dp"
-        android:text="一键点歌(0首)"
+        android:text="@string/ui_plus_onekey_order"
         android:textColor="#FFFFFFFF"
         android:textSize="16sp" />
 </FrameLayout>

@@ -426,7 +426,20 @@ class MuseDatabase @JvmOverloads constructor(initialSourceFile: File? = null) {
         return all.drop(offset).take(limit).toMutableList()
     }
 
-    fun tagGroupPlaylistCount(groupName: String?): Int = tagGroupPlaylistNames(groupName).size
+    /**
+     * 标签组歌单总数: 必须与 [tagGroupPlaylists] 返回的歌单数保持一致(按数据库中实际存在的
+     * type=3 歌单统计), 不能用 tag_groups.tags 的配置数量——后者可能引用了曲库里不存在的歌单,
+     * 导致"实际只有1页却显示很多页"的分页错误。
+     */
+    fun tagGroupPlaylistCount(groupName: String?): Int {
+        val names = tagGroupPlaylistNames(groupName)
+        if (names.isEmpty()) return 0
+        val placeholders = names.joinToString(",") { "?" }
+        return count(
+            "SELECT COUNT(*) FROM playlists WHERE deleted_at IS NULL AND type=3 AND name IN ($placeholders)",
+            names.toTypedArray(),
+        )
+    }
 
     fun songsInPlaylist(playlistId: String, offset: Int, limit: Int): MutableList<Song> = songs(
         "$SONG_SELECT INNER JOIN playlist_songs ps ON s.id=ps.song_id " +

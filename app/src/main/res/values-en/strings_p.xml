@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- plus 独有文案：显示文案随语言切换，内部键固定简体中文。 -->
+<resources>
+    <string name="ui_p_001" formatted="false">Song source temporarily restricted</string>
+    <string name="ui_p_002" formatted="false">Got it</string>
+    <string name="ui_p_003" formatted="false">Initializing song library...</string>
+    <string name="ui_p_004" formatted="false">Library update failed, using local library</string>
+    <string name="ui_p_005" formatted="false">Queued </string>
+    <string name="ui_p_006" formatted="false">Loaded </string>
+    <string name="ui_p_007" formatted="false"> singers</string>
+    <string name="ui_p_008" formatted="false">Mic volume is controlled by amplifier/mixer hardware</string>
+    <string name="ui_p_009" formatted="false">Framework source</string>
+    <string name="ui_p_010" formatted="false">Yangjia Sanlang / Maidong KTV</string>
+    <string name="ui_p_011" formatted="false">Core</string>
+    <string name="ui_p_012" formatted="false">Database source rebuilt by DSH</string>
+    <string name="ui_p_013" formatted="false">● Network disconnected</string>
+    <string name="ui_p_014" formatted="false">Network disconnected</string>
+    <string name="ui_p_015" formatted="false">Network restored</string>
+    <string name="ui_p_016" formatted="false">Equalizer: On</string>
+    <string name="ui_p_017" formatted="false">Equalizer: Off</string>
+    <string name="ui_p_018" formatted="false">Equalizer enabled</string>
+    <string name="ui_p_019" formatted="false">Equalizer disabled</string>
+    <string name="ui_p_020" formatted="false">Global mix is not supported on this device</string>
+    <string name="ui_p_021" formatted="false">Preset not found</string>
+    <string name="ui_p_022" formatted="false">Invalid frequency band format</string>
+    <string name="ui_p_023" formatted="false">This item has no download URL</string>
+    <string name="ui_p_024" formatted="false">Downloading: </string>
+    <string name="ui_p_025" formatted="false">Downloaded and added to queue: </string>
+    <string name="ui_p_026" formatted="false">Download cancelled: </string>
+    <string name="ui_p_027" formatted="false">Download failed: </string>
+    <string name="ui_p_028" formatted="false">Download failed: </string>
+    <string name="ui_p_029" formatted="false">Loading: </string>
+    <string name="ui_p_030" formatted="false">Local file missing, re-downloading...</string>
+    <string name="ui_p_031" formatted="false">Unable to get playback URL</string>
+    <string name="ui_p_032" formatted="false"> ready</string>
+    <string name="ui_p_033" formatted="false">Downloading: </string>
+    <string name="ui_p_034" formatted="false">Download: </string>
+    <string name="ui_p_035" formatted="false">Playback retry </string>
+    <string name="ui_p_036" formatted="false">Cannot download: missing filename</string>
+    <string name="ui_p_037" formatted="false">Downloading from cloud:</string>
+    <string name="ui_p_038" formatted="false">Now playing: </string>
+    <string name="ui_p_039" formatted="false">Deleted: </string>
+    <string name="ui_p_040" formatted="false">Already in list: </string>
+    <string name="ui_p_041" formatted="false">Queued: </string>
+    <string name="ui_p_042" formatted="false">Local file deleted</string>
+    <string name="ui_p_043" formatted="false">Failed to delete file, please check storage permission</string>
+    <string name="ui_p_044" formatted="false"> / Home</string>
+    <string name="ui_p_045" formatted="false">Add songs from USB</string>
+    <string name="ui_p_046" formatted="false">Scan properly named song files on USB and add to library</string>
+    <string name="ui_p_047" formatted="false">No USB device detected</string>
+    <string name="ui_p_048" formatted="false">Checking for library updates...</string>
+    <string name="ui_p_049" formatted="false">Check failed: cannot connect to library server</string>
+    <string name="ui_p_050" formatted="false">Library is up to date</string>
+    <string name="ui_p_051" formatted="false">Library sync complete</string>
+    <string name="ui_p_052" formatted="false">Verifying library file</string>
+    <string name="ui_p_053" formatted="false">Extracting library 0MB</string>
+    <string name="ui_p_054" formatted="false">Installing library</string>
+    <string name="ui_p_055" formatted="false">Library ready</string>
+    <string name="ui_p_056" formatted="false">Reset database</string>
+    <string name="ui_p_057" formatted="false">This will delete the local library database and re-sync from the official server. No backup will be kept. Continue?</string>
+    <string name="ui_p_058" formatted="false">Resetting database...</string>
+    <string name="ui_p_059" formatted="false">Database reset complete</string>
+    <string name="ui_p_060" formatted="false">Singing mode (current: </string>
+    <string name="ui_p_061" formatted="false">Singing mode: </string>
+    <string name="ui_p_062" formatted="false">Marquee settings - </string>
+    <string name="ui_p_063" formatted="false">Marquee: </string>
+    <string name="ui_p_064" formatted="false"> songs</string>
+    <string name="ui_p_065" formatted="false"> s</string>
+    <string name="ui_p_066" formatted="false">Singer  </string>
+    <string name="ui_p_067" formatted="false">Local </string>
+    <string name="ui_p_068" formatted="false">Custom</string>
+    <string name="ui_p_069" formatted="false">Various Artists</string>
+    <string name="ui_p_070" formatted="false">Chorus</string>
+    <string name="ui_p_071" formatted="false">Accompaniment</string>
+    <string name="ui_p_072" formatted="false">Frequently Sung</string>
+    <string name="ui_p_073">Already the latest version %1$s</string>
+    <string name="ui_p_074">New version %1$s found</string>
+    <string name="ui_p_075">Downloading %1$s…</string>
+    <string name="ui_p_076">Downloading %1$s… %2$s%%</string>
+    <string name="ui_p_077">Version %1$s downloaded. Install now?</string>
+    <string name="ui_p_078">Volume  %1$s%%</string>
+    <string name="ui_p_079">Volume  %1$s%%</string>
+    <string name="ui_p_080">Network restored, retrying %1$s unfinished downloads</string>
+    <string name="ui_p_081">Network restored, retrying %1$s unfinished downloads</string>
+    <string name="ui_p_082">Directory: %1$s or USB/movies</string>
+    <string name="ui_p_083">Download failed, not added to requests: %1$s</string>
+    <string name="ui_p_084">Random playback: %1$s</string>
+    <string name="ui_p_085">Vocal channel: %1$s / %2$s</string>
+    <string name="ui_p_086">Pinned: %1$s</string>
+    <string name="ui_p_087">Delete file</string>
+    <string name="ui_p_088">Delete the local file of %1$s? The song remains in the library.</string>
+    <string name="ui_p_089">One-tap request (%1$s songs)</string>
+    <string name="ui_p_090">One-tap request (%1$s songs)</string>
+    <string name="ui_p_091">One-tap request (%1$s songs)</string>
+    <string name="ui_p_092">Song requested: %1$s</string>
+    <string name="ui_p_093">Library sync failed: %1$s</string>
+    <string name="ui_p_094">Database reset failed: %1$s</string>
+    <string name="ui_p_095">Earlier</string>
+    <string name="ui_p_096">Later</string>
+    <string name="ui_p_097">Sound %1$s %2$s sec</string>
+    <string name="ui_p_098">Now playing: %1$s</string>
+    <string name="ui_p_099">Downloading; added to requests when complete: %1$s</string>
+    <string name="ui_p_100">Song still downloading, not yet in requests: %1$s</string>
+    <string name="ui_p_101">Current version %1$s, source: Gitea Release</string>
+    <string name="ui_p_102">Current %1$s GB</string>
+    <string name="ui_p_103">Delete local database and re-download</string>
+    <string name="ui_p_104">Database: %1$s   Downloaded: %2$s  ·  Sync %3$s days: %4$s</string>
+    <string name="ui_p_105">Available %1$s / Total %2$s</string>
+    <string name="ui_p_106">Framework: Yangjia Sanlang / Maidong KTV\n</string>
+    <string name="ui_p_107">Database source rebuilt by DSH\n</string>
+    <string name="ui_p_108">Playing</string>
+    <string name="ui_p_109">Downloading %1$s%%</string>
+    <string name="ui_p_110">Downloaded</string>
+    <string name="ui_p_111">Not downloaded</string>
+    <string name="ui_p_112">Not synced</string>
+    <string name="ui_p_113">Expired</string>
+    <string name="ui_p_114">Sync in %1$s days</string>
+    <string name="ui_p_115">Extracting library %1$sMB</string>
+    <string name="ui_p_116">Song, %1$s, artist, %2$s, %3$s, double-tap to select, long-press for more</string>
+    <string name="ui_p_bad_ip">Unusable IP detected: %1$s</string>
+    <string name="ui_p_confirm">O K</string>
+    <string name="ui_p_counting">Counting...</string>
+    <string name="ui_p_detected_ip">Detected IP: %1$s</string>
+    <string name="ui_p_eq_preset">Equalizer preset</string>
+    <string name="ui_p_eq_updated">Equalizer updated</string>
+    <string name="ui_p_hot_top">Hot TOP%1$s</string>
+    <string name="ui_p_import_hint">Place songs in %1$s, %2$s, USB/KTV or USB/songs. Supports mp4/mkv/avi/mp3/flac/wav.</string>
+    <string name="ui_p_lib_updated">Library updated: %1$s local, %2$s total songs</string>
+    <string name="ui_p_mic_hw">Adjusted by amplifier/mixer hardware</string>
+    <string name="ui_p_no_apk">No APK found. Place it in %1$s or USB/apps</string>
+    <string name="ui_p_no_lan_ip">No LAN IP detected</string>
+    <string name="ui_p_now_next_tip">Now: %1$s  Next: %2$s</string>
+    <string name="ui_p_random_skip">Skipping: playing the next public-address song...</string>
+    <string name="ui_p_random_start">Randomly playing local songs...</string>
+    <string name="ui_p_scan_tip">Connect your phone to the same LAN\nthen scan to request songs</string>
+    <string name="ui_p_song_a11y">Song, %1$s, artist, %2$s, double-tap to select, long-press for more</string>
+    <string name="ui_p_sung_times">You have sung %1$s times</string>
+    <string name="ui_p_sync_dl">Downloading library</string>
+    <string name="ui_p_sync_unzip">Extracting library</string>
+    <string name="ui_p_sync_verify">Verifying library</string>
+    <string name="ui_p_vol_eq">Volume / Equalizer</string>
+    <string name="ui_p_vol_eq2">Volume and Equalizer</string>
+    <string name="ui_p_vol_eq_status">Volume %1$s%% · Equalizer %2$s</string>
+    <string name="ui_p_risk_dialog">The song source cannot fetch new playback URLs on the current network (public IP): risk control or trial window.\n\nSolution: restart the modem/router to get a new public IP, then continue requesting songs.\n\nCached songs are unaffected and play normally.</string>
+    <string name="ui_p_db_dl_fail">Library download failed: %1$s (%2$s available)</string>
+    <string name="ui_p_db_write_denied">Library write was denied by the system (probe %1$s, %2$s available)\nOriginal error: %3$s</string>
+    <string name="ui_p_dl_bad_file">Downloaded file was abnormal and has been cleaned up</string>
+    <string name="ui_p_dl_decrypt_fail">Song decryption failed; the bad file was deleted</string>
+    <string name="ui_p_dl_finalize_fail">Failed to process the downloaded file</string>
+    <string name="ui_p_dl_init_fail">Download initialization failed</string>
+    <string name="ui_p_dl_invalid">Downloaded file is not a valid song video; not saved or added to requests</string>
+    <string name="ui_p_dl_no_url">Could not generate a download URL</string>
+    <string name="ui_p_dl_preview">Server returned a preview clip (%1$s sec); not saved or added to requests</string>
+    <string name="ui_p_dl_refresh_fail">Failed to refresh the download URL</string>
+    <string name="ui_p_dl_rename_fail">Failed to save the downloaded file</string>
+    <string name="ui_p_dl_replace_fail">Could not replace the old song file</string>
+    <string name="ui_p_sync_backup_fail">Could not back up the old library</string>
+    <string name="ui_p_sync_install_fail">Could not install the downloaded library</string>
+    <string name="ui_p_sync_login_fail">Failed to sign in to the library service</string>
+    <string name="ui_p_sync_md5_fail">Library file verification failed</string>
+    <string name="ui_p_sync_no_file">Library sync failed or no usable file</string>
+    <string name="ui_p_update_check_http">Update check failed: HTTP %1$s</string>
+    <string name="ui_p_update_dl_http">Download failed: HTTP %1$s</string>
+    <string name="ui_p_search_hint">Search  Enter initials</string>
+    <string name="ui_preset_custom">Custom</string>
+    <string name="ui_p_cat_jinge">Power songs</string>
+    <string name="ui_p_cat_dance">Dance</string>
+    <string name="ui_p_cat_hot">Hot songs</string>
+    <string name="ui_p_cat_rising">Rising</string>
+    <string name="ui_p_cat_douyin">Douyin</string>
+    <string name="ui_p_cat_new_chart">New songs chart</string>
+    <string name="ui_p_cat_classmate">Classmates</string>
+    <string name="ui_p_cat_love_song">Love songs</string>
+    <string name="ui_p_cat_romance">Romance</string>
+    <string name="ui_p_cat_love_short">Love</string>
+    <string name="ui_p_cat_longing">Longing</string>
+    <string name="ui_p_cat_golden">Classics</string>
+    <string name="ui_p_cat_nostalgic_golden">Nostalgic classics</string>
+    <string name="ui_p_cat_huangmei">Huangmei</string>
+    <string name="ui_p_cat_pingju">Pingju Opera</string>
+    <string name="ui_p_cat_opera_type">Opera types</string>
+    <string name="ui_p_cat_opera">Opera</string>
+    <string name="ui_p_cat_mountain_song">Mountain songs</string>
+    <string name="ui_p_cat_country">Country</string>
+    <string name="ui_p_cat_cartoon">Cartoon</string>
+    <string name="ui_p_cat_animation">Animation</string>
+    <string name="ui_p_cat_nursery">Nursery rhymes</string>
+    <string name="ui_p_cat_film_tv">Film &amp; TV</string>
+    <string name="ui_p_cat_movie">Movies</string>
+    <string name="ui_p_cat_tv_series">TV series</string>
+    <string name="ui_p_cat_theme">Theme songs</string>
+    <string name="ui_p_cat_insert">Soundtrack</string>
+    <string name="ui_p_cat_rhythm">Rhythm</string>
+    <string name="ui_p_cat_campus">Campus</string>
+    <string name="ui_p_cat_youth">Youth</string>
+    <string name="ui_p_cat_graduation">Graduation</string>
+    <string name="ui_p_cat_military">Military songs</string>
+    <string name="ui_p_cat_patriotic">Patriotic</string>
+    <string name="ui_p_cat_mainstream">Mainstream</string>
+    <string name="ui_p_cat_homesick">Homesickness</string>
+    <string name="ui_p_cat_family_love">Family love</string>
+    <string name="ui_p_cat_hometown">Hometown</string>
+    <string name="ui_p_cat_mom">Mom</string>
+    <string name="ui_p_cat_dad">Dad</string>
+    <string name="ui_p_cat_family">Family</string>
+    <string name="ui_p_cat_global">Global</string>
+    <string name="ui_p_cat_singing">Singing</string>
+    <string name="ui_p_cat_karaoke">Karaoke</string>
+    <string name="ui_p_cat_cover">Covers</string>
+    <string name="ui_p_cat_edm">EDM</string>
+    <string name="ui_p_cat_high_energy">High energy</string>
+    <string name="ui_p_cat_jazz">Jazz</string>
+    <string name="ui_p_cat_blues">Blues</string>
+    <string name="ui_p_cat_blessing_song">Blessing songs</string>
+    <string name="ui_p_cat_friendship_forever">Friendship forever</string>
+    <string name="ui_p_cat_love_duet">Love duets</string>
+    <string name="ui_p_cat_blessing">Blessings</string>
+    <string name="ui_p_cat_friendship">Friendship</string>
+    <string name="ui_p_cat_song">Songs</string>
+    <string name="ui_p_cat_forever">Forever</string>
+    <string name="ui_p_cat_duet">Duet</string>
+    <string name="ui_p_cat_selection">Selection</string>
+    <string name="ui_p_cat_opera_clip">Opera clips</string>
+    <string name="ui_p_cat_disco">Disco</string>
+    <string name="ui_p_cat_revolutionary_song">Revolutionary songs</string>
+    <string name="ui_p_cat_military_song">Military songs</string>
+    <string name="ui_p_cat_praise_motherland">Patriotic songs</string>
+    <string name="ui_p_cat_folk_singing">Folk songs</string>
+    <string name="ui_p_cat_clip">Clips</string>
+    <string name="ui_p_cat_revolutionary">Revolutionary</string>
+    <string name="ui_p_cat_praise">Praise</string>
+    <string name="ui_p_cat_motherland">Motherland</string>
+    <string name="ui_p_cat_singing_heritage">Sing-along</string>
+    <string name="ui_p_cat_birthday">Birthday</string>
+    <string name="ui_p_cat_festive">Festive</string>
+    <string name="ui_p_cat_congrats">Congratulations</string>
+    <string name="ui_p_cat_newyear">New Year</string>
+    <string name="ui_p_cat_friendship_alt">Friendship</string>
+    <string name="ui_p_cat_friends">Friends</string>
+    <string name="ui_p_cat_sweet">Sweet</string>
+    <string name="ui_p_cat_lover">Lovers</string>
+    <string name="ui_p_cat_dj">DJ</string>
+    <string name="ui_p_cat_index">Index</string>
+    <string name="ui_p_rank_rising">Rising chart</string>
+    <string name="ui_p_rank_douyin">Douyin chart</string>
+    <string name="ui_p_rank_mainland">Mainland chart</string>
+    <string name="ui_p_rank_hongkong">Hong Kong, China chart</string>
+    <string name="ui_p_rank_taiwan">Taiwan, China chart</string>
+    <string name="ui_p_rank_trend">Pop index chart</string>
+    <string name="ui_p_rank_dance">Power songs &amp; dance</string>
+    <string name="ui_p_cat2_sweet_happiness">Sweet Happiness</string>
+    <string name="ui_p_cat2_joy_celebration">Joyful Celebration</string>
+    <string name="ui_p_cat2_heartbreak">Heartbreak &amp; Sadness</string>
+    <string name="ui_p_cat2_lonely_ethereal">Lonely &amp; Ethereal</string>
+    <string name="ui_p_cat2_hd_songs">HD Songs</string>
+    <string name="ui_p_cat2_grassland_songs">Grassland Songs</string>
+    <string name="ui_p_cat2_men_ktv">Men\'s KTV</string>
+    <string name="ui_p_cat2_women_club">Women\'s Song Club</string>
+    <string name="ui_p_cat2_campus_folk">Campus Folk</string>
+    <string name="ui_p_cat2_exotic">Exotic Charm</string>
+    <string name="ui_p_cat2_instrumental">Instrumental</string>
+    <string name="ui_p_cat2_medley">Medley</string>
+    <string name="ui_p_cat2_dj_mix">DJ Mixing</string>
+    <string name="ui_p_cat2_vocal_coaching">Vocal Coaching</string>
+    <string name="ui_p_cat2_slow_dance">Slow Dance</string>
+    <string name="ui_p_cat2_ktv_must_sing">KTV Must-Sing Songs</string>
+    <string name="ui_p_cat2_happiness">Happiness</string>
+    <string name="ui_p_cat2_joy">Joy</string>
+    <string name="ui_p_cat2_celebration">Celebration</string>
+    <string name="ui_p_cat2_heartbroken">Heartbreak</string>
+    <string name="ui_p_cat2_sad">Sadness</string>
+    <string name="ui_p_cat2_lonely">Loneliness</string>
+    <string name="ui_p_cat2_ethereal">Ethereal</string>
+    <string name="ui_p_cat2_hd">HD</string>
+    <string name="ui_p_cat2_grassland">Grassland</string>
+    <string name="ui_p_cat2_man">Men</string>
+    <string name="ui_p_cat2_woman">Women</string>
+    <string name="ui_p_cat2_beauty_club">Song Club</string>
+    <string name="ui_p_cat2_folk">Folk</string>
+    <string name="ui_p_cat2_exotic_seg">Exotic</string>
+    <string name="ui_p_cat2_charm">Charm</string>
+    <string name="ui_p_cat2_medley_seg">Medley</string>
+    <string name="ui_p_cat2_dj_seg">DJ Mixing</string>
+    <string name="ui_p_cat2_teaching">Vocal Coaching</string>
+    <string name="ui_p_cat2_slow_seg">Slow Dance</string>
+    <string name="ui_p_cat2_king">Singing King</string>
+    <string name="ui_p_cat2_must_sing">Must-Sing</string>
+</resources>

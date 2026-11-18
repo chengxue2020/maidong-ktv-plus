@@ -5,6 +5,7 @@ import android.content.Context
 import android.os.Build
 import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
 import com.liulishuo.okdownload.OkDownload
 
 class KtvApplication : Application() {
@@ -28,8 +29,13 @@ class KtvApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         instanceRef = this
+        // 必须最先初始化：抽取后大量字段初始化器/单例在类加载期就调用 KtvRaw.get()。
+        KtvRaw.init(this)
         enableCompatVectorsForLegacy()
         OkDownload.setSingletonInstance(OkDownload.Builder(this).build())
+        // 不在启动期调用 setApplicationLocales：它会触发 Activity 重建，
+        // 与 onDestroy 里关闭线程池产生竞态。默认资源本身就是简体中文，无需启动时设置；
+        // 语言仅在用户主动切换时才通过 switchLanguage 设置（AppCompat 会持久化）。
         Log.i(TAG, "KTV application initialized without native services")
     }
 
@@ -70,5 +76,17 @@ class KtvApplication : Application() {
 
         @JvmStatic
         fun getInstance(): KtvApplication = instanceRef
+
+        /** 当前是否为英文界面。 */
+        @JvmStatic
+        fun isEnglish(): Boolean =
+            AppCompatDelegate.getApplicationLocales().get(0)?.language.equals("en", ignoreCase = true)
+
+        /** 切换中英文。AppCompat 会持久化语言偏好并重建当前 Activity。 */
+        @JvmStatic
+        fun switchLanguage(toEnglish: Boolean) {
+            val tag = if (toEnglish) "en" else "zh-CN"
+            AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(tag))
+        }
     }
 }

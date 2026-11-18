@@ -34,7 +34,7 @@ class LocalRemoteServer(private val context: Context) {
         fun order(query: String?): String
         fun command(action: String?, params: Map<String, String>): String
         fun handle(method: String, path: String, query: Map<String, String>, body: String): ApiResponse =
-            ApiResponse(404, "{\"ok\":false,\"code\":\"NOT_FOUND\",\"error\":\"接口不存在\"}")
+            ApiResponse(404, KtvRaw.display(R.string.ui_a_0096))
     }
 
     private var pool = Executors.newCachedThreadPool()
@@ -52,7 +52,7 @@ class LocalRemoteServer(private val context: Context) {
         stop()
         this.callback = callback
         if (!isPrivateIpv4(address)) {
-            lastError = "请先连接 Wi-Fi 或有线局域网"
+            lastError = context.getString(R.string.ui_a_0097)
             return false
         }
         if (pool.isShutdown) pool = Executors.newCachedThreadPool()
@@ -66,7 +66,7 @@ class LocalRemoteServer(private val context: Context) {
             }
         }
         if (candidate == null) {
-            lastError = "端口 8765–8775 均被占用"
+            lastError = context.getString(R.string.ui_a_0098)
             return false
         }
         server = candidate
@@ -80,7 +80,7 @@ class LocalRemoteServer(private val context: Context) {
                     pool.execute { handle(socket) }
                 }
             } catch (e: Exception) {
-                if (running) lastError = e.message ?: "本地服务异常"
+                if (running) lastError = e.message ?: context.getString(R.string.ui_a_0099)
             } finally {
                 running = false
             }
@@ -121,7 +121,7 @@ class LocalRemoteServer(private val context: Context) {
                 val requestLine = readLine(input) ?: return
                 val parts = requestLine.split(' ')
                 if (parts.size < 2) {
-                    write(client, ApiResponse(400, error("BAD_REQUEST", "请求格式错误")))
+                    write(client, ApiResponse(400, error("BAD_REQUEST", context.getString(R.string.ui_a_0101))))
                     return
                 }
                 val method = parts[0].uppercase(Locale.US)
@@ -137,7 +137,7 @@ class LocalRemoteServer(private val context: Context) {
                 val query = parseQuery(target.substringAfter('?', ""))
                 val pageRequest = path == "/" || path == "/mobile" || path == "/mobile/"
                 if (!validHost(headers["host"]) || !validOrigin(headers["origin"])) {
-                    write(client, ApiResponse(403, error("BAD_ORIGIN", "请求来源无效")))
+                    write(client, ApiResponse(403, error("BAD_ORIGIN", context.getString(R.string.ui_a_0102))))
                     return
                 }
                 val length = headers["content-length"]?.toIntOrNull()?.coerceIn(0, 65536) ?: 0
@@ -158,8 +158,8 @@ class LocalRemoteServer(private val context: Context) {
                     path == "/mobile/app.js" -> asset("mobile/app.js", "application/javascript; charset=utf-8")
                     path == "/res/drawable-nodpi/ktv_logo.png" -> logoAsset()
                     path.startsWith("/api/v1/") -> callback?.handle(method, path, query, body)
-                        ?: ApiResponse(503, error("NOT_READY", "服务尚未准备完成"))
-                    else -> ApiResponse(404, error("NOT_FOUND", "接口不存在"))
+                        ?: ApiResponse(503, error("NOT_READY", context.getString(R.string.ui_a_0103)))
+                    else -> ApiResponse(404, error("NOT_FOUND", context.getString(R.string.ui_a_0104)))
                 }
                 write(client, response)
             }
@@ -170,14 +170,14 @@ class LocalRemoteServer(private val context: Context) {
         val text = context.assets.open(name).bufferedReader(Charsets.UTF_8).use { it.readText() }
         ApiResponse(200, text, type)
     } catch (_: Exception) {
-        ApiResponse(404, error("ASSET_NOT_FOUND", "页面资源缺失"))
+        ApiResponse(404, error("ASSET_NOT_FOUND", context.getString(R.string.ui_a_0105)))
     }
 
     private fun logoAsset(): ApiResponse = try {
         val bytes = context.resources.openRawResource(R.drawable.ktv_logo).use { it.readBytes() }
         ApiResponse(200, contentType = "image/png", bytes = bytes)
     } catch (_: Exception) {
-        ApiResponse(404, error("ASSET_NOT_FOUND", "Logo 资源缺失"))
+        ApiResponse(404, error("ASSET_NOT_FOUND", context.getString(R.string.ui_a_0106)))
     }
 
     private fun validHost(host: String?): Boolean {

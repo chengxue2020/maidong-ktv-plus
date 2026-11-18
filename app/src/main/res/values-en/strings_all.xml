@@ -1,0 +1,1031 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ui_a_0001">麦动 KTV %1$s</string>
+    <string name="ui_a_0002">Download failed：HTTP %1$s</string>
+    <string name="ui_a_0003" formatted="false">The downloaded installer is incomplete</string>
+    <string name="ui_a_0004" formatted="false">The downloaded file is not an APK</string>
+    <string name="ui_a_0005" formatted="false">The installer\'s app identifier does not match</string>
+    <string name="ui_a_0006" formatted="false">Unable to save the installer</string>
+    <string name="ui_a_0007" formatted="false">Allow installation of unknown apps</string>
+    <string name="ui_a_0008">Check for updatesFailed：HTTP %1$s</string>
+    <string name="ui_a_0009" formatted="false">Catalog resource verification failed</string>
+    <string name="ui_a_0010" formatted="false">Unable to install catalog resources</string>
+    <string name="ui_a_0011">Volume %1$s</string>
+    <string name="ui_a_0012" formatted="false">Volume</string>
+    <string name="ui_a_0013" formatted="false">Not enough space at the save location. Please clear the cache or choose a USB drive as the save location in Settings</string>
+    <string name="ui_a_0014" formatted="false">Waiting</string>
+    <string name="ui_a_0015" formatted="false">The saved account session could not be restored. Please sign in again</string>
+    <string name="ui_a_0016" formatted="false">Failed to save the updated account session</string>
+    <string name="ui_a_0017">Account service HTTP %1$s</string>
+    <string name="ui_a_0018" formatted="false">Please enter your account and password</string>
+    <string name="ui_a_0019" formatted="false">This sign-in was cancelled</string>
+    <string name="ui_a_0020" formatted="false">The account has signed out. Please sign in again</string>
+    <string name="ui_a_0021" formatted="false">The account has changed. Please retry the download</string>
+    <string name="ui_a_0022" formatted="false">The session has expired. Please sign in again and enable automatic sign-in restore</string>
+    <string name="ui_a_0023" formatted="false">Too many account restore requests. Please try again later</string>
+    <string name="ui_a_0024" formatted="false">The account returned by sign-in restore does not match</string>
+    <string name="ui_a_0025" formatted="false">The account has changed; this restore was cancelled</string>
+    <string name="ui_a_0026" formatted="false">Log inFailed</string>
+    <string name="ui_a_0027" formatted="false">The sign-in response is missing user information</string>
+    <string name="ui_a_0028" formatted="false">The sign-in response is missing a valid account number</string>
+    <string name="ui_a_0029" formatted="false">i歌霸 user</string>
+    <string name="ui_a_0030" formatted="false">Please enter a valid mainland China phone number</string>
+    <string name="ui_a_0031">Please retry getting the verification code in %1$s seconds</string>
+    <string name="ui_a_0032" formatted="false">i歌霸</string>
+    <string name="ui_a_0033" formatted="false">Failed to send the verification code</string>
+    <string name="ui_a_0034" formatted="false">Please enter your password and verification code</string>
+    <string name="ui_a_0035" formatted="false">RegisterFailed</string>
+    <string name="ui_a_0036" formatted="false">i歌霸 account</string>
+    <string name="ui_a_0037" formatted="false">Close</string>
+    <string name="ui_a_0038" formatted="false">ExitLog in</string>
+    <string name="ui_a_0039" formatted="false">Switch account</string>
+    <string name="ui_a_0040" formatted="false">ChinaMainlandPhone number</string>
+    <string name="ui_a_0041" formatted="false">Phone number, email or username</string>
+    <string name="ui_a_0042" formatted="false">Password</string>
+    <string name="ui_a_0043" formatted="false">Save the password encrypted and restore login automatically if a download fails</string>
+    <string name="ui_a_0044" formatted="false">SMS verification code</string>
+    <string name="ui_a_0045" formatted="false">The login session is saved encrypted on this device. The password is saved only when you check this option; logging out deletes the session and password.</string>
+    <string name="ui_a_0046" formatted="false">Get verification code</string>
+    <string name="ui_a_0047" formatted="false">Register an i歌霸 account</string>
+    <string name="ui_a_0048" formatted="false">Log in to i歌霸</string>
+    <string name="ui_a_0049" formatted="false">Register</string>
+    <string name="ui_a_0050" formatted="false">Log in</string>
+    <string name="ui_a_0051" formatted="false">BackLog in</string>
+    <string name="ui_a_0052" formatted="false">RegisterAccount</string>
+    <string name="ui_a_0053" formatted="false">Cancel</string>
+    <string name="ui_a_0054" formatted="false">Requesting…</string>
+    <string name="ui_a_0055" formatted="false">Account service request failed</string>
+    <string name="ui_a_0056">Registration successful, but automatic login failed: %1$s. You can retry logging in.</string>
+    <string name="ui_a_0057" formatted="false">Verification code sent. It is valid for 120 seconds before you can request a new one.</string>
+    <string name="ui_a_0058" formatted="false">Registered and logged in successfully</string>
+    <string name="ui_a_0059" formatted="false">Login successful</string>
+    <string name="ui_a_0060">Catalog API HTTP %1$s</string>
+    <string name="ui_a_0061" formatted="false">Catalog and address requests must run on a background thread</string>
+    <string name="ui_a_0062" formatted="false">The song source rejected the request</string>
+    <string name="ui_a_0063" formatted="false">Please log in to iGeba first</string>
+    <string name="ui_a_0064" formatted="false">Missing a valid song-source song number</string>
+    <string name="ui_a_0065" formatted="false">The song source did not return a permission status</string>
+    <string name="ui_a_0066" formatted="false">The song source did not grant playback permission</string>
+    <string name="ui_a_0067" formatted="false">The song source did not return a playback URL</string>
+    <string name="ui_a_0068" formatted="false">Catalog source mismatch</string>
+    <string name="ui_a_0069" formatted="false">All</string>
+    <string name="ui_a_0070" formatted="false">COALESCE((SELECT ps.sort_no FROM source_playlist_songs ps JOIN source_playlists p ON p.number=ps.playlist_number AND p.package_type=ps.package_type WHERE ps.song_number=s.number AND p.package_type=4 AND p.name LIKE \'热歌榜%\' LIMIT 1),1000000),s.sort_no</string>
+    <string name="ui_a_0071" formatted="false">Mainland</string>
+    <string name="ui_a_0072" formatted="false">Mainland</string>
+    <string name="ui_a_0073" formatted="false">Male</string>
+    <string name="ui_a_0074" formatted="false">Female</string>
+    <string name="ui_a_0075" formatted="false">Group</string>
+    <string name="ui_a_0076" formatted="false">Unable to connect to the song-source catalog</string>
+    <string name="ui_a_0077" formatted="false">Hong Kong &amp; Taiwan</string>
+    <string name="ui_a_0078" formatted="false">Japan &amp; Korea</string>
+    <string name="ui_a_0079" formatted="false">Europe &amp; US</string>
+    <string name="ui_a_0080" formatted="false">Other</string>
+    <string name="ui_a_0081" formatted="false">New catalog verification failed</string>
+    <string name="ui_a_0082" formatted="false">Unable to stage the previous catalog</string>
+    <string name="ui_a_0083" formatted="false">Unable to install the new catalog</string>
+    <string name="ui_a_0084" formatted="false">Downloading</string>
+    <string name="ui_a_0085" formatted="false">Chinese</string>
+    <string name="ui_a_0086" formatted="false">Automatic</string>
+    <string name="ui_a_0087" formatted="false">Standard</string>
+    <string name="ui_a_0088" formatted="false">Normal</string>
+    <string name="ui_a_0089" formatted="false">Welcome to 麦动</string>
+    <string name="ui_a_0090" formatted="false">Welcome</string>
+    <string name="ui_a_0091" formatted="false">Fit to screen</string>
+    <string name="ui_a_0092" formatted="false">The personal-records snapshot is incomplete</string>
+    <string name="ui_a_0093" formatted="false">Failed to save personal records</string>
+    <string name="ui_a_0094" formatted="false">My favorites</string>
+    <string name="ui_a_0095" formatted="false">Frequently sung songs</string>
+    <string name="ui_a_0096" formatted="false">{\&quot;ok\&quot;:false,\&quot;code\&quot;:\&quot;NOT_FOUND\&quot;,\&quot;error\&quot;:\&quot;API not found\&quot;}</string>
+    <string name="ui_a_0097" formatted="false">Please connect to Wi-Fi or a wired LAN first</string>
+    <string name="ui_a_0098" formatted="false">Ports 8765-8775 are all in use</string>
+    <string name="ui_a_0099" formatted="false">Local service error</string>
+    <string name="ui_a_0100" formatted="false">Only LAN devices are allowed to access</string>
+    <string name="ui_a_0101" formatted="false">Invalid request format</string>
+    <string name="ui_a_0102" formatted="false">Invalid request origin</string>
+    <string name="ui_a_0103" formatted="false">The service is not ready yet</string>
+    <string name="ui_a_0104" formatted="false">API not found</string>
+    <string name="ui_a_0105" formatted="false">Page resource missing</string>
+    <string name="ui_a_0106" formatted="false">Logo resource missing</string>
+    <string name="ui_a_0107" formatted="false">Cloud drive configuration updated. Select cloud storage, then tap "Add songs now" to scan songs.</string>
+    <string name="ui_a_0108" formatted="false">Home</string>
+    <string name="ui_a_0109" formatted="false">Download interrupted. You can retry</string>
+    <string name="ui_a_0110" formatted="false">Complete</string>
+    <string name="ui_a_0111">Failed：%1$s</string>
+    <string name="ui_a_0112" formatted="false">The app restarted; waiting to retry</string>
+    <string name="ui_a_0113">Old cache cleared: %1$s files, %2$s bytes</string>
+    <string name="ui_a_0114" formatted="false">Failed to migrate personal song records; the original records were kept</string>
+    <string name="ui_a_0115" formatted="false">LibraryProcessing，Please waitRetry</string>
+    <string name="ui_a_0116" formatted="false">Checking for i歌霸 library updates…</string>
+    <string name="ui_a_0117" formatted="false">Could not connect to the i歌霸 library. Check your network.</string>
+    <string name="ui_a_0118" formatted="false">Could not open the updated library</string>
+    <string name="ui_a_0119">Library updated, %1$s songs in total</string>
+    <string name="ui_a_0120" formatted="false">The library is up to date</string>
+    <string name="ui_a_0121" formatted="false">Library update failed; the original library has been kept</string>
+    <string name="ui_a_0122" formatted="false">Syncing the song library</string>
+    <string name="ui_a_0123" formatted="false">Organizing the catalog</string>
+    <string name="ui_a_0124" formatted="false">Verifying the database</string>
+    <string name="ui_a_0125" formatted="false">hot\u0001\u0001All\u0001</string>
+    <string name="ui_a_0126" formatted="false">Checking for updates...</string>
+    <string name="ui_a_0127">Already up to date: %1$s</string>
+    <string name="ui_a_0128" formatted="false">Check for updatesFailed</string>
+    <string name="ui_a_0129" formatted="false">A new version is available. Please update now.</string>
+    <string name="ui_a_0130">New version available %1$s</string>
+    <string name="ui_a_0131" formatted="false">Later</string>
+    <string name="ui_a_0132" formatted="false">Download and install</string>
+    <string name="ui_a_0133">Downloading %1$s…</string>
+    <string name="ui_a_0134" formatted="false">App update</string>
+    <string name="ui_a_0135" formatted="false">Background download</string>
+    <string name="ui_a_0136">Downloading %1$s… %2$s%%</string>
+    <string name="ui_a_0137" formatted="false">Download complete</string>
+    <string name="ui_a_0138">Version %1$s downloaded. Install now?</string>
+    <string name="ui_a_0139" formatted="false">Install</string>
+    <string name="ui_a_0140" formatted="false">UpdateFailed</string>
+    <string name="ui_a_0141" formatted="false">Could not download the installer</string>
+    <string name="ui_a_0142" formatted="false">OK</string>
+    <string name="ui_a_0143" formatted="false">Quick access</string>
+    <string name="ui_a_0144" formatted="false">New releases</string>
+    <string name="ui_a_0145" formatted="false">New online/local songs</string>
+    <string name="ui_a_0146" formatted="false">Top charts</string>
+    <string name="ui_a_0147" formatted="false">Sorted by requests</string>
+    <string name="ui_a_0148" formatted="false">Singer request</string>
+    <string name="ui_a_0149" formatted="false">Find by singer</string>
+    <string name="ui_a_0150" formatted="false">Language request</string>
+    <string name="ui_a_0151" formatted="false">Chinese/Cantonese/Foreign</string>
+    <string name="ui_a_0152" formatted="false">Word count request</string>
+    <string name="ui_a_0153" formatted="false">Find by title length</string>
+    <string name="ui_a_0154" formatted="false">Pinyin search</string>
+    <string name="ui_a_0155" formatted="false">Supports initials / title / singer</string>
+    <string name="ui_a_0156" formatted="false">Quick request of favorite songs</string>
+    <string name="ui_a_0157" formatted="false">My playlists</string>
+    <string name="ui_a_0158" formatted="false">Locally created playlists</string>
+    <string name="ui_a_0159" formatted="false">Import from USB</string>
+    <string name="ui_a_0160" formatted="false">Scan import folder</string>
+    <string name="ui_a_0161" formatted="false">Downloads</string>
+    <string name="ui_a_0162" formatted="false">Download from online library</string>
+    <string name="ui_a_0163" formatted="false">Volume &amp; pitch</string>
+    <string name="ui_a_0164" formatted="false">Original / accompaniment / volume / key</string>
+    <string name="ui_a_0165" formatted="false">Atmosphere mode</string>
+    <string name="ui_a_0166" formatted="false">Singing score</string>
+    <string name="ui_a_0167" formatted="false">Scoring off</string>
+    <string name="ui_a_0168" formatted="false">LocalRecording</string>
+    <string name="ui_a_0169" formatted="false">Record singing audio</string>
+    <string name="ui_a_0170" formatted="false">Recording in progress</string>
+    <string name="ui_a_0171" formatted="false">Mobile song request</string>
+    <string name="ui_a_0172" formatted="false">Marquee</string>
+    <string name="ui_a_0173" formatted="false">Marquee off</string>
+    <string name="ui_a_0174" formatted="false">Disco lights</string>
+    <string name="ui_a_0175" formatted="false">Local movies</string>
+    <string name="ui_a_0176" formatted="false">User MV / video playback</string>
+    <string name="ui_a_0177" formatted="false">Network settings</string>
+    <string name="ui_a_0178" formatted="false">Screen settings</string>
+    <string name="ui_a_0179" formatted="false">App tools</string>
+    <string name="ui_a_0180" formatted="false">Local tools / maintenance</string>
+    <string name="ui_a_0181" formatted="false">Library maintenance</string>
+    <string name="ui_a_0182" formatted="false">Clean / rebuild / export</string>
+    <string name="ui_a_0183" formatted="false">Room broadcast</string>
+    <string name="ui_a_0184" formatted="false">Broadcast off</string>
+    <string name="ui_a_0185" formatted="false">Playback preview</string>
+    <string name="ui_a_0186" formatted="false">Pause/Continue</string>
+    <string name="ui_a_0187" formatted="false">Replay</string>
+    <string name="ui_a_0188" formatted="false">Next</string>
+    <string name="ui_a_0189" formatted="false">Single loop</string>
+    <string name="ui_a_0190" formatted="false">Sequential play</string>
+    <string name="ui_a_0191" formatted="false">Audio control</string>
+    <string name="ui_a_0192" formatted="false">Recording</string>
+    <string name="ui_a_0193" formatted="false">StopRecording</string>
+    <string name="ui_a_0194" formatted="false">Status</string>
+    <string name="ui_a_0195" formatted="false">Selected </string>
+    <string name="ui_a_0196" formatted="false">Select song</string>
+    <string name="ui_a_0197" formatted="false">Category</string>
+    <string name="ui_a_0198" formatted="false">Local</string>
+    <string name="ui_a_0199" formatted="false">Online</string>
+    <string name="ui_a_0200" formatted="false">Online sync</string>
+    <string name="ui_a_0201" formatted="false">Enter song title / artist / pinyin initials</string>
+    <string name="ui_a_0202" formatted="false">Keyboard</string>
+    <string name="ui_a_0203" formatted="false">Search</string>
+    <string name="ui_a_0204" formatted="false">Previous page</string>
+    <string name="ui_a_0205" formatted="false">Next page</string>
+    <string name="ui_a_0206" formatted="false">Artists</string>
+    <string name="ui_a_0207" formatted="false">SingerCategory</string>
+    <string name="ui_a_0208" formatted="false">Artist list</string>
+    <string name="ui_a_0209" formatted="false">SingerSong</string>
+    <string name="ui_a_0210" formatted="false">All singers</string>
+    <string name="ui_a_0211" formatted="false">Foreign</string>
+    <string name="ui_a_0212" formatted="false">China</string>
+    <string name="ui_a_0213" formatted="false">Popular singers</string>
+    <string name="ui_a_0214" formatted="false">Mainland</string>
+    <string name="ui_a_0215" formatted="false">Group/Band</string>
+    <string name="ui_a_0216" formatted="false">Loading artists...</string>
+    <string name="ui_a_0217" formatted="false">Loaded </string>
+    <string name="ui_a_0218" formatted="false"> artists</string>
+    <string name="ui_a_0219" formatted="false">Language</string>
+    <string name="ui_a_0220" formatted="false">Word count</string>
+    <string name="ui_a_0221" formatted="false">Song titleWord count</string>
+    <string name="ui_a_0222" formatted="false">1 character</string>
+    <string name="ui_a_0223" formatted="false">2 characters</string>
+    <string name="ui_a_0224" formatted="false">3 characters</string>
+    <string name="ui_a_0225" formatted="false">4 characters</string>
+    <string name="ui_a_0226" formatted="false">5 characters</string>
+    <string name="ui_a_0227" formatted="false">6+ characters</string>
+    <string name="ui_a_0228" formatted="false">Charts</string>
+    <string name="ui_a_0229" formatted="false">Selected</string>
+    <string name="ui_a_0230" formatted="false">Play the first song</string>
+    <string name="ui_a_0231" formatted="false">Priority</string>
+    <string name="ui_a_0232" formatted="false">Delete</string>
+    <string name="ui_a_0233" formatted="false">Clear</string>
+    <string name="ui_a_0234" formatted="false">History</string>
+    <string name="ui_a_0235" formatted="false">History records</string>
+    <string name="ui_a_0236" formatted="false">Download</string>
+    <string name="ui_a_0237" formatted="false">Download actions</string>
+    <string name="ui_a_0238" formatted="false">Sync the online library</string>
+    <string name="ui_a_0239" formatted="false">Configure the online source</string>
+    <string name="ui_a_0240" formatted="false">Rescan local songs</string>
+    <string name="ui_a_0241" formatted="false">CancelAllDownload</string>
+    <string name="ui_a_0242" formatted="false">Cleanup complete</string>
+    <string name="ui_a_0243" formatted="false">Clear failed tasks</string>
+    <string name="ui_a_0244" formatted="false">Failed</string>
+    <string name="ui_a_0245" formatted="false">Cancelled</string>
+    <string name="ui_a_0246" formatted="false">Download queue</string>
+    <string name="ui_a_0247" formatted="false">Cancelling</string>
+    <string name="ui_a_0248" formatted="false">USB</string>
+    <string name="ui_a_0249" formatted="false">Import from local</string>
+    <string name="ui_a_0250" formatted="false">Please place songs in /sdcard/MaidongKTV/import, /sdcard/MaidongKTV/songs, USB/KTV, or USB/songs. Supported formats: mp4/mkv/avi/mp3/flac/wav</string>
+    <string name="ui_a_0251" formatted="false">🎤  Singing mode</string>
+    <string name="ui_a_0252" formatted="false">🔊  Audio controls</string>
+    <string name="ui_a_0253" formatted="false">🌐  Channel settings</string>
+    <string name="ui_a_0254" formatted="false">🎚  Pitch control</string>
+    <string name="ui_a_0255" formatted="false">📺  Display settings</string>
+    <string name="ui_a_0256" formatted="false">📃  Marquee</string>
+    <string name="ui_a_0257" formatted="false">📶  Network settings</string>
+    <string name="ui_a_0258" formatted="false">ℹ  About</string>
+    <string name="ui_a_0259" formatted="false">Singing mode</string>
+    <string name="ui_a_0260" formatted="false">Practice mode</string>
+    <string name="ui_a_0261" formatted="false">Scoring</string>
+    <string name="ui_a_0262" formatted="false">Mute practice</string>
+    <string name="ui_a_0263" formatted="false">Audio controls</string>
+    <string name="ui_a_0264" formatted="false">Microphone volume</string>
+    <string name="ui_a_0265" formatted="false">MusicVolume</string>
+    <string name="ui_a_0266" formatted="false">Pitch</string>
+    <string name="ui_a_0267" formatted="false"> semitones</string>
+    <string name="ui_a_0268" formatted="false">Original vocal mode</string>
+    <string name="ui_a_0269" formatted="false">On</string>
+    <string name="ui_a_0270" formatted="false">Off</string>
+    <string name="ui_a_0271" formatted="false">Channel mode</string>
+    <string name="ui_a_0272" formatted="false">Channel</string>
+    <string name="ui_a_0273" formatted="false">Left accompaniment, right original</string>
+    <string name="ui_a_0274" formatted="false">Right accompaniment, left original</string>
+    <string name="ui_a_0275" formatted="false">All channels</string>
+    <string name="ui_a_0276" formatted="false">Pitch control</string>
+    <string name="ui_a_0277" formatted="false">Pitch -</string>
+    <string name="ui_a_0278" formatted="false">Lower pitch</string>
+    <string name="ui_a_0279" formatted="false">Pitch +</string>
+    <string name="ui_a_0280" formatted="false">Raise pitch</string>
+    <string name="ui_a_0281" formatted="false">Display settings</string>
+    <string name="ui_a_0282" formatted="false">Aspect ratio</string>
+    <string name="ui_a_0283" formatted="false">Picture quality</string>
+    <string name="ui_a_0284" formatted="false">High</string>
+    <string name="ui_a_0285" formatted="false">Fullscreen mode</string>
+    <string name="ui_a_0286" formatted="false">Yes</string>
+    <string name="ui_a_0287" formatted="false">Marquee status</string>
+    <string name="ui_a_0288" formatted="false">Marquee text</string>
+    <string name="ui_a_0289" formatted="false">麦动 Welcome</string>
+    <string name="ui_a_0290" formatted="false">Scroll speed</string>
+    <string name="ui_a_0291" formatted="false">Normal</string>
+    <string name="ui_a_0292" formatted="false">Current network</string>
+    <string name="ui_a_0293" formatted="false">WIFI Connected</string>
+    <string name="ui_a_0294" formatted="false">Primary CDN address</string>
+    <string name="ui_a_0295" formatted="false">Backup CDN address</string>
+    <string name="ui_a_0296" formatted="false">Dynamically returned by the song source</string>
+    <string name="ui_a_0297" formatted="false">About</string>
+    <string name="ui_a_0298" formatted="false">App name</string>
+    <string name="ui_a_0299" formatted="false">麦动</string>
+    <string name="ui_a_0300" formatted="false">Version</string>
+    <string name="ui_a_0301" formatted="false">Library</string>
+    <string name="ui_a_0302" formatted="false">Loaded (</string>
+    <string name="ui_a_0303" formatted="false"> songs)</string>
+    <string name="ui_a_0304" formatted="false">Not loaded</string>
+    <string name="ui_a_0305" formatted="false">Original</string>
+    <string name="ui_a_0306" formatted="false">Vocal Off</string>
+    <string name="ui_a_0307" formatted="false">Back</string>
+    <string name="ui_a_0308" formatted="false">Back to Select</string>
+    <string name="ui_a_0309" formatted="false">Pause</string>
+    <string name="ui_a_0310" formatted="false">Play</string>
+    <string name="ui_a_0311" formatted="false">Tune</string>
+    <string name="ui_a_0312" formatted="false">Vol -</string>
+    <string name="ui_a_0313" formatted="false">Vol +</string>
+    <string name="ui_a_0314" formatted="false">Mute</string>
+    <string name="ui_a_0315" formatted="false">Playback</string>
+    <string name="ui_a_0316" formatted="false">Singing mode: </string>
+    <string name="ui_a_0317" formatted="false">Vocal channel: </string>
+    <string name="ui_a_0318" formatted="false">弹窗-调音.jpg</string>
+    <string name="ui_a_0319" formatted="false">Pop</string>
+    <string name="ui_a_0320" formatted="false">Lyric</string>
+    <string name="ui_a_0321" formatted="false">Rock</string>
+    <string name="ui_a_0322" formatted="false">Virtuoso</string>
+    <string name="ui_a_0323" formatted="false">Sound effect: </string>
+    <string name="ui_a_0324" formatted="false">Lively</string>
+    <string name="ui_a_0325" formatted="false">Soft</string>
+    <string name="ui_a_0326" formatted="false">Party</string>
+    <string name="ui_a_0327" formatted="false">Atmosphere mode: </string>
+    <string name="ui_a_0328" formatted="false">Current song:</string>
+    <string name="ui_a_0329" formatted="false">None</string>
+    <string name="ui_a_0330" formatted="false">\nSelected：</string>
+    <string name="ui_a_0331" formatted="false">\nHistory:</string>
+    <string name="ui_a_0332" formatted="false">\nMode:</string>
+    <string name="ui_a_0333" formatted="false">Manual next</string>
+    <string name="ui_a_0334" formatted="false">\nChannel:</string>
+    <string name="ui_a_0335" formatted="false">\nChannel mode:</string>
+    <string name="ui_a_0336" formatted="false">\nSinging mode:</string>
+    <string name="ui_a_0337" formatted="false">\nMusicVolume：</string>
+    <string name="ui_a_0338" formatted="false">\nMicrophone volume:</string>
+    <string name="ui_a_0339" formatted="false">\nPitch:</string>
+    <string name="ui_a_0340" formatted="false">\nAtmosphere:</string>
+    <string name="ui_a_0341" formatted="false">\nScoring：</string>
+    <string name="ui_a_0342" formatted="false">\nRecording：</string>
+    <string name="ui_a_0343" formatted="false">Not recording</string>
+    <string name="ui_a_0344" formatted="false">Recording</string>
+    <string name="ui_a_0345" formatted="false">\nLighting:</string>
+    <string name="ui_a_0346" formatted="false">\nMarquee:</string>
+    <string name="ui_a_0347" formatted="false">\nA/V sync：</string>
+    <string name="ui_a_0348" formatted="false">\nRoom broadcast:</string>
+    <string name="ui_a_0349" formatted="false">Playback status</string>
+    <string name="ui_a_0350" formatted="false">Song directory:</string>
+    <string name="ui_a_0351" formatted="false">\nAvailable space:</string>
+    <string name="ui_a_0352" formatted="false">\nImport directory:</string>
+    <string name="ui_a_0353" formatted="false">\nRecording directory:</string>
+    <string name="ui_a_0354" formatted="false">\nTotal songs in library:</string>
+    <string name="ui_a_0355" formatted="false">\nDownload tasks:</string>
+    <string name="ui_a_0356" formatted="false">Storage info</string>
+    <string name="ui_a_0357" formatted="false">Network status:</string>
+    <string name="ui_a_0358" formatted="false">Connected</string>
+    <string name="ui_a_0359" formatted="false">Disconnected</string>
+    <string name="ui_a_0360" formatted="false">\nNetwork type:</string>
+    <string name="ui_a_0361" formatted="false">Unknown</string>
+    <string name="ui_a_0362" formatted="false">\nLibrary source:</string>
+    <string name="ui_a_0363" formatted="false">Not set</string>
+    <string name="ui_a_0364" formatted="false">\nLocalLibrary：</string>
+    <string name="ui_a_0365" formatted="false"> songs</string>
+    <string name="ui_a_0366" formatted="false">Network status</string>
+    <string name="ui_a_0367" formatted="false">Sync library</string>
+    <string name="ui_a_0368" formatted="false">App</string>
+    <string name="ui_a_0369" formatted="false">Configuration backup</string>
+    <string name="ui_a_0370" formatted="false">Local tools</string>
+    <string name="ui_a_0371" formatted="false">Song request</string>
+    <string name="ui_a_0372" formatted="false">SingerCategory</string>
+    <string name="ui_a_0373" formatted="false">Add songs from USB</string>
+    <string name="ui_a_0374" formatted="false">User videos</string>
+    <string name="ui_a_0375" formatted="false">RecordingScoring</string>
+    <string name="ui_a_0376" formatted="false">Open</string>
+    <string name="ui_a_0377" formatted="false">Local APK / update package</string>
+    <string name="ui_a_0378" formatted="false">No APK found. Please place it in /sdcard/MaidongKTV/apps or USB/apps</string>
+    <string name="ui_a_0379" formatted="false">Broadcast</string>
+    <string name="ui_a_0380" formatted="false">Broadcasting: On</string>
+    <string name="ui_a_0381" formatted="false">Broadcasting: Off</string>
+    <string name="ui_a_0382" formatted="false">Send current broadcast</string>
+    <string name="ui_a_0383" formatted="false">Duration -</string>
+    <string name="ui_a_0384" formatted="false">Duration +</string>
+    <string name="ui_a_0385" formatted="false">Broadcast content</string>
+    <string name="ui_a_0386" formatted="false">Enter room broadcast message</string>
+    <string name="ui_a_0387" formatted="false">Save and send</string>
+    <string name="ui_a_0388" formatted="false">Display duration: </string>
+    <string name="ui_a_0389" formatted="false"> s</string>
+    <string name="ui_a_0390" formatted="false">Broadcast history</string>
+    <string name="ui_a_0391" formatted="false">No broadcast history</string>
+    <string name="ui_a_0392" formatted="false">Backup</string>
+    <string name="ui_a_0393" formatted="false">Back up current settings</string>
+    <string name="ui_a_0394" formatted="false">Restore from backup</string>
+    <string name="ui_a_0395" formatted="false">OpenLibrary maintenance</string>
+    <string name="ui_a_0396" formatted="false">Backup info</string>
+    <string name="ui_a_0397" formatted="false">Backup folder: </string>
+    <string name="ui_a_0398" formatted="false">No backups</string>
+    <string name="ui_a_0399" formatted="false">Maintenance</string>
+    <string name="ui_a_0400" formatted="false">Rescan the local library</string>
+    <string name="ui_a_0401" formatted="false">Clear the online cache</string>
+    <string name="ui_a_0402" formatted="false">Online library cache cleared</string>
+    <string name="ui_a_0403" formatted="false">No online cache to clear</string>
+    <string name="ui_a_0404" formatted="false">Clear download tasks</string>
+    <string name="ui_a_0405" formatted="false">Remove invalid requests</string>
+    <string name="ui_a_0406" formatted="false">Restore hidden songs</string>
+    <string name="ui_a_0407" formatted="false">Hidden songs restored</string>
+    <string name="ui_a_0408" formatted="false">Library overview</string>
+    <string name="ui_a_0409" formatted="false">Total library:</string>
+    <string name="ui_a_0410" formatted="false">Selected：</string>
+    <string name="ui_a_0411" formatted="false">History:</string>
+    <string name="ui_a_0412" formatted="false">Download tasks:</string>
+    <string name="ui_a_0413" formatted="false">Hidden songs:</string>
+    <string name="ui_a_0414" formatted="false">Local directory:</string>
+    <string name="ui_a_0415" formatted="false">Import folder: </string>
+    <string name="ui_a_0416" formatted="false">Connect to Wi-Fi or a wired LAN and retry</string>
+    <string name="ui_a_0417" formatted="false">Detect again</string>
+    <string name="ui_a_0418" formatted="false">Scan the QR code on the same LAN to select songs</string>
+    <string name="ui_a_0419" formatted="false">Scan to select song</string>
+    <string name="ui_a_0420" formatted="false">QR code for mobile song selection</string>
+    <string name="ui_a_0421" formatted="false">Scan the QR code to select songs on your phone</string>
+    <string name="ui_a_0422" formatted="false">Show the QR code only in the menu</string>
+    <string name="ui_a_0423" formatted="false">Show the QR code at the bottom right of the playback screen</string>
+    <string name="ui_a_0424" formatted="false">View QR code</string>
+    <string name="ui_a_0425" formatted="false">Switch to Original remotely</string>
+    <string name="ui_a_0426" formatted="false">Switch to Vocal Off remotely</string>
+    <string name="ui_a_0427" formatted="false">Remote lighting: </string>
+    <string name="ui_a_0428" formatted="false">Remote marquee: </string>
+    <string name="ui_a_0429" formatted="false">Clear Selected remotely</string>
+    <string name="ui_a_0430" formatted="false">Delete Selected remotely:</string>
+    <string name="ui_a_0431" formatted="false">Favorites remotely:</string>
+    <string name="ui_a_0432" formatted="false">The library is initializing or resetting. Please try again later</string>
+    <string name="ui_a_0433" formatted="false">Invalid request parameters</string>
+    <string name="ui_a_0434" formatted="false">Player status is not available yet</string>
+    <string name="ui_a_0435" formatted="false">Library unavailable</string>
+    <string name="ui_a_0436" formatted="false">Missing artist ID</string>
+    <string name="ui_a_0437" formatted="false">Download task status is not available yet</string>
+    <string name="ui_a_0438" formatted="false">Waiting to download</string>
+    <string name="ui_a_0439" formatted="false">Missing song ID</string>
+    <string name="ui_a_0440" formatted="false">The song does not exist or the search result has expired</string>
+    <string name="ui_a_0441" formatted="false">Please sign in to your i歌霸 account in 麦动 first</string>
+    <string name="ui_a_0442" formatted="false">The song is already in the request list</string>
+    <string name="ui_a_0443" formatted="false">Song requested successfully</string>
+    <string name="ui_a_0444" formatted="false">The requested song does not exist</string>
+    <string name="ui_a_0445" formatted="false">The song currently playing cannot be modified</string>
+    <string name="ui_a_0446" formatted="false">Set as priority</string>
+    <string name="ui_a_0447" formatted="false">Deleted</string>
+    <string name="ui_a_0448" formatted="false">Unsupported playback operation</string>
+    <string name="ui_a_0449" formatted="false">Operation completed</string>
+    <string name="ui_a_0450" formatted="false">Missing audio parameters</string>
+    <string name="ui_a_0451" formatted="false">Invalid original/accompaniment parameter</string>
+    <string name="ui_a_0452" formatted="false">Volume must be between 0 and 100</string>
+    <string name="ui_a_0453" formatted="false">Audio settings updated</string>
+    <string name="ui_a_0454" formatted="false">Current: </string>
+    <string name="ui_a_0455" formatted="false">On</string>
+    <string name="ui_a_0456" formatted="false">Closed</string>
+    <string name="ui_a_0457" formatted="false">Recent: </string>
+    <string name="ui_a_0458" formatted="false">Scoring records</string>
+    <string name="ui_a_0459" formatted="false">No scoring history</string>
+    <string name="ui_a_0460" formatted="false">CloseScoring</string>
+    <string name="ui_a_0461" formatted="false">Enable scoring</string>
+    <string name="ui_a_0462" formatted="false">Recording actions</string>
+    <string name="ui_a_0463" formatted="false">StartRecording</string>
+    <string name="ui_a_0464" formatted="false">Refresh the list</string>
+    <string name="ui_a_0465" formatted="false">Recording: On</string>
+    <string name="ui_a_0466" formatted="false">Recording: Off</string>
+    <string name="ui_a_0467" formatted="false">Recording files</string>
+    <string name="ui_a_0468" formatted="false">No recordings</string>
+    <string name="ui_a_0469" formatted="false">Marquee text</string>
+    <string name="ui_a_0470" formatted="false">Marquee settings</string>
+    <string name="ui_a_0471" formatted="false">Save</string>
+    <string name="ui_a_0472" formatted="false">Marquee settings saved</string>
+    <string name="ui_a_0473" formatted="false">On</string>
+    <string name="ui_a_0474" formatted="false">Disco</string>
+    <string name="ui_a_0475" formatted="false">Lighting / Disco</string>
+    <string name="ui_a_0476" formatted="false">Turn on room lights</string>
+    <string name="ui_a_0477" formatted="false">Turn off room lights</string>
+    <string name="ui_a_0478" formatted="false">Pause lights</string>
+    <string name="ui_a_0479" formatted="false">Mute lights</string>
+    <string name="ui_a_0480" formatted="false">Hot dance</string>
+    <string name="ui_a_0481" formatted="false">Turn all off</string>
+    <string name="ui_a_0482" formatted="false">Current mode</string>
+    <string name="ui_a_0483" formatted="false">Switch light effect</string>
+    <string name="ui_a_0484" formatted="false">This local version records light-effect states. When a real light controller is connected, these modes can be mapped to serial, HTTP, or IR commands.</string>
+    <string name="ui_a_0485" formatted="false">Movie actions</string>
+    <string name="ui_a_0486" formatted="false">Scan the video directory</string>
+    <string name="ui_a_0487" formatted="false">Directory: /sdcard/MaidongKTV/movies or USB/movies</string>
+    <string name="ui_a_0488" formatted="false">User MV / local videos</string>
+    <string name="ui_a_0489" formatted="false">No videos</string>
+    <string name="ui_a_0490" formatted="false">Connection:</string>
+    <string name="ui_a_0491" formatted="false">\nType:</string>
+    <string name="ui_a_0492" formatted="false">Testing library source...</string>
+    <string name="ui_a_0493" formatted="false">Library source available:</string>
+    <string name="ui_a_0494" formatted="false">Library source unavailable:</string>
+    <string name="ui_a_0495" formatted="false">Room broadcast turned off</string>
+    <string name="ui_a_0496" formatted="false">Room broadcast: </string>
+    <string name="ui_a_0497" formatted="false"> s)</string>
+    <string name="ui_a_0498" formatted="false">Broadcast sent</string>
+    <string name="ui_a_0499" formatted="false">Cleared: </string>
+    <string name="ui_a_0500" formatted="false">Recording turned off</string>
+    <string name="ui_a_0501" formatted="false">Recording:</string>
+    <string name="ui_a_0502" formatted="false">Could not start recording:</string>
+    <string name="ui_a_0503" formatted="false">Recording saved:</string>
+    <string name="ui_a_0504" formatted="false"> points    </string>
+    <string name="ui_a_0505" formatted="false">No score yet</string>
+    <string name="ui_a_0506" formatted="false"> points  </string>
+    <string name="ui_a_0507" formatted="false">Could not open the installer:</string>
+    <string name="ui_a_0508" formatted="false">Playing video:</string>
+    <string name="ui_a_0509" formatted="false">Video playback finished:</string>
+    <string name="ui_a_0510" formatted="false">Video playback failed:</string>
+    <string name="ui_a_0511" formatted="false">Configuration backed up</string>
+    <string name="ui_a_0512" formatted="false">Backup failed:</string>
+    <string name="ui_a_0513" formatted="false">No backup file</string>
+    <string name="ui_a_0514" formatted="false">No backup to restore</string>
+    <string name="ui_a_0515" formatted="false">The most recent state/catalog backup will be restored and the in-app state reloaded.</string>
+    <string name="ui_a_0516" formatted="false">Restore</string>
+    <string name="ui_a_0517" formatted="false">Restore complete</string>
+    <string name="ui_a_0518" formatted="false">Restore failed:</string>
+    <string name="ui_a_0519" formatted="false">Singer  </string>
+    <string name="ui_a_0520" formatted="false">Hong Kong, China</string>
+    <string name="ui_a_0521" formatted="false">Taiwan, China</string>
+    <string name="ui_a_0522" formatted="false">Cantonese</string>
+    <string name="ui_a_0523" formatted="false">Hokkien</string>
+    <string name="ui_a_0524" formatted="false">Japan</string>
+    <string name="ui_a_0525" formatted="false">South Korea</string>
+    <string name="ui_a_0526" formatted="false">Japanese</string>
+    <string name="ui_a_0527" formatted="false">Korean</string>
+    <string name="ui_a_0528" formatted="false">English</string>
+    <string name="ui_a_0529" formatted="false">English</string>
+    <string name="ui_a_0530" formatted="false">Foreign</string>
+    <string name="ui_a_0531" formatted="false">Band</string>
+    <string name="ui_a_0532" formatted="false">Unknown singer</string>
+    <string name="ui_a_0533" formatted="false">Local </string>
+    <string name="ui_a_0534" formatted="false">Paused</string>
+    <string name="ui_a_0535" formatted="false">Loading: </string>
+    <string name="ui_a_0536" formatted="false">PlayFailed：</string>
+    <string name="ui_a_0537" formatted="false">Please reconnect to the OpenList service this song belongs to</string>
+    <string name="ui_a_0538" formatted="false">Cloud drive song path is missing</string>
+    <string name="ui_a_0539" formatted="false">Song is outside the configured directories</string>
+    <string name="ui_a_0540" formatted="false">Could not load cloud drive song; skipped. Check the connection, token and directory permissions.</string>
+    <string name="ui_a_0541" formatted="false">Local song is not readable. Check the file, USB connection and directory permissions.</string>
+    <string name="ui_a_0542" formatted="false">Local file is unavailable. Downloading again...</string>
+    <string name="ui_a_0543" formatted="false">PlayFailed</string>
+    <string name="ui_a_0544" formatted="false">Download failed: </string>
+    <string name="ui_a_0545" formatted="false">Downloading: </string>
+    <string name="ui_a_0546" formatted="false">Download: </string>
+    <string name="ui_a_0547" formatted="false">PlayRetry </string>
+    <string name="ui_a_0548" formatted="false">Could not decode the current song. Playing the next one.</string>
+    <string name="ui_a_0549" formatted="false">Not playing</string>
+    <string name="ui_a_0550" formatted="false">Configure the OpenList connection and song directory first</string>
+    <string name="ui_a_0551" formatted="false">Failed to save the cloud-drive song index</string>
+    <string name="ui_a_0552" formatted="false">Song saved to the cloud drive</string>
+    <string name="ui_a_0553" formatted="false">SongSaveComplete</string>
+    <string name="ui_a_0554" formatted="false">Failed:</string>
+    <string name="ui_a_0555">Download failed: %2$s; skipped. You can retry or delete it in the download list: %1$s</string>
+    <string name="ui_a_0556" formatted="false">Playback finished. Select a song.</string>
+    <string name="ui_a_0557" formatted="false">PlayComplete</string>
+    <string name="ui_a_0558" formatted="false">, then tap Play to continue</string>
+    <string name="ui_a_0559" formatted="false">Selected queue finished. Playing random local songs...</string>
+    <string name="ui_a_0560">Shuffle：%1$s</string>
+    <string name="ui_a_0561" formatted="false">Playback finished. No local songs available to play.</string>
+    <string name="ui_a_0562" formatted="false">(channel </string>
+    <string name="ui_a_0563" formatted="false">Original vocal track selected</string>
+    <string name="ui_a_0564" formatted="false">Vocal Off track selected</string>
+    <string name="ui_a_0565" formatted="false">Could not play the external original vocal; restored the main track</string>
+    <string name="ui_a_0566" formatted="false">Could not load the external original vocal:</string>
+    <string name="ui_a_0567" formatted="false">Lyrics file:</string>
+    <string name="ui_a_0568" formatted="false">Only LRC lyrics are supported for now</string>
+    <string name="ui_a_0569" formatted="false">Could not read lyrics</string>
+    <string name="ui_a_0570">Pinned: %1$s</string>
+    <string name="ui_a_0571" formatted="false">CancelFavorites</string>
+    <string name="ui_a_0572" formatted="false">Favorites</string>
+    <string name="ui_a_0573" formatted="false">Added to Favorites</string>
+    <string name="ui_a_0574" formatted="false">CancelledFavorites</string>
+    <string name="ui_a_0575" formatted="false">Save to</string>
+    <string name="ui_a_0576" formatted="false">Delete local file</string>
+    <string name="ui_a_0577" formatted="false">Delete remote file</string>
+    <string name="ui_a_0578">Delete the local file of %1$s? The song will remain in the library.</string>
+    <string name="ui_a_0579" formatted="false">Connect to the OpenList service this song belongs to first</string>
+    <string name="ui_a_0580">Delete the original OpenList/NAS file of "%1$s"?\nLocation: %2$s\nThe local copy will not be deleted, and other devices will no longer be able to access this remote file.</string>
+    <string name="ui_a_0581" formatted="false">The song currently playing cannot be deleted</string>
+    <string name="ui_a_0582" formatted="false">Deleting remote file...</string>
+    <string name="ui_a_0583" formatted="false">Remote file deleted</string>
+    <string name="ui_a_0584" formatted="false">The remote file was deleted and the index could not be updated. Please rescan the cloud drive</string>
+    <string name="ui_a_0585" formatted="false">Could not delete remotely. Check the connection and delete permissions.</string>
+    <string name="ui_a_0586" formatted="false">Song title：</string>
+    <string name="ui_a_0587" formatted="false">\nSinger：</string>
+    <string name="ui_a_0588" formatted="false">\nCategory：</string>
+    <string name="ui_a_0589" formatted="false">\nLanguage：</string>
+    <string name="ui_a_0590" formatted="false">\nPinyin:</string>
+    <string name="ui_a_0591" formatted="false">\nOriginal vocal source:</string>
+    <string name="ui_a_0592" formatted="false">\nAccompaniment source:</string>
+    <string name="ui_a_0593" formatted="false">\nLyrics source:</string>
+    <string name="ui_a_0594" formatted="false">\nSource:</string>
+    <string name="ui_a_0595" formatted="false">OnlineLibrary</string>
+    <string name="ui_a_0596" formatted="false">Song information</string>
+    <string name="ui_a_0597" formatted="false">Downloaded locally</string>
+    <string name="ui_a_0598" formatted="false">Available online</string>
+    <string name="ui_a_0599" formatted="false">Remove from online library</string>
+    <string name="ui_a_0600" formatted="false">This will hide this online-library song on this device.</string>
+    <string name="ui_a_0601" formatted="false">This will delete the local file and remove it from requests, favorites, and playlists.</string>
+    <string name="ui_a_0602" formatted="false">Could not delete file</string>
+    <string name="ui_a_0603" formatted="false">Removed: </string>
+    <string name="ui_a_0604" formatted="false">Playlist name</string>
+    <string name="ui_a_0605" formatted="false">New playlist</string>
+    <string name="ui_a_0606" formatted="false">Create</string>
+    <string name="ui_a_0607" formatted="false">Syncing online library...</string>
+    <string name="ui_a_0608" formatted="false">Online library synced:</string>
+    <string name="ui_a_0609" formatted="false">Could not sync online library:</string>
+    <string name="ui_a_0610" formatted="false">Scanning cloud drive songs...</string>
+    <string name="ui_a_0611" formatted="false">Scanning library...</string>
+    <string name="ui_a_0612">Library updated: %2$s local songs, %1$s in total</string>
+    <string name="ui_a_0613" formatted="false">LibraryScanFailed</string>
+    <string name="ui_a_0614" formatted="false">Library scan failed. Check the save location.</string>
+    <string name="ui_a_0615" formatted="false">http://your-server/catalog.json</string>
+    <string name="ui_a_0616" formatted="false">Online library source</string>
+    <string name="ui_a_0617" formatted="false">JSON: [{\&quot;title\&quot;:\&quot;Song title\&quot;,\&quot;singer\&quot;:\&quot;Singer\&quot;,\&quot;category\&quot;:\&quot;Category\&quot;,\&quot;url\&quot;:\&quot;http://.../song.mp4\&quot;}]</string>
+    <string name="ui_a_0618" formatted="false">Save and sync</string>
+    <string name="ui_a_0619" formatted="false">Del</string>
+    <string name="ui_a_0620" formatted="false">Clr</string>
+    <string name="ui_a_0621" formatted="false">Space</string>
+    <string name="ui_a_0622" formatted="false">  Download</string>
+    <string name="ui_a_0623" formatted="false">  Select song</string>
+    <string name="ui_a_0624" formatted="false">Now playing: </string>
+    <string name="ui_a_0625" formatted="false">Deleted: </string>
+    <string name="ui_a_0626" formatted="false">Home</string>
+    <string name="ui_a_0627" formatted="false"> / Home</string>
+    <string name="ui_a_0628" formatted="false">Ⅱ\nPause</string>
+    <string name="ui_a_0629" formatted="false">♟\nOriginal</string>
+    <string name="ui_a_0630" formatted="false">♛\nVocal Off</string>
+    <string name="ui_a_0631" formatted="false">Home / Song title</string>
+    <string name="ui_a_0632" formatted="false">Home / Quick search</string>
+    <string name="ui_a_0633" formatted="false">Home / Selected</string>
+    <string name="ui_a_0634" formatted="false">Home / Local</string>
+    <string name="ui_a_0635" formatted="false">Songs you may like</string>
+    <string name="ui_a_0636">Select all (%1$s songs)</string>
+    <string name="ui_a_0637">Select all (%1$s songs)</string>
+    <string name="ui_a_0638">Select all (%1$s songs)</string>
+    <string name="ui_a_0639">You have sung %1$s times</string>
+    <string name="ui_a_0640" formatted="false">No.1 on the Rising chart</string>
+    <string name="ui_a_0641" formatted="false">Top 5 on the New Songs chart</string>
+    <string name="ui_a_0642" formatted="false">No.1 on the Douyin chart</string>
+    <string name="ui_a_0643" formatted="false">Popular hits</string>
+    <string name="ui_a_0644">Top %1$s hits</string>
+    <string name="ui_a_0645">Selected: %1$s</string>
+    <string name="ui_a_0646" formatted="false">All sources</string>
+    <string name="ui_a_0647">Category，%1$s</string>
+    <string name="ui_a_0648" formatted="false">Home / Charts</string>
+    <string name="ui_a_0649" formatted="false">Charts</string>
+    <string name="ui_a_0650" formatted="false">Loading library…</string>
+    <string name="ui_a_0651" formatted="false">Hot Songs chart</string>
+    <string name="ui_a_0652" formatted="false">Home / Genres</string>
+    <string name="ui_a_0653">Home / Category / %1$s</string>
+    <string name="ui_a_0654" formatted="false">Home / Language</string>
+    <string name="ui_a_0655" formatted="false">Home / Word count</string>
+    <string name="ui_a_0656" formatted="false">2 characters</string>
+    <string name="ui_a_0657" formatted="false">3 characters</string>
+    <string name="ui_a_0658" formatted="false">4 characters</string>
+    <string name="ui_a_0659" formatted="false">5 characters</string>
+    <string name="ui_a_0660" formatted="false">6 characters</string>
+    <string name="ui_a_0661" formatted="false">7+ characters</string>
+    <string name="ui_a_0662" formatted="false">Home / Artists</string>
+    <string name="ui_a_0663" formatted="false">Mainland Male</string>
+    <string name="ui_a_0664" formatted="false">Mainland Female</string>
+    <string name="ui_a_0665" formatted="false">Hong Kong &amp; Taiwan Male</string>
+    <string name="ui_a_0666" formatted="false">Hong Kong &amp; Taiwan Female</string>
+    <string name="ui_a_0667" formatted="false">Chinese Groups</string>
+    <string name="ui_a_0668" formatted="false">Foreign Groups</string>
+    <string name="ui_a_0669" formatted="false">Home / Artists / </string>
+    <string name="ui_a_0670" formatted="false">Home / Playlist</string>
+    <string name="ui_a_0671" formatted="false">No playlists</string>
+    <string name="ui_a_0672" formatted="false">Selected songs (</string>
+    <string name="ui_a_0673" formatted="false">Home / Download</string>
+    <string name="ui_a_0674" formatted="false">No download tasks</string>
+    <string name="ui_a_0675" formatted="false">Home / History</string>
+    <string name="ui_a_0676" formatted="false">History (</string>
+    <string name="ui_a_0677" formatted="false">Home / Favorites</string>
+    <string name="ui_a_0678" formatted="false">No favorites yet. Long-press a song to add it to Favorites.</string>
+    <string name="ui_a_0679" formatted="false">Switched to English</string>
+    <string name="ui_a_0680">Current version %1$s. Update source: Gitee Release</string>
+    <string name="ui_a_0681" formatted="false">Wi-Fi network</string>
+    <string name="ui_a_0682">Database: %1$s songs   Downloaded locally: %2$s songs</string>
+    <string name="ui_a_0683" formatted="false">Add songs now</string>
+    <string name="ui_a_0684" formatted="false">Cloud drive songs added to the library and ready to search</string>
+    <string name="ui_a_0685" formatted="false">Detecting USB / memory card...</string>
+    <string name="ui_a_0686" formatted="false">Select USB / memory card</string>
+    <string name="ui_a_0687">External storage %1$s</string>
+    <string name="ui_a_0688">New downloads will be saved to external storage %1$s</string>
+    <string name="ui_a_0689">External storage scan complete: %1$s songs found, %2$s new</string>
+    <string name="ui_a_0690" formatted="false">USB drive unavailable. Check the connection and read permissions.</string>
+    <string name="ui_a_0691" formatted="false">Could not read the USB drive</string>
+    <string name="ui_a_0692" formatted="false">Song storage location</string>
+    <string name="ui_a_0693" formatted="false">Local storage</string>
+    <string name="ui_a_0694" formatted="false">USB storage</string>
+    <string name="ui_a_0695" formatted="false">OpenList cloud drive</string>
+    <string name="ui_a_0696" formatted="false">Save songs to</string>
+    <string name="ui_a_0697" formatted="false">Configure OpenList first</string>
+    <string name="ui_a_0698" formatted="false">No USB drive detected. Add songs with a USB drive first.</string>
+    <string name="ui_a_0699">%3$s: %1$s available / %2$s total</string>
+    <string name="ui_a_0700" formatted="false">Storage location unavailable</string>
+    <string name="ui_a_0701">Cleared %1$s songs; the reserved space has been restored</string>
+    <string name="ui_a_0702">Cleared %1$s songs. Protected songs were not deleted, and space is still insufficient</string>
+    <string name="ui_a_0703" formatted="false">Failed to clear the song cache</string>
+    <string name="ui_a_0704" formatted="false">Reset library</string>
+    <string name="ui_a_0705" formatted="false">This will stop playback and downloads, clear local song cache, downloaded songs and play records, and restore the built-in library installed with the app. Favorites, custom playlists, imported files and USB content will be kept. Continue?</string>
+    <string name="ui_a_0706" formatted="false">Confirm</string>
+    <string name="ui_a_0707" formatted="false">Could not clear the local library</string>
+    <string name="ui_a_0708" formatted="false">Could not clear temporary library files</string>
+    <string name="ui_a_0709" formatted="false">Could not open the built-in library</string>
+    <string name="ui_a_0710" formatted="false">Local cache cleared and the built-in library restored</string>
+    <string name="ui_a_0711" formatted="false">Reset incomplete:</string>
+    <string name="ui_a_0712" formatted="false">Local cache not writable</string>
+    <string name="ui_a_0713" formatted="false">Retry</string>
+    <string name="ui_a_0714" formatted="false">Decoder</string>
+    <string name="ui_a_0715" formatted="false">Auto mode uses ExoPlayer first and switches to FFmpeg if playback fails. The change takes effect from the next song.</string>
+    <string name="ui_a_0716">%1$s selected; takes effect from the next song</string>
+    <string name="ui_a_0717" formatted="false">Fullscreen</string>
+    <string name="ui_a_0718" formatted="false">Video ratio</string>
+    <string name="ui_a_0719" formatted="false">30 seconds</string>
+    <string name="ui_a_0720" formatted="false">45 seconds</string>
+    <string name="ui_a_0721" formatted="false">1 minute</string>
+    <string name="ui_a_0722" formatted="false">2 minutes</string>
+    <string name="ui_a_0723" formatted="false">Off (not recommended)</string>
+    <string name="ui_a_0724" formatted="false">Interval setting</string>
+    <string name="ui_a_0725" formatted="false">A/V sync</string>
+    <string name="ui_a_0726" formatted="false">Takes effect after Replay or Next</string>
+    <string name="ui_a_0727" formatted="false">New songs</string>
+    <string name="ui_a_0728" formatted="false">Opera</string>
+    <string name="ui_a_0729" formatted="false">Square dance</string>
+    <string name="ui_a_0730" formatted="false">Slideshow configuration</string>
+    <string name="ui_a_0731">Maximum song volume  %1$s%%</string>
+    <string name="ui_a_0732" formatted="false">Volume when switching to a requested song:</string>
+    <string name="ui_a_0733" formatted="false">Follow previous volume</string>
+    <string name="ui_a_0734" formatted="false">Follow previous requested song volume</string>
+    <string name="ui_a_0735" formatted="false">Original vocal of requested songs</string>
+    <string name="ui_a_0736" formatted="false">Original vocal when switching to a requested song:</string>
+    <string name="ui_a_0737" formatted="false">Follow previous original vocal</string>
+    <string name="ui_a_0738" formatted="false">Follow previous requested original vocal</string>
+    <string name="ui_a_0739" formatted="false">Fixed original vocal for requested songs</string>
+    <string name="ui_a_0740" formatted="false">Sound settings</string>
+    <string name="ui_a_0741" formatted="false">Singing mode (current: </string>
+    <string name="ui_a_0742" formatted="false">Singing mode: </string>
+    <string name="ui_a_0743">Vocal channel (current: %1$s)</string>
+    <string name="ui_a_0744" formatted="false">Enabled: </string>
+    <string name="ui_a_0745" formatted="false">Marquee settings - </string>
+    <string name="ui_a_0746" formatted="false">Edit text</string>
+    <string name="ui_a_0747" formatted="false">Enter marquee text</string>
+    <string name="ui_a_0748" formatted="false">Edit marquee text</string>
+    <string name="ui_a_0749" formatted="false">Marquee: </string>
+    <string name="ui_a_0750" formatted="false">\nMobile remote port: 8765\nScan to connect for mobile song requests</string>
+    <string name="ui_a_0751" formatted="false">About麦动</string>
+    <string name="ui_a_0752" formatted="false">Powered by Douyin @杨家三郎\n</string>
+    <string name="ui_a_0753" formatted="false">This software is free and open source. Do not pay for it.\n</string>
+    <string name="ui_a_0754" formatted="false">Version:</string>
+    <string name="ui_a_0755">Category，%1$s</string>
+    <string name="ui_a_0756" formatted="false">Hot songs</string>
+    <string name="ui_a_0757">Search results: %1$s</string>
+    <string name="ui_a_0758" formatted="false">Library loaded</string>
+    <string name="ui_a_0759" formatted="false">No songs</string>
+    <string name="ui_a_0760" formatted="false">Interrupted</string>
+    <string name="ui_a_0761">Now playing: %1$s</string>
+    <string name="ui_a_0762" formatted="false">Download tasks and cache deleted</string>
+    <string name="ui_a_0763" formatted="false">Download tasks deleted; some cache cannot be cleared yet</string>
+    <string name="ui_a_0764" formatted="false">Could not delete the file. Check storage permissions and the USB connection.</string>
+    <string name="ui_a_0765" formatted="false">Page %d/%d</string>
+    <string name="ui_a_0766" formatted="false">Selected list (</string>
+    <string name="ui_a_0767" formatted="false">No selected songs yet</string>
+    <string name="ui_a_0768" formatted="false">Delete selected</string>
+    <string name="ui_a_0769" formatted="false">Select songs to delete</string>
+    <string name="ui_a_0770" formatted="false">Clear all</string>
+    <string name="ui_a_0771" formatted="false">Confirm clear</string>
+    <string name="ui_a_0772" formatted="false">Clear all</string>
+    <string name="ui_a_0773" formatted="false">selected songs?</string>
+    <string name="ui_a_0774" formatted="false">List cleared</string>
+    <string name="ui_a_0775" formatted="false">Already in list: </string>
+    <string name="ui_a_0776">Downloading; it will be added to requests automatically when complete: %1$s</string>
+    <string name="ui_a_0777">The song is still downloading and has not been added to requests: %1$s</string>
+    <string name="ui_a_0778" formatted="false">Selected: </string>
+    <string name="ui_a_0779" formatted="false">Playlist</string>
+    <string name="ui_a_0780" formatted="false">PlaylistSong</string>
+    <string name="ui_a_0781" formatted="false">Select a playlist on the left to view songs. On the request, chart, and artist pages, long-press a song to add it to or remove it from a playlist.</string>
+    <string name="ui_a_0782" formatted="false">Remove </string>
+    <string name="ui_a_0783" formatted="false">Add </string>
+    <string name="ui_a_0784" formatted="false">Select playlist</string>
+    <string name="ui_a_0785" formatted="false">Added: </string>
+    <string name="ui_a_0786" formatted="false">Removed: </string>
+    <string name="ui_a_0787" formatted="false">The partial response is missing a valid Content-Range</string>
+    <string name="ui_a_0788" formatted="false">Inconsistent media segment ranges</string>
+    <string name="ui_a_0789" formatted="false">Unable to recognize the song-source segment protocol</string>
+    <string name="ui_a_0790" formatted="false">Server address (e.g. http://192.168.1.10:5244)</string>
+    <string name="ui_a_0791" formatted="false">Access token (can be empty for guest)</string>
+    <string name="ui_a_0792" formatted="false">Song directory (e.g. /KTV)</string>
+    <string name="ui_a_0793" formatted="false">Directory password (can be left blank)</string>
+    <string name="ui_a_0794" formatted="false">OpenList connection settings</string>
+    <string name="ui_a_0795" formatted="false">Connect and save</string>
+    <string name="ui_a_0796" formatted="false">Clear connection</string>
+    <string name="ui_a_0797" formatted="false">Invalid connection settings</string>
+    <string name="ui_a_0798" formatted="false">Connecting…</string>
+    <string name="ui_a_0799" formatted="false">Connection failed. Check the address, token, directory password and server status.</string>
+    <string name="ui_a_0800" formatted="false">Too many cloud-drive folders. Please narrow the song directory</string>
+    <string name="ui_a_0801" formatted="false">The cloud-drive folder structure is too deep. Please narrow the song directory</string>
+    <string name="ui_a_0802" formatted="false">The cloud-drive library is too large. Please narrow the song directory</string>
+    <string name="ui_a_0803" formatted="false">Cloud-drive pagination is incomplete. Please retry the sync</string>
+    <string name="ui_a_0804" formatted="false">Failed to save the cloud-drive index</string>
+    <string name="ui_a_0805" formatted="false">The song file is empty</string>
+    <string name="ui_a_0806" formatted="false">The save path is outside the song directory</string>
+    <string name="ui_a_0807" formatted="false">Save paused</string>
+    <string name="ui_a_0808" formatted="false">The song length changed</string>
+    <string name="ui_a_0809" formatted="false">The song was not read completely</string>
+    <string name="ui_a_0810" formatted="false">Cloud-drive upload failed. Please check the connection and write permission</string>
+    <string name="ui_a_0811" formatted="false">Cloud-drive save failed. Please check write permission, free space, or a file with the same name</string>
+    <string name="ui_a_0812" formatted="false">Cloud-drive file length verification failed</string>
+    <string name="ui_a_0813" formatted="false">The delete path is outside the song directory</string>
+    <string name="ui_a_0814" formatted="false">Only song files can be deleted</string>
+    <string name="ui_a_0815" formatted="false">Song directories cannot be deleted</string>
+    <string name="ui_a_0816" formatted="false">Please select a song file</string>
+    <string name="ui_a_0817" formatted="false">The cloud drive did not return a playback URL</string>
+    <string name="ui_a_0818" formatted="false">The playback URL returned by the cloud drive is invalid</string>
+    <string name="ui_a_0819" formatted="false">Access denied. Please check the token, folder password, and access permissions</string>
+    <string name="ui_a_0820" formatted="false">The service address was redirected. Please enter the final service address</string>
+    <string name="ui_a_0821">OpenList request failed (HTTP %1$s)</string>
+    <string name="ui_a_0822" formatted="false">The directory response is too large. Please narrow the directory scope</string>
+    <string name="ui_a_0823" formatted="false">OpenList operation failed. Please check the service and cloud-drive mount status</string>
+    <string name="ui_a_0824" formatted="false">Please enter a valid service address</string>
+    <string name="ui_a_0825" formatted="false">The service address must be HTTP or HTTPS and must not contain credentials, query parameters, or fragments</string>
+    <string name="ui_a_0826" formatted="false">Invalid directory path</string>
+    <string name="ui_a_0827" formatted="false">The directory must not contain relative paths</string>
+    <string name="ui_a_0828" formatted="false">Invalid file name</string>
+    <string name="ui_a_0829" formatted="false">The directory is outside the configured scope</string>
+    <string name="ui_a_0830" formatted="false">Download paused</string>
+    <string name="ui_a_0831" formatted="false">Segmented download failed</string>
+    <string name="ui_a_0832" formatted="false">The song cache directory is unavailable</string>
+    <string name="ui_a_0833" formatted="false">The cache file path is outside the cleanup scope</string>
+    <string name="ui_a_0834" formatted="false">The song cache directory contains a circular link</string>
+    <string name="ui_a_0835" formatted="false">Unable to read the song cache directory</string>
+    <string name="ui_a_0836">Unable to delete the old song cache: %1$s</string>
+    <string name="ui_a_0837">Expired song (%1$s)</string>
+    <string name="ui_a_0838" formatted="false">The original library record is missing</string>
+    <string name="ui_a_0839" formatted="false">Failed to save personal song records</string>
+    <string name="ui_a_0840" formatted="false">Personal record save verification failed</string>
+    <string name="ui_a_0841">%1$s invalid personal references were preserved separately</string>
+    <string name="ui_a_0842" formatted="false">The old library is disabled; file cleanup failed</string>
+    <string name="ui_a_0843">Playlist，%1$s</string>
+    <string name="ui_a_0844">Singer，%1$s</string>
+    <string name="ui_a_0845" formatted="false">Settings</string>
+    <string name="ui_a_0846" formatted="false">Failed to migrate artist images</string>
+    <string name="ui_a_0847" formatted="false">Untitled</string>
+    <string name="ui_a_0848" formatted="false">伴奏Url</string>
+    <string name="ui_a_0849" formatted="false">LocalSong</string>
+    <string name="ui_a_0850" formatted="false">Guangdong</string>
+    <string name="ui_a_0851" formatted="false">Taiwanese</string>
+    <string name="ui_a_0852" formatted="false">Fujian</string>
+    <string name="ui_a_0853" formatted="false">Minnan (Hokkien)</string>
+    <string name="ui_a_0854" formatted="false">Dance</string>
+    <string name="ui_a_0855" formatted="false">Slow groove</string>
+    <string name="ui_a_0856" formatted="false">DJ dance</string>
+    <string name="ui_a_0857" formatted="false">Children\'s songs</string>
+    <string name="ui_a_0858" formatted="false">Children</string>
+    <string name="ui_a_0859" formatted="false">Kids</string>
+    <string name="ui_a_0860" formatted="false">Peking Opera</string>
+    <string name="ui_a_0861" formatted="false">Henan Opera</string>
+    <string name="ui_a_0862" formatted="false">Huangmei Opera</string>
+    <string name="ui_a_0863" formatted="false">Yue Opera</string>
+    <string name="ui_a_0864" formatted="false">Folk songs</string>
+    <string name="ui_a_0865" formatted="false">Ethnic</string>
+    <string name="ui_a_0866" formatted="false">Military songs</string>
+    <string name="ui_a_0867" formatted="false">Patriotic songs</string>
+    <string name="ui_a_0868" formatted="false">Classics</string>
+    <string name="ui_a_0869" formatted="false">Oldies</string>
+    <string name="ui_a_0870" formatted="false">Nostalgic</string>
+    <string name="ui_a_0871" formatted="false">Classic oldies</string>
+    <string name="ui_a_0872" formatted="false">Language songs</string>
+    <string name="ui_a_0873" formatted="false">The downloaded file length does not match</string>
+    <string name="ui_a_0874" formatted="false">Unable to recognize the media container</string>
+    <string name="ui_a_0875" formatted="false">Cloud-drive sync failed; the previous index was kept. Please check the connection and directory permissions</string>
+    <string name="ui_a_0876" formatted="false">USB scan failed</string>
+    <string name="ui_a_0877">Song action, %1$s</string>
+    <string name="ui_a_0878" formatted="false">Direct read from NAS</string>
+    <string name="ui_a_0879" formatted="false">Need Download</string>
+    <string name="ui_a_0880">Delete，%1$s</string>
+    <string name="ui_a_0881" formatted="false">The library is being reset</string>
+    <string name="ui_a_0882" formatted="false">The library is being reset. Please try again later</string>
+    <string name="ui_a_0883" formatted="false">Unable to create the upload staging directory</string>
+    <string name="ui_a_0884">USB drive unavailable or not enough space; falling back to local storage. Song=%1$s</string>
+    <string name="ui_a_0885" formatted="false">Download failed</string>
+    <string name="ui_a_0886">Transfer stats song=%7$s elapsedMs=%8$s bytes=%1$s requests=%2$s headerMs=%3$s readMs=%4$s writeMs=%5$s callbackMs=%6$s</string>
+    <string name="ui_a_0887" formatted="false">The media segment is incomplete</string>
+    <string name="ui_a_0888" formatted="false">The segment length exceeds the declared range</string>
+    <string name="ui_a_0889" formatted="false">Song directory</string>
+    <string name="ui_a_0890" formatted="false">Song</string>
+    <string name="ui_a_0891" formatted="false">Unable to read the song length</string>
+    <string name="ui_a_0892" formatted="false">Please connect to the cloud drive first</string>
+    <string name="ui_a_0893" formatted="false">Please connect to the cloud drive this song belongs to</string>
+    <string name="ui_a_0894" formatted="false">The song is outside the cloud-drive directory scope</string>
+    <string name="ui_a_0895" formatted="false">Cloud-drive media download failed</string>
+    <string name="ui_a_0896" formatted="false">The cloud drive did not return the song length. Please enable proxied downloads</string>
+    <string name="ui_a_0897" formatted="false">The song file is too small</string>
+    <string name="ui_a_0898" formatted="false">The song download is incomplete</string>
+    <string name="ui_a_0899" formatted="false">The song length exceeds the declared range</string>
+    <string name="ui_a_0900" formatted="false">Song length verification failed</string>
+    <string name="ui_a_0901" formatted="false">Song media verification failed</string>
+    <string name="ui_a_0902" formatted="false">SaveSongFailed</string>
+    <string name="ui_a_0903">Media server HTTP %1$s: %2$s</string>
+    <string name="ui_a_0904" formatted="false">This entry has no song-source number and cannot be downloaded</string>
+    <string name="ui_a_0905" formatted="false">The account has changed. Please retry the download</string>
+    <string name="ui_a_0906" formatted="false">Song URL request returned 403; the current account sign-in was restored and the request retried</string>
+    <string name="ui_a_0907" formatted="false">The media length changed after the URL was updated</string>
+    <string name="ui_a_0908" formatted="false">The song source did not return verified MKV media</string>
+    <string name="ui_a_0909" formatted="false">Current account sign-in restored; fetching the song URL again</string>
+    <string name="ui_a_0910">Save location usb=%1$s path=%2$s available=%3$s reserve=%4$s songBytes=%5$s</string>
+    <string name="ui_a_0911" formatted="false">The media length or segments changed</string>
+    <string name="ui_a_0912" formatted="false">Full file length verification failed</string>
+    <string name="ui_a_0913" formatted="false">Unable to replace the old song cache</string>
+    <string name="ui_a_0914" formatted="false">Unable to clear old song verification files</string>
+    <string name="ui_a_0915" formatted="false">Unable to save the downloaded file</string>
+    <string name="ui_a_0916" formatted="false">Downloaded media container verification failed</string>
+    <string name="ui_a_0917" formatted="false">Failed to clean up the USB write-test file</string>
+    <string name="ui_a_0918">USB drive is not writable; falling back to local storage: %1$s</string>
+    <string name="ui_a_0919" formatted="false">Invalid USB storage location</string>
+    <string name="ui_a_0920" formatted="false">No USB drive connected. Please insert one and try again</string>
+    <string name="ui_a_0921" formatted="false">Invalid USB song directory</string>
+    <string name="ui_a_0922" formatted="false">No USB drive detected. Please insert one and try again</string>
+    <string name="ui_a_0923" formatted="false">The selected USB drive was removed. Please select it again</string>
+    <string name="ui_a_0924" formatted="false">Unable to read the USB drive. Please check storage permissions</string>
+    <string name="ui_a_0925" formatted="false">Unable to create the maidongktv folder on the USB drive. Please check write permission or read-only status</string>
+    <string name="ui_a_0926" formatted="false">Unable to clean up the USB write-test file</string>
+    <string name="ui_a_0927" formatted="false">USB drive unavailable</string>
+    <string name="ui_a_0928" formatted="false">USB drive is not readable. Please check storage permissions</string>
+    <string name="ui_a_0929" formatted="false">The USB song directory is not writable. Please select a different USB storage location</string>
+    <string name="ui_a_0930" formatted="false">Please select a song folder on the USB drive</string>
+    <string name="ui_a_0931" formatted="false">Please select a folder on the USB drive; local storage is not allowed</string>
+    <string name="ui_a_0932" formatted="false">USB directory permission has expired. Please select the folder again</string>
+    <string name="ui_a_0933" formatted="false">No USB drive connected or the directory is unavailable</string>
+    <string name="ui_a_0934" formatted="false">The USB song path is not a folder</string>
+    <string name="ui_a_0935" formatted="false">The USB directory is not writable. Please check its read-only status</string>
+    <string name="ui_a_0936" formatted="false">USB read permission was not granted</string>
+    <string name="ui_a_0937" formatted="false">Unable to create the local song cache directory</string>
+    <string name="ui_a_0938" formatted="false">Please select the USB song folder in Settings first</string>
+    <string name="ui_a_0939" formatted="false">Unable to create the maidongktv song folder on the USB drive</string>
+    <string name="ui_a_0940" formatted="false">Unable to create the USB song cache directory</string>
+    <string name="ui_a_0941" formatted="false">The USB song cache path is not a folder</string>
+    <string name="ui_a_0942" formatted="false">Invalid USB directory</string>
+    <string name="ui_a_0943" formatted="false">Invalid USB volume label</string>
+    <string name="ui_a_0944" formatted="false">Invalid save-location capacity</string>
+    <string name="ui_a_0945" formatted="false">The USB song directory is unavailable</string>
+    <string name="ui_a_0946" formatted="false">Failed to clean up the USB capacity-test file</string>
+    <string name="ui_a_0947" formatted="false">Invalid USB capacity information</string>
+    <string name="ui_a_0948" formatted="false">Invalid song file name</string>
+    <string name="ui_a_0949" formatted="false">Unable to read the song folder</string>
+    <string name="ui_a_0950" formatted="false">Unable to read the USB song folder</string>
+    <string name="ui_a_0951" formatted="false">The local media is too short</string>
+    <string name="ui_a_0952" formatted="false">The local media was not read completely</string>
+    <string name="ui_a_0953" formatted="false">Unable to create the song directory</string>
+    <string name="ui_a_0954" formatted="false">The USB song is not readable</string>
+    <string name="ui_a_0955" formatted="false">Unable to create the USB song file</string>
+    <string name="ui_a_0956" formatted="false">The USB song is not writable</string>
+    <string name="ui_a_0957" formatted="false">Song file writing was interrupted</string>
+    <string name="ui_a_0958" formatted="false">Failed to scan the USB save directory</string>
+    <string name="ui_a_0959" formatted="false">Unable to read the USB song save directory. Please check storage permissions</string>
+    <string name="ui_a_0960" formatted="false">\nParsing: sequential read (index error; seeking is not supported)</string>
+    <string name="ui_a_0961" formatted="false">No first video frame was output even after the decoder was ready</string>
+    <string name="ui_a_0962" formatted="false">The compatibility decoder failed to load. Please use system decoding</string>
+    <string name="ui_a_0963" formatted="false">The player has been released</string>
+    <string name="ui_a_0964" formatted="false">Playback engine:</string>
+    <string name="ui_a_0965" formatted="false">WaitingPlay</string>
+    <string name="ui_a_0966" formatted="false">The current compatibility decoder does not support H.264 High 4:4:4. Please convert to 8-bit 4:2:0 before playback</string>
+    <string name="ui_a_0967" formatted="false">Unable to open the song file</string>
+    <string name="ui_a_0968" formatted="false">Unable to read the song</string>
+    <string name="ui_a_0969" formatted="false">Audio output does not support 48 kHz PCM</string>
+    <string name="ui_a_0970" formatted="false">Audio output initialization failed</string>
+    <string name="ui_a_0971">Audio output failed: %1$s</string>
+    <string name="ui_a_0972" formatted="false">Audio output failed</string>
+    <string name="ui_a_0973" formatted="false">No system trusted certificate found</string>
+    <string name="ui_a_0974" formatted="false">No video track</string>
+    <string name="ui_a_0975" formatted="false">No audio track</string>
+    <string name="ui_a_0976" formatted="false">Automatic (ExoPlayer preferred)</string>
+    <string name="ui_a_0977" formatted="false">Previous</string>
+    <string name="ui_a_0978" formatted="false">Next</string>
+
+    <!-- Tuning dialog -->
+    <string name="ui_tune_pitch" formatted="false">Pitch</string>
+    <string name="ui_tune_mic" formatted="false">Mic</string>
+    <string name="ui_tune_preset_pop" formatted="false">♬\nPop</string>
+    <string name="ui_tune_preset_lyric" formatted="false">▥\nLyric</string>
+    <string name="ui_tune_preset_rock" formatted="false">♨\nRock</string>
+    <string name="ui_tune_preset_singer" formatted="false">♪\nVirtuoso</string>
+
+    <!-- Audio control dialog -->
+    <string name="ui_ac_title" formatted="false">🎚  Audio Settings</string>
+    <string name="ui_ac_stereo" formatted="false">🔊 Stereo</string>
+    <string name="ui_ac_accomp" formatted="false">🎤 Vocal Off</string>
+    <string name="ui_ac_origin" formatted="false">🎙 Original</string>
+    <string name="ui_ac_mute" formatted="false">🔇 Mute</string>
+    <string name="ui_ac_mic_volume" formatted="false">Mic Volume</string>
+    <string name="ui_ac_mic_effect" formatted="false">Mic Effect</string>
+    <string name="ui_ac_music_volume" formatted="false">Music Volume</string>
+    <string name="ui_ac_default" formatted="false">Reset</string>
+    <string name="ui_ac_save" formatted="false">Save</string>
+    <!-- Song catalog language display names (aligned with the H5 mobile UI) -->
+    <string name="lang_show_other" formatted="false">Other</string>
+    <string name="lang_show_russian" formatted="false">Russian</string>
+    <string name="lang_show_hindi" formatted="false">Indian</string>
+    <string name="lang_show_taiwanese" formatted="false">Taiwanese</string>
+    <string name="lang_show_hani" formatted="false">Hani</string>
+    <string name="lang_show_mandarin" formatted="false">Chinese</string>
+    <string name="lang_show_dialect" formatted="false">Dialects</string>
+    <string name="lang_show_cosmic" formatted="false">Cosmic</string>
+    <string name="lang_show_hakka" formatted="false">Hakka</string>
+    <string name="lang_show_hakka2" formatted="false">Hakka</string>
+    <string name="lang_show_yi" formatted="false">Yi</string>
+    <string name="lang_show_italian" formatted="false">Italian</string>
+    <string name="lang_show_japanese" formatted="false">Japanese</string>
+    <string name="lang_show_thai" formatted="false">Thai</string>
+    <string name="lang_show_hainanese" formatted="false">Hainanese</string>
+    <string name="lang_show_teochew" formatted="false">Teochew</string>
+    <string name="lang_show_aini" formatted="false">Aini</string>
+    <string name="lang_show_qidong" formatted="false">Qidong</string>
+    <string name="lang_show_fuding" formatted="false">Fuding Dialect</string>
+    <string name="lang_show_cantonese" formatted="false">Cantonese</string>
+    <string name="lang_show_uyghur" formatted="false">Uyghur</string>
+    <string name="lang_show_hmong" formatted="false">Hmong</string>
+    <string name="lang_show_english" formatted="false">English</string>
+    <string name="lang_show_mongolian" formatted="false">Mongolian</string>
+    <string name="lang_show_tibetan" formatted="false">Tibetan</string>
+    <string name="lang_show_spanish" formatted="false">Spanish</string>
+    <string name="lang_show_minnan" formatted="false">Hokkien</string>
+    <string name="lang_show_korean" formatted="false">Korean</string>
+    <string name="lang_show_khmer" formatted="false">Khmer</string>
+</resources>

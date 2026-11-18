@@ -17,7 +17,7 @@ data class SettingsEntry(
     val icon: Int,
     val title: String,
     var subtitle: String = "",
-    val actionText: String = "设置",
+    val actionText: String = KtvRaw.display(R.string.ui_a_0845),
     val checked: Boolean? = null,
     val action: () -> Unit,
 )

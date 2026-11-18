@@ -40,7 +40,7 @@
             android:layout_height="44dp"
             android:layout_marginStart="8dp"
             android:gravity="center_vertical"
-            android:text="麦动"
+            android:text="@string/ui_brand"
             android:textColor="#FFFFFFFF"
             android:textSize="22sp"
             android:textStyle="bold" />
@@ -55,7 +55,7 @@
             android:gravity="center_vertical"
             android:paddingStart="12dp"
             android:paddingEnd="16dp"
-            android:text="⌕  搜索"
+            android:text="@string/ui_search"
             android:textColor="#FFFFFFFF"
             android:textSize="13sp" />
 
@@ -65,6 +65,22 @@
             android:layout_width="0dp"
             android:layout_height="1dp"
             android:layout_weight="1" />
+
+        <!-- 中英文切换：紧邻「已点」，点击后切换整个 App 的界面语言 -->
+        <TextView
+            android:id="@+id/btn_top_language"
+            android:layout_width="wrap_content"
+            android:layout_height="32dp"
+            android:layout_marginStart="6dp"
+            android:background="@drawable/bg_btn_top_action"
+            android:gravity="center"
+            android:minWidth="48dp"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:text="@string/ui_lang_short_en"
+            android:textColor="#FFFFFFFF"
+            android:textSize="13sp"
+            android:textStyle="bold" />
 
         <!-- 已点数量 -->
         <LinearLayout
@@ -83,7 +99,7 @@
                 android:layout_height="wrap_content"
                 android:drawableStart="@drawable/ott_ic_ctrl_orderlist"
                 android:drawablePadding="5dp"
-                android:text="已点"
+                android:text="@string/ui_queue"
                 android:textColor="#FFFFFFFF"
                 android:textSize="13sp" />
 
@@ -111,7 +127,7 @@
             android:paddingEnd="12dp"
             android:drawableStart="@drawable/ott_ic_ctrl_music_origin"
             android:drawablePadding="5dp"
-            android:text="原唱"
+            android:text="@string/ui_original"
             android:textColor="#FFFFFFFF"
             android:textSize="13sp" />
 
@@ -126,7 +142,7 @@
             android:paddingEnd="12dp"
             android:drawableStart="@drawable/ott_ic_ctrl_switch_song"
             android:drawablePadding="5dp"
-            android:text="切歌"
+            android:text="@string/ui_next_song"
             android:textColor="#FFFFFFFF"
             android:textSize="13sp" />
 
@@ -141,7 +157,7 @@
             android:paddingEnd="12dp"
             android:drawableStart="@drawable/ott_ic_ctrl_pause"
             android:drawablePadding="5dp"
-            android:text="暂停"
+            android:text="@string/ui_pause"
             android:textColor="#FFFFFFFF"
             android:textSize="13sp" />
 
@@ -156,7 +172,7 @@
             android:paddingEnd="12dp"
             android:drawableStart="@drawable/ott_ic_ctrl_replay"
             android:drawablePadding="5dp"
-            android:text="重唱"
+            android:text="@string/ui_repeat"
             android:textColor="#FFFFFFFF"
             android:textSize="13sp" />
 
@@ -171,7 +187,7 @@
             android:paddingEnd="12dp"
             android:drawableStart="@drawable/ott_ic_ctrl_volume"
             android:drawablePadding="5dp"
-            android:text="调音"
+            android:text="@string/ui_tune"
             android:textColor="#FFFFFFFF"
             android:textSize="13sp" />
 
@@ -206,7 +222,7 @@
             android:gravity="center_vertical"
             android:paddingStart="16dp"
             android:paddingEnd="20dp"
-            android:text="💗 猜你想唱"
+            android:text="@string/ui_guess"
             android:textColor="#FFFFFFFF"
             android:textSize="14sp" />
 
@@ -225,7 +241,7 @@
             android:gravity="center_vertical"
             android:paddingStart="16dp"
             android:paddingEnd="20dp"
-            android:text="▣  扫码点歌"
+            android:text="@string/ui_scan"
             android:textColor="#FFFFFFFF"
             android:textSize="14sp" />
 
@@ -238,7 +254,7 @@
             android:gravity="center_vertical"
             android:paddingStart="16dp"
             android:paddingEnd="20dp"
-            android:text="⚙ 设置"
+            android:text="@string/ui_btn_settings"
             android:textColor="#FFFFFFFF"
             android:textSize="14sp" />
 
@@ -251,7 +267,7 @@
             android:gravity="center_vertical"
             android:paddingStart="16dp"
             android:paddingEnd="20dp"
-            android:text="↩ 退出"
+            android:text="@string/ui_exit"
             android:textColor="#FFFFFFFF"
             android:textSize="14sp" />
     </LinearLayout>
@@ -304,7 +320,7 @@
                         android:layout_weight="1"
                         android:singleLine="true"
                         android:ellipsize="end"
-                        android:text="当前: 未知  下首: 未知"
+                        android:text="@string/ui_plus_now_unknown"
                         android:textColor="#FFE0E0FF"
                         android:textSize="12sp" />
                 </LinearLayout>
@@ -339,7 +355,7 @@
                             android:id="@+id/player_song_title"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="未播放"
+                            android:text="@string/ui_not_playing"
                             android:textColor="#FFE363"
                             android:textSize="16sp"
                             android:textStyle="bold" />
@@ -370,7 +386,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_gravity="center"
-                            android:text="下载中..."
+                            android:text="@string/ui_plus_downloading"
                             android:textColor="#FF27CCA4"
                             android:textSize="14sp" />
 
@@ -425,7 +441,7 @@
                             android:textColor="#FFF"
                             android:textColorHint="#80FFFFFF"
                             android:textSize="13sp"
-                            android:hint="搜索  输入首字母搜索"
+                            android:hint="@string/ui_p_search_hint"
                             android:imeOptions="actionSearch"
                             android:singleLine="true" />
 
@@ -471,7 +487,8 @@
                         <TextView
                             android:id="@+id/key_abc"
                             android:layout_width="72dp"
-                            android:layout_height="30dp"
+                            android:layout_height="0dp"
+                            android:layout_weight="1"
                             android:gravity="center"
                             android:background="@drawable/bg_key_mode"
                             android:text="ABC"
@@ -481,22 +498,24 @@
                         <TextView
                             android:id="@+id/key_123"
                             android:layout_width="72dp"
-                            android:layout_height="30dp"
-                            android:layout_marginTop="8dp"
+                            android:layout_height="0dp"
+                            android:layout_weight="1"
+                            android:layout_marginTop="4dp"
                             android:gravity="center"
                             android:background="@drawable/bg_key_mode_dim"
-                            android:text="手写"
+                            android:text="@string/ui_handwrite"
                             android:textColor="#99FFFFFF"
                             android:textSize="14sp" />
 
                         <TextView
                             android:id="@+id/key_space"
                             android:layout_width="72dp"
-                            android:layout_height="30dp"
-                            android:layout_marginTop="8dp"
+                            android:layout_height="0dp"
+                            android:layout_weight="1"
+                            android:layout_marginTop="4dp"
                             android:gravity="center"
                             android:background="@drawable/bg_key_mode_dim"
-                            android:text="系统"
+                            android:text="@string/ui_system"
                             android:textColor="#99FFFFFF"
                             android:textSize="14sp" />
                         </LinearLayout>
@@ -558,7 +577,7 @@
                             android:id="@+id/breadcrumb_home"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="‹ 主页"
+                            android:text="@string/ui_back_home"
                             android:textColor="#FF27CCA4"
                             android:textSize="14sp" />
 
@@ -593,7 +612,7 @@
                             android:layout_width="0dp"
                             android:layout_height="0dp"
                             android:visibility="gone"
-                            android:text="麦动"
+                            android:text="@string/ui_brand"
                             android:textColor="#FFFFD56B"
                             android:textSize="14sp"
                             android:textStyle="bold" />
@@ -608,7 +627,7 @@
                             android:gravity="center_vertical"
                             android:paddingStart="14dp"
                             android:paddingEnd="14dp"
-                            android:text="↩ 返回"
+                            android:text="@string/ui_back"
                             android:textColor="#FFFFFFFF"
                             android:textSize="12sp" />
                     </LinearLayout>
@@ -683,7 +702,7 @@
                         android:layout_height="30dp"
                         android:gravity="center"
                         android:background="@drawable/bg_btn_pager"
-                        android:text="上一页"
+                        android:text="@string/ui_prev_page"
                         android:textColor="#FFF"
                         android:textSize="12sp"
                         android:layout_marginEnd="8dp" />
@@ -694,7 +713,7 @@
                         android:layout_height="30dp"
                         android:gravity="center"
                         android:background="@drawable/bg_btn_pager"
-                        android:text="下一页"
+                        android:text="@string/ui_next_page"
                         android:textColor="#FFF"
                         android:textSize="12sp" />
                 </LinearLayout>
@@ -741,7 +760,7 @@
                         android:layout_gravity="top"
                         android:background="#99000000"
                         android:padding="8dp"
-                        android:text="当前：未播放    下一首：无"
+                        android:text="@string/ui_now_next_init"
                         android:textColor="#FFFFFFFF"
                         android:textSize="14sp"
                         android:visibility="visible" />
@@ -767,7 +786,7 @@
                         android:layout_weight="1"
                         android:layout_marginEnd="6dp"
                         android:background="@drawable/bg_home_card_green"
-                        android:gravity="center_vertical" android:paddingStart="14dp" android:paddingEnd="10dp" android:text="常唱" android:textColor="#FFFFFFFF" android:textSize="20sp" />
+                        android:gravity="center_vertical" android:paddingStart="14dp" android:paddingEnd="10dp" android:text="@string/ui_tab_often" android:textColor="#FFFFFFFF" android:textSize="20sp" />
 
                     <TextView
                         android:id="@+id/home_card_favorite"
@@ -776,7 +795,7 @@
                         android:layout_weight="1"
                         android:layout_marginEnd="6dp"
                         android:background="@drawable/bg_home_card_violet"
-                        android:gravity="center_vertical" android:paddingStart="14dp" android:paddingEnd="10dp" android:text="收藏" android:textColor="#FFFFFFFF" android:textSize="20sp" />
+                        android:gravity="center_vertical" android:paddingStart="14dp" android:paddingEnd="10dp" android:text="@string/ui_tab_favorites" android:textColor="#FFFFFFFF" android:textSize="20sp" />
 
                     <TextView
                         android:id="@+id/home_card_category"
@@ -784,7 +803,7 @@
                         android:layout_height="match_parent"
                         android:layout_weight="1"
                         android:background="@drawable/bg_home_card_sky"
-                        android:gravity="center_vertical" android:paddingStart="14dp" android:paddingEnd="10dp" android:text="分类" android:textColor="#FFFFFFFF" android:textSize="20sp" />
+                        android:gravity="center_vertical" android:paddingStart="14dp" android:paddingEnd="10dp" android:text="@string/ui_tab_category" android:textColor="#FFFFFFFF" android:textSize="20sp" />
                 </LinearLayout>
             </LinearLayout>
 
@@ -803,7 +822,7 @@
                     android:layout_weight="1"
                     android:layout_marginBottom="6dp"
                     android:background="@drawable/home_card_rank"
-                    android:gravity="top|start" android:padding="14dp" android:text="排行榜" android:textColor="#FFFFFFFF" android:textSize="20sp" />
+                    android:gravity="top|start" android:padding="14dp" android:text="@string/ui_tab_rank" android:textColor="#FFFFFFFF" android:textSize="20sp" />
 
                 <TextView
                     android:id="@+id/home_card_song"
@@ -812,7 +831,7 @@
                     android:layout_weight="1"
                     android:layout_marginBottom="6dp"
                     android:background="@drawable/home_card_song"
-                    android:gravity="top|start" android:padding="14dp" android:text="歌名" android:textColor="#FFFFFFFF" android:textSize="20sp" />
+                    android:gravity="top|start" android:padding="14dp" android:text="@string/ui_tab_song" android:textColor="#FFFFFFFF" android:textSize="20sp" />
 
                 <TextView
                     android:id="@+id/home_card_singer"
@@ -821,7 +840,7 @@
                     android:layout_weight="1"
                     android:layout_marginBottom="6dp"
                     android:background="@drawable/home_card_singer"
-                    android:gravity="top|start" android:padding="14dp" android:text="歌星" android:textColor="#FFFFFFFF" android:textSize="20sp" />
+                    android:gravity="top|start" android:padding="14dp" android:text="@string/ui_tab_singer" android:textColor="#FFFFFFFF" android:textSize="20sp" />
 
                 <TextView
                     android:id="@+id/home_card_local"
@@ -829,7 +848,7 @@
                     android:layout_height="0dp"
                     android:layout_weight="1"
                     android:background="@drawable/home_card_local"
-                    android:gravity="top|start" android:padding="14dp" android:text="本地" android:textColor="#FFFFFFFF" android:textSize="20sp" />
+                    android:gravity="top|start" android:padding="14dp" android:text="@string/ui_tab_local" android:textColor="#FFFFFFFF" android:textSize="20sp" />
             </LinearLayout>
 
             <FrameLayout

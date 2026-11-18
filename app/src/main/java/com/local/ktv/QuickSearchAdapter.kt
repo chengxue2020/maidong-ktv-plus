@@ -62,7 +62,7 @@ class QuickSearchAdapter(
         isClickable = true
         isFocusable = true
         val name = singer.getOrNull(1).orEmpty()
-        setAccessibleFocus("focus:singer:${singer.getOrNull(0) ?: name}", "歌星，$name")
+        setAccessibleFocus("focus:singer:${singer.getOrNull(0) ?: name}", KtvRaw.display(R.string.ui_a_0844, name))
         addView(ImageView(context).apply {
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
             SingerAvatarLoader.load(this, singer.getOrNull(5), R.drawable.ic_singer_placeholder)
@@ -92,7 +92,8 @@ class QuickSearchAdapter(
         isFocusable = true
         descendantFocusability = ViewGroup.FOCUS_BLOCK_DESCENDANTS
         val marker = "focus:song:${song.id ?: song.dbId ?: song.filename ?: "${song.title}|${song.singer}"}"
-        setAccessibleFocus(marker, "歌曲，${song.title.orEmpty()}，歌手，${song.singer.orEmpty()}，双击点歌，长按查看更多")
+        setAccessibleFocus(marker, KtvRaw.display(R.string.ui_p_song_a11y,
+                song.title.orEmpty(), song.singer.orEmpty()))
         addView(LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER_VERTICAL

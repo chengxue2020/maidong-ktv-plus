@@ -56,19 +56,19 @@ object MuseDbSync {
      *        因为解压/校验阶段很慢，只给百分比会让界面长时间不动、看着像卡死。
      */
     fun download(onProgress: (Int, String?) -> Unit): File {
-        val cookie = login() ?: error("登录曲库服务失败")
-        val file = sync(cookie) ?: error("曲库同步失败或无可用文件")
+        val cookie = login() ?: error(KtvRaw.display(R.string.ui_p_sync_login_fail))
+        val file = sync(cookie) ?: error(KtvRaw.display(R.string.ui_p_sync_no_file))
         val version = file.version
 
         val gzFile = File(target.parentFile, "${target.name}.gz.download")
         val tmpDb = File(target.parentFile, "${target.name}.download")
         try {
             downloadFile(file.url, gzFile) { pct -> onProgress((pct * 80 / 100).coerceIn(0, 80), null) }
-            onProgress(80, "正在校验曲库文件")
+            onProgress(80, KtvRaw.display(R.string.ui_p_052))
             if (file.md5.isNotEmpty()) {
-                check(md5(gzFile).equals(file.md5, ignoreCase = true)) { "曲库文件校验失败" }
+                check(md5(gzFile).equals(file.md5, ignoreCase = true)) { KtvRaw.display(R.string.ui_p_sync_md5_fail) }
             }
-            onProgress(84, "正在解压曲库 0MB")
+            onProgress(84, KtvRaw.display(R.string.ui_p_053))
             GZIPInputStream(gzFile.inputStream().buffered(256 * 1024)).use { gz ->
                 BufferedOutputStream(FileOutputStream(tmpDb)).use { out ->
                     val buffer = ByteArray(256 * 1024)
@@ -83,22 +83,22 @@ object MuseDbSync {
                         val step = (written / (64L * 1024 * 1024)).toInt()
                         if (step != lastStep) {
                             lastStep = step
-                            onProgress(84, "正在解压曲库 ${written / 1048576}MB")
+                            onProgress(84, KtvRaw.display(R.string.ui_p_115, written / 1048576))
                         }
                     }
                 }
             }
-            onProgress(96, "正在安装曲库")
+            onProgress(96, KtvRaw.display(R.string.ui_p_054))
             val backup = File(target.parentFile, "${target.name}.backup")
             backup.delete()
-            if (target.exists()) check(target.renameTo(backup)) { "无法备份旧曲库" }
+            if (target.exists()) check(target.renameTo(backup)) { KtvRaw.display(R.string.ui_p_sync_backup_fail) }
             if (!tmpDb.renameTo(target)) {
                 backup.renameTo(target)
-                error("无法安装下载的曲库")
+                error(KtvRaw.display(R.string.ui_p_sync_install_fail))
             }
             backup.delete()
             saveVersion(version)
-            onProgress(100, "曲库就绪")
+            onProgress(100, KtvRaw.display(R.string.ui_p_055))
             return target
         } finally {
             // 失败时两个临时文件都要清掉：残留的 .gz.download(430MB) + .download(965MB)

@@ -117,13 +117,13 @@ object SongOkDownloadManager {
                     pending.remove(key)
                     // 取不到地址通常也是网络/源站不可达, 记下来供网络恢复后自动重试。
                     if (isNetworkFailure(null, 0)) networkFailed[key] = song
-                    callback?.onDownloadFailed(song, "无法生成下载地址")
+                    callback?.onDownloadFailed(song, KtvRaw.display(R.string.ui_p_dl_no_url))
                 } else {
                     startDownloadTask(song, url, callback, 0)
                 }
             } catch (error: Throwable) {
                 pending.remove(key)
-                callback?.onDownloadFailed(song, error.message ?: "下载初始化失败")
+                callback?.onDownloadFailed(song, error.message ?: KtvRaw.display(R.string.ui_p_dl_init_fail))
             }
         }
     }
@@ -309,7 +309,7 @@ object SongOkDownloadManager {
             if (!downloadedFile.exists() || downloadedFile.length() < MIN_VALID_FILE_SIZE) {
                 val size = downloadedFile.takeIf(File::exists)?.length() ?: 0L
                 clearBrokenDownload(task, target)
-                retryOrFail(song, callback, attempt, "file too small: $size", "下载文件异常，已自动清理")
+                retryOrFail(song, callback, attempt, "file too small: $size", KtvRaw.display(R.string.ui_p_dl_bad_file))
                 return
             }
             if (TsDecryptor.isEncrypted(downloadedFile)) {
@@ -319,7 +319,7 @@ object SongOkDownloadManager {
                 val replaced = decryptedOk && downloadedFile.delete() && decrypted.renameTo(downloadedFile)
                 if (!replaced) {
                     clearBrokenDownload(task, target)
-                    retryOrFail(song, callback, attempt, "decrypt failed", "歌曲解密失败，异常文件已删除")
+                    retryOrFail(song, callback, attempt, "decrypt failed", KtvRaw.display(R.string.ui_p_dl_decrypt_fail))
                     return
                 }
                 downloadedFile = task.file ?: partial
@@ -335,20 +335,20 @@ object SongOkDownloadManager {
                 pending.remove(key)
                 progress.remove(key)
                 val message = inspection.durationMs?.let { duration ->
-                    "服务器返回试听片段（${duration / 1000}秒），未保存也未加入已点"
-                } ?: "下载文件不是有效歌曲视频，未保存也未加入已点"
+                    KtvRaw.display(R.string.ui_p_dl_preview, duration / 1000)
+                } ?: KtvRaw.display(R.string.ui_p_dl_invalid)
                 callback?.onDownloadFailed(song, message)
                 return
             }
             if (target.exists() && !target.delete()) {
                 pending.remove(key)
                 progress.remove(key)
-                callback?.onDownloadFailed(song, "无法替换旧的歌曲文件")
+                callback?.onDownloadFailed(song, KtvRaw.display(R.string.ui_p_dl_replace_fail))
                 return
             }
             if (!downloadedFile.renameTo(target)) {
                 clearBrokenDownload(task, target)
-                retryOrFail(song, callback, attempt, "rename failed", "下载文件落盘失败")
+                retryOrFail(song, callback, attempt, "rename failed", KtvRaw.display(R.string.ui_p_dl_rename_fail))
                 return
             }
             pending.remove(key)
@@ -360,7 +360,7 @@ object SongOkDownloadManager {
         } catch (error: Throwable) {
             Log.e(TAG, "Finalizing download failed: ${song.title}", error)
             clearBrokenDownload(task, target)
-            retryOrFail(song, callback, attempt, error.message ?: "finalize failed", "下载文件处理失败")
+            retryOrFail(song, callback, attempt, error.message ?: "finalize failed", KtvRaw.display(R.string.ui_p_dl_finalize_fail))
         }
     }
 
@@ -425,7 +425,7 @@ object SongOkDownloadManager {
                 } else {
                     pending.remove(key)
                     progress.remove(key)
-                    callback?.onDownloadFailed(song, "刷新下载地址失败")
+                    callback?.onDownloadFailed(song, KtvRaw.display(R.string.ui_p_dl_refresh_fail))
                 }
             } else {
                 startDownloadTask(song, url, callback, attempt)

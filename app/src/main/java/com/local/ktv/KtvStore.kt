@@ -25,7 +25,7 @@ class KtvStore {
     @JvmField var lastScore = 0
     @JvmField var lastScoreSong = ""
     @JvmField var marqueeEnabled = true
-    @JvmField var marqueeText = "欢迎使用麦动"
+    @JvmField var marqueeText = KtvRaw.display(R.string.ui_a_0089)
     @JvmField var playWhileDownloading = false
     @JvmField var clearDownloadsOnBoot = false
     @JvmField var autoFullscreenSeconds = 30
@@ -46,7 +46,7 @@ class KtvStore {
     @JvmField var doubleScreenEnabled = false
     @JvmField var tableBroadcastEnabled = true
     @JvmField var tableBroadcastSeconds = 8
-    @JvmField var tableBroadcastText = "欢迎光临"
+    @JvmField var tableBroadcastText = KtvRaw.display(R.string.ui_a_0090)
     // ===== 均衡器（KtvEqualizer）=====
     @JvmField var eqEnabled = false
     @JvmField var eqPreset = "自定义"
@@ -80,7 +80,7 @@ class KtvStore {
             lastScore = root.optInt("lastScore", 0)
             lastScoreSong = root.optString("lastScoreSong", "")
             marqueeEnabled = root.optBoolean("marqueeEnabled", true)
-            marqueeText = root.optString("marqueeText", "欢迎使用麦动")
+            marqueeText = root.optString("marqueeText", KtvRaw.display(R.string.ui_a_0089))
             playWhileDownloading = root.optBoolean("playWhileDownloading", false)
             clearDownloadsOnBoot = root.optBoolean("clearDownloadsOnBoot", false)
             autoFullscreenSeconds = root.optInt("autoFullscreenSeconds", 30)
@@ -101,7 +101,7 @@ class KtvStore {
             doubleScreenEnabled = root.optBoolean("doubleScreenEnabled", false)
             tableBroadcastEnabled = root.optBoolean("tableBroadcastEnabled", true)
             tableBroadcastSeconds = root.optInt("tableBroadcastSeconds", 8)
-            tableBroadcastText = root.optString("tableBroadcastText", "欢迎光临")
+            tableBroadcastText = root.optString("tableBroadcastText", KtvRaw.display(R.string.ui_a_0090))
             eqEnabled = root.optBoolean("eqEnabled", false)
             eqPreset = root.optString("eqPreset", "自定义")
             eqLevels = root.optString("eqLevels", "")
@@ -129,6 +129,11 @@ class KtvStore {
         if (!originalVocal) originalVocal = true
         if (autoFullscreenSeconds == 0) autoFullscreenSeconds = 30
         if (!orderedSongOriginal) orderedSongOriginal = true
+        // 状态白名单归一化：历史版本(含英文界面下把显示文本误存成内部键)可能残留非法值，
+        // 尤其 singMode="静音练唱" 会把播放器音量和人声音量都强制为 0，且旧界面无入口改回。
+        // 这里把不在合法集合内的脏值统一回退默认，避免覆盖安装后永久无声。
+        if (singMode !in SING_MODES) singMode = DEFAULT_SING_MODE
+        if (vocalChannelMode !in VOCAL_CHANNEL_MODES) vocalChannelMode = DEFAULT_VOCAL_CHANNEL_MODE
         ensureDefaultPlaylists()
     }
 
@@ -224,6 +229,13 @@ class KtvStore {
          * 远程页面 `assets/mobile/{index.html,app.js}` 里的默认值需与之保持一致。
          */
         const val DEFAULT_MUSIC_VOLUME = 85
+
+        // 演唱模式 / 声道模式的合法内部键（固定中文）。加载状态文件时做白名单归一化，
+        // 防止历史脏值（尤其"静音练唱"）在覆盖安装后导致永久无声且界面无入口改回。
+        val SING_MODES = setOf("普通演唱", "练唱模式", "评分演唱", "静音练唱")
+        const val DEFAULT_SING_MODE = "普通演唱"
+        val VOCAL_CHANNEL_MODES = setOf("自动", "左伴右原", "右伴左原", "全声道")
+        const val DEFAULT_VOCAL_CHANNEL_MODE = "自动"
 
         @JvmStatic
         fun stableId(song: Song): String = song.id?.takeIf(String::isNotEmpty)

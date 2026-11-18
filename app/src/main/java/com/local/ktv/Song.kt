@@ -117,17 +117,17 @@ class Song {
         @JvmStatic
         fun remote(json: JSONObject): Song = Song().apply {
             id = json.optString("id", json.optString("url"))
-            title = json.optString("title", json.optString("name", "未命名歌曲"))
-            singer = json.optString("singer", "网络曲库")
-            category = json.optString("category", "网络")
-            language = json.optString("language", "国语")
+            title = json.optString("title", json.optString("name", KtvRaw.get(R.string.ui_a_0847)))
+            singer = json.optString("singer", KtvRaw.get(R.string.ui_a_0595))
+            category = json.optString("category", KtvRaw.get(R.string.ui_a_0199))
+            language = json.optString("language", KtvRaw.get(R.string.ui_a_0085))
             pinyin = json.optString("pinyin", initials(title.orEmpty()))
             album = json.optString("album", "")
             playCount = json.optInt("playCount", 0)
             videoUrl = firstNonEmpty(json.optString("videoUrl"), json.optString("mvUrl"), json.optString("url"), json.optString("downloadUrl"))
             downloadUrl = firstNonEmpty(json.optString("downloadUrl"), videoUrl)
             originalUrl = firstNonEmpty(json.optString("originalUrl"), json.optString("vocalUrl"), json.optString("origUrl"))
-            accompanyUrl = firstNonEmpty(json.optString("accompanyUrl"), json.optString("accompanimentUrl"), json.optString("伴奏Url"))
+            accompanyUrl = firstNonEmpty(json.optString("accompanyUrl"), json.optString("accompanimentUrl"), json.optString(KtvRaw.get(R.string.ui_a_0848)))
             lyricUrl = firstNonEmpty(json.optString("lyricUrl"), json.optString("lrcUrl"), json.optString("subtitleUrl"))
             remote = true
         }
@@ -135,10 +135,10 @@ class Song {
         @JvmStatic
         fun fromJson(json: JSONObject): Song = Song().apply {
             id = json.optString("id")
-            title = json.optString("title", "未命名歌曲")
-            singer = json.optString("singer", "未知歌手")
-            category = json.optString("category", "其他")
-            language = json.optString("language", "国语")
+            title = json.optString("title", KtvRaw.get(R.string.ui_a_0847))
+            singer = json.optString("singer", KtvRaw.get(R.string.ui_a_0532))
+            category = json.optString("category", KtvRaw.get(R.string.ui_a_0080))
+            language = json.optString("language", KtvRaw.get(R.string.ui_a_0085))
             pinyin = json.optString("pinyin", initials(title.orEmpty()))
             album = json.optString("album", "")
             path = json.optString("path", "")
@@ -190,7 +190,7 @@ class Song {
                 if (looksLikeSinger(second, first)) return first to second
                 return if (first.length <= second.length) first to second else second to first
             }
-            return (clean.ifEmpty { "未命名歌曲" }) to "本地歌曲"
+            return (clean.ifEmpty { KtvRaw.get(R.string.ui_a_0847) }) to KtvRaw.get(R.string.ui_a_0849)
         }
 
         private fun looksLikeSinger(singer: String, title: String): Boolean {
@@ -221,9 +221,9 @@ class Song {
                 containsAny(text, "戏曲", "京剧", "豫剧", "黄梅戏", "越剧") -> "戏曲"
                 containsAny(text, "民歌", "民族") -> "民歌"
                 containsAny(text, "军歌", "红歌") -> "红歌"
-                containsAny(text, "经典", "老歌", "怀旧") -> "经典老歌"
-                containsAny(text, "新歌", "流行", "pop") -> "流行"
-                containsAny(text, "粤语", "英语", "日语", "韩语", "闽南", "外语", "欧美", "日韩") -> "语种歌曲"
+                containsAny(text, KtvRaw.get(R.string.ui_a_0868), KtvRaw.get(R.string.ui_a_0869), KtvRaw.get(R.string.ui_a_0870)) -> KtvRaw.get(R.string.ui_a_0871)
+                containsAny(text, KtvRaw.get(R.string.ui_a_0727), KtvRaw.get(R.string.ui_a_0319), "pop") -> KtvRaw.get(R.string.ui_a_0319)
+                containsAny(text, KtvRaw.get(R.string.ui_a_0522), KtvRaw.get(R.string.ui_a_0528), KtvRaw.get(R.string.ui_a_0526), KtvRaw.get(R.string.ui_a_0527), KtvRaw.get(R.string.ui_a_0523), KtvRaw.get(R.string.ui_a_0530), KtvRaw.get(R.string.ui_a_0079), KtvRaw.get(R.string.ui_a_0078)) -> KtvRaw.get(R.string.ui_a_0872)
                 else -> "本地"
             }
         }

@@ -1,0 +1,1032 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 自动生成：全部界面中文字符串（含内部键）。 -->
+<resources>
+    <string name="ui_a_0001">麦动 KTV %1$s</string>
+    <string name="ui_a_0002">下载失败：HTTP %1$s</string>
+    <string name="ui_a_0003" formatted="false">下载的安装包不完整</string>
+    <string name="ui_a_0004" formatted="false">下载内容不是 APK</string>
+    <string name="ui_a_0005" formatted="false">安装包应用标识不匹配</string>
+    <string name="ui_a_0006" formatted="false">无法保存安装包</string>
+    <string name="ui_a_0007" formatted="false">允许安装未知应用</string>
+    <string name="ui_a_0008">检查更新失败：HTTP %1$s</string>
+    <string name="ui_a_0009" formatted="false">目录资源校验失败</string>
+    <string name="ui_a_0010" formatted="false">无法安装目录资源</string>
+    <string name="ui_a_0011">音量 %1$s</string>
+    <string name="ui_a_0012" formatted="false">音量</string>
+    <string name="ui_a_0013" formatted="false">保存位置空间不足，请清理缓存或在设置中选择保存到U盘</string>
+    <string name="ui_a_0014" formatted="false">等待</string>
+    <string name="ui_a_0015" formatted="false">保存的账号会话无法恢复，请重新登录</string>
+    <string name="ui_a_0016" formatted="false">账号会话更新未能保存</string>
+    <string name="ui_a_0017">账号服务 HTTP %1$s</string>
+    <string name="ui_a_0018" formatted="false">请输入账号和密码</string>
+    <string name="ui_a_0019" formatted="false">本次登录已取消</string>
+    <string name="ui_a_0020" formatted="false">账号已退出，请重新登录</string>
+    <string name="ui_a_0021" formatted="false">账号已切换，请重试下载</string>
+    <string name="ui_a_0022" formatted="false">会话已失效，请重新登录并勾选自动恢复登录</string>
+    <string name="ui_a_0023" formatted="false">账号恢复请求过于频繁，请稍后重试</string>
+    <string name="ui_a_0024" formatted="false">恢复登录返回的账号不一致</string>
+    <string name="ui_a_0025" formatted="false">账号已变更，本次恢复已取消</string>
+    <string name="ui_a_0026" formatted="false">登录失败</string>
+    <string name="ui_a_0027" formatted="false">登录响应缺少用户信息</string>
+    <string name="ui_a_0028" formatted="false">登录响应缺少有效账号编号</string>
+    <string name="ui_a_0029" formatted="false">i歌霸用户</string>
+    <string name="ui_a_0030" formatted="false">请输入有效的中国大陆手机号</string>
+    <string name="ui_a_0031">请在 %1$s 秒后重新获取验证码</string>
+    <string name="ui_a_0032" formatted="false">i歌霸</string>
+    <string name="ui_a_0033" formatted="false">验证码发送失败</string>
+    <string name="ui_a_0034" formatted="false">请输入密码和验证码</string>
+    <string name="ui_a_0035" formatted="false">注册失败</string>
+    <string name="ui_a_0036" formatted="false">i歌霸账号</string>
+    <string name="ui_a_0037" formatted="false">关闭</string>
+    <string name="ui_a_0038" formatted="false">退出登录</string>
+    <string name="ui_a_0039" formatted="false">切换账号</string>
+    <string name="ui_a_0040" formatted="false">中国大陆手机号</string>
+    <string name="ui_a_0041" formatted="false">手机号、邮箱或用户名</string>
+    <string name="ui_a_0042" formatted="false">密码</string>
+    <string name="ui_a_0043" formatted="false">加密保存密码，允许下载失败时自动恢复登录</string>
+    <string name="ui_a_0044" formatted="false">短信验证码</string>
+    <string name="ui_a_0045" formatted="false">登录会话加密保存在本机。勾选后才保存密码；退出登录会删除会话和密码。</string>
+    <string name="ui_a_0046" formatted="false">获取验证码</string>
+    <string name="ui_a_0047" formatted="false">注册 i歌霸账号</string>
+    <string name="ui_a_0048" formatted="false">登录 i歌霸</string>
+    <string name="ui_a_0049" formatted="false">注册</string>
+    <string name="ui_a_0050" formatted="false">登录</string>
+    <string name="ui_a_0051" formatted="false">返回登录</string>
+    <string name="ui_a_0052" formatted="false">注册账号</string>
+    <string name="ui_a_0053" formatted="false">取消</string>
+    <string name="ui_a_0054" formatted="false">正在请求...</string>
+    <string name="ui_a_0055" formatted="false">账号服务请求失败</string>
+    <string name="ui_a_0056">注册成功，自动登录失败：%1$s；可直接重试登录。</string>
+    <string name="ui_a_0057" formatted="false">验证码已发送，请查收；120 秒后可重新获取。</string>
+    <string name="ui_a_0058" formatted="false">注册并登录成功</string>
+    <string name="ui_a_0059" formatted="false">登录成功</string>
+    <string name="ui_a_0060">目录接口 HTTP %1$s</string>
+    <string name="ui_a_0061" formatted="false">目录及地址请求必须在后台线程执行</string>
+    <string name="ui_a_0062" formatted="false">歌源拒绝请求</string>
+    <string name="ui_a_0063" formatted="false">请先登录 i歌霸账号</string>
+    <string name="ui_a_0064" formatted="false">缺少有效的新歌源歌曲编号</string>
+    <string name="ui_a_0065" formatted="false">歌源未返回权限状态</string>
+    <string name="ui_a_0066" formatted="false">歌源未提供播放权限</string>
+    <string name="ui_a_0067" formatted="false">歌源未返回播放地址</string>
+    <string name="ui_a_0068" formatted="false">目录来源不匹配</string>
+    <string name="ui_a_0069" formatted="false">全部</string>
+    <string name="ui_a_0070" formatted="false">COALESCE((SELECT ps.sort_no FROM source_playlist_songs ps JOIN source_playlists p ON p.number=ps.playlist_number AND p.package_type=ps.package_type WHERE ps.song_number=s.number AND p.package_type=4 AND p.name LIKE \'热歌榜%\' LIMIT 1),1000000),s.sort_no</string>
+    <string name="ui_a_0071" formatted="false">内地</string>
+    <string name="ui_a_0072" formatted="false">大陆</string>
+    <string name="ui_a_0073" formatted="false">男</string>
+    <string name="ui_a_0074" formatted="false">女</string>
+    <string name="ui_a_0075" formatted="false">组合</string>
+    <string name="ui_a_0076" formatted="false">无法连接新歌源目录</string>
+    <string name="ui_a_0077" formatted="false">港台</string>
+    <string name="ui_a_0078" formatted="false">日韩</string>
+    <string name="ui_a_0079" formatted="false">欧美</string>
+    <string name="ui_a_0080" formatted="false">其他</string>
+    <string name="ui_a_0081" formatted="false">新目录校验失败</string>
+    <string name="ui_a_0082" formatted="false">无法暂存上一份新目录</string>
+    <string name="ui_a_0083" formatted="false">无法安装新目录</string>
+    <string name="ui_a_0084" formatted="false">下载中</string>
+    <string name="ui_a_0085" formatted="false">国语</string>
+    <string name="ui_a_0086" formatted="false">自动</string>
+    <string name="ui_a_0087" formatted="false">标准</string>
+    <string name="ui_a_0088" formatted="false">普通演唱</string>
+    <string name="ui_a_0089" formatted="false">欢迎使用麦动</string>
+    <string name="ui_a_0090" formatted="false">欢迎光临</string>
+    <string name="ui_a_0091" formatted="false">适应屏幕</string>
+    <string name="ui_a_0092" formatted="false">个人记录快照不完整</string>
+    <string name="ui_a_0093" formatted="false">个人记录保存失败</string>
+    <string name="ui_a_0094" formatted="false">我的收藏</string>
+    <string name="ui_a_0095" formatted="false">常唱歌曲</string>
+    <string name="ui_a_0096" formatted="false">{\&quot;ok\&quot;:false,\&quot;code\&quot;:\&quot;NOT_FOUND\&quot;,\&quot;error\&quot;:\&quot;接口不存在\&quot;}</string>
+    <string name="ui_a_0097" formatted="false">请先连接 Wi-Fi 或有线局域网</string>
+    <string name="ui_a_0098" formatted="false">端口 8765–8775 均被占用</string>
+    <string name="ui_a_0099" formatted="false">本地服务异常</string>
+    <string name="ui_a_0100" formatted="false">仅允许局域网设备访问</string>
+    <string name="ui_a_0101" formatted="false">请求格式错误</string>
+    <string name="ui_a_0102" formatted="false">请求来源无效</string>
+    <string name="ui_a_0103" formatted="false">服务尚未准备完成</string>
+    <string name="ui_a_0104" formatted="false">接口不存在</string>
+    <string name="ui_a_0105" formatted="false">页面资源缺失</string>
+    <string name="ui_a_0106" formatted="false">Logo 资源缺失</string>
+    <string name="ui_a_0107" formatted="false">网盘配置已更新，选择网盘存储后点击“立即加歌”扫描歌曲</string>
+    <string name="ui_a_0108" formatted="false">首页</string>
+    <string name="ui_a_0109" formatted="false">下载中断，可重试</string>
+    <string name="ui_a_0110" formatted="false">完成</string>
+    <string name="ui_a_0111">失败：%1$s</string>
+    <string name="ui_a_0112" formatted="false">应用重启，等待重试</string>
+    <string name="ui_a_0113">旧缓存已清理：%1$s 个文件，%2$s 字节</string>
+    <string name="ui_a_0114" formatted="false">个人歌曲记录迁移失败，已保留原记录</string>
+    <string name="ui_a_0115" formatted="false">曲库正在处理，请稍后重试</string>
+    <string name="ui_a_0116" formatted="false">正在检查 i歌霸曲库更新…</string>
+    <string name="ui_a_0117" formatted="false">无法连接 i歌霸曲库，请检查网络</string>
+    <string name="ui_a_0118" formatted="false">更新后的曲库无法打开</string>
+    <string name="ui_a_0119">曲库已更新，共 %1$s 首</string>
+    <string name="ui_a_0120" formatted="false">曲库已是最新</string>
+    <string name="ui_a_0121" formatted="false">曲库更新失败，已保留原曲库</string>
+    <string name="ui_a_0122" formatted="false">正在同步曲库</string>
+    <string name="ui_a_0123" formatted="false">正在整理目录</string>
+    <string name="ui_a_0124" formatted="false">正在校验数据库</string>
+    <string name="ui_a_0125" formatted="false">hot\u0001\u0001全部\u0001</string>
+    <string name="ui_a_0126" formatted="false">正在检查更新...</string>
+    <string name="ui_a_0127">当前已是最新版本 %1$s</string>
+    <string name="ui_a_0128" formatted="false">检查更新失败</string>
+    <string name="ui_a_0129" formatted="false">发现新版本，建议立即更新。</string>
+    <string name="ui_a_0130">发现新版本 %1$s</string>
+    <string name="ui_a_0131" formatted="false">稍后</string>
+    <string name="ui_a_0132" formatted="false">下载并安装</string>
+    <string name="ui_a_0133">正在下载 %1$s…</string>
+    <string name="ui_a_0134" formatted="false">应用更新</string>
+    <string name="ui_a_0135" formatted="false">后台下载</string>
+    <string name="ui_a_0136">正在下载 %1$s… %2$s%%</string>
+    <string name="ui_a_0137" formatted="false">下载完成</string>
+    <string name="ui_a_0138">版本 %1$s 已下载，是否现在安装？</string>
+    <string name="ui_a_0139" formatted="false">安装</string>
+    <string name="ui_a_0140" formatted="false">更新失败</string>
+    <string name="ui_a_0141" formatted="false">下载安装包失败</string>
+    <string name="ui_a_0142" formatted="false">确定</string>
+    <string name="ui_a_0143" formatted="false">快速入口</string>
+    <string name="ui_a_0144" formatted="false">新歌推荐</string>
+    <string name="ui_a_0145" formatted="false">网络/本地新增歌曲</string>
+    <string name="ui_a_0146" formatted="false">热门排行</string>
+    <string name="ui_a_0147" formatted="false">按点播热度排序</string>
+    <string name="ui_a_0148" formatted="false">歌星点歌</string>
+    <string name="ui_a_0149" formatted="false">按歌手查找</string>
+    <string name="ui_a_0150" formatted="false">语种点歌</string>
+    <string name="ui_a_0151" formatted="false">国语/粤语/外语</string>
+    <string name="ui_a_0152" formatted="false">字数点歌</string>
+    <string name="ui_a_0153" formatted="false">按歌名字数查找</string>
+    <string name="ui_a_0154" formatted="false">拼音搜索</string>
+    <string name="ui_a_0155" formatted="false">支持简码/歌名/歌手</string>
+    <string name="ui_a_0156" formatted="false">常唱歌曲快速点播</string>
+    <string name="ui_a_0157" formatted="false">我的歌单</string>
+    <string name="ui_a_0158" formatted="false">本地自建歌单</string>
+    <string name="ui_a_0159" formatted="false">U盘导入</string>
+    <string name="ui_a_0160" formatted="false">扫描导入目录</string>
+    <string name="ui_a_0161" formatted="false">下载管理</string>
+    <string name="ui_a_0162" formatted="false">网络曲库下载</string>
+    <string name="ui_a_0163" formatted="false">音量音调</string>
+    <string name="ui_a_0164" formatted="false">原伴唱 / 音量 / 升降调</string>
+    <string name="ui_a_0165" formatted="false">气氛模式</string>
+    <string name="ui_a_0166" formatted="false">演唱评分</string>
+    <string name="ui_a_0167" formatted="false">评分已关闭</string>
+    <string name="ui_a_0168" formatted="false">本地录音</string>
+    <string name="ui_a_0169" formatted="false">录制演唱音频</string>
+    <string name="ui_a_0170" formatted="false">正在录音</string>
+    <string name="ui_a_0171" formatted="false">手机点歌</string>
+    <string name="ui_a_0172" formatted="false">跑马灯</string>
+    <string name="ui_a_0173" formatted="false">跑马灯已关闭</string>
+    <string name="ui_a_0174" formatted="false">灯光迪斯科</string>
+    <string name="ui_a_0175" formatted="false">本地影片</string>
+    <string name="ui_a_0176" formatted="false">用户 MV / 影片播放</string>
+    <string name="ui_a_0177" formatted="false">网络设置</string>
+    <string name="ui_a_0178" formatted="false">屏幕设置</string>
+    <string name="ui_a_0179" formatted="false">应用工具</string>
+    <string name="ui_a_0180" formatted="false">本地工具 / 维护</string>
+    <string name="ui_a_0181" formatted="false">曲库维护</string>
+    <string name="ui_a_0182" formatted="false">清理 / 重建 / 导出</string>
+    <string name="ui_a_0183" formatted="false">包房广播</string>
+    <string name="ui_a_0184" formatted="false">广播已关闭</string>
+    <string name="ui_a_0185" formatted="false">播放预览</string>
+    <string name="ui_a_0186" formatted="false">暂停/继续</string>
+    <string name="ui_a_0187" formatted="false">重唱</string>
+    <string name="ui_a_0188" formatted="false">切歌</string>
+    <string name="ui_a_0189" formatted="false">单曲循环</string>
+    <string name="ui_a_0190" formatted="false">顺序播放</string>
+    <string name="ui_a_0191" formatted="false">音控</string>
+    <string name="ui_a_0192" formatted="false">录音</string>
+    <string name="ui_a_0193" formatted="false">停止录音</string>
+    <string name="ui_a_0194" formatted="false">状态</string>
+    <string name="ui_a_0195" formatted="false">已点 </string>
+    <string name="ui_a_0196" formatted="false">点歌</string>
+    <string name="ui_a_0197" formatted="false">分类</string>
+    <string name="ui_a_0198" formatted="false">本地</string>
+    <string name="ui_a_0199" formatted="false">网络</string>
+    <string name="ui_a_0200" formatted="false">网络同步</string>
+    <string name="ui_a_0201" formatted="false">输入歌名 / 歌手 / 拼音简码</string>
+    <string name="ui_a_0202" formatted="false">键盘</string>
+    <string name="ui_a_0203" formatted="false">搜索</string>
+    <string name="ui_a_0204" formatted="false">上一页</string>
+    <string name="ui_a_0205" formatted="false">下一页</string>
+    <string name="ui_a_0206" formatted="false">歌星</string>
+    <string name="ui_a_0207" formatted="false">歌手分类</string>
+    <string name="ui_a_0208" formatted="false">歌星列表</string>
+    <string name="ui_a_0209" formatted="false">歌星歌曲</string>
+    <string name="ui_a_0210" formatted="false">全部歌手</string>
+    <string name="ui_a_0211" formatted="false">外国</string>
+    <string name="ui_a_0212" formatted="false">中国</string>
+    <string name="ui_a_0213" formatted="false">热门歌手</string>
+    <string name="ui_a_0214" formatted="false">大陆/内地</string>
+    <string name="ui_a_0215" formatted="false">组合/乐队</string>
+    <string name="ui_a_0216" formatted="false">正在加载歌手...</string>
+    <string name="ui_a_0217" formatted="false">加载了 </string>
+    <string name="ui_a_0218" formatted="false"> 位歌手</string>
+    <string name="ui_a_0219" formatted="false">语种</string>
+    <string name="ui_a_0220" formatted="false">字数</string>
+    <string name="ui_a_0221" formatted="false">歌名字数</string>
+    <string name="ui_a_0222" formatted="false">一字</string>
+    <string name="ui_a_0223" formatted="false">二字</string>
+    <string name="ui_a_0224" formatted="false">三字</string>
+    <string name="ui_a_0225" formatted="false">四字</string>
+    <string name="ui_a_0226" formatted="false">五字</string>
+    <string name="ui_a_0227" formatted="false">六字以上</string>
+    <string name="ui_a_0228" formatted="false">排行</string>
+    <string name="ui_a_0229" formatted="false">已点</string>
+    <string name="ui_a_0230" formatted="false">播放第一首</string>
+    <string name="ui_a_0231" formatted="false">置顶</string>
+    <string name="ui_a_0232" formatted="false">删除</string>
+    <string name="ui_a_0233" formatted="false">清空</string>
+    <string name="ui_a_0234" formatted="false">已唱</string>
+    <string name="ui_a_0235" formatted="false">已唱记录</string>
+    <string name="ui_a_0236" formatted="false">下载</string>
+    <string name="ui_a_0237" formatted="false">下载操作</string>
+    <string name="ui_a_0238" formatted="false">同步网络曲库</string>
+    <string name="ui_a_0239" formatted="false">设置网络源</string>
+    <string name="ui_a_0240" formatted="false">重扫本地歌曲</string>
+    <string name="ui_a_0241" formatted="false">取消全部下载</string>
+    <string name="ui_a_0242" formatted="false">清理已完成</string>
+    <string name="ui_a_0243" formatted="false">清理失败任务</string>
+    <string name="ui_a_0244" formatted="false">失败</string>
+    <string name="ui_a_0245" formatted="false">已取消</string>
+    <string name="ui_a_0246" formatted="false">下载队列</string>
+    <string name="ui_a_0247" formatted="false">正在取消</string>
+    <string name="ui_a_0248" formatted="false">U盘</string>
+    <string name="ui_a_0249" formatted="false">本地导入</string>
+    <string name="ui_a_0250" formatted="false">请把歌曲放入 /sdcard/MaidongKTV/import、/sdcard/MaidongKTV/songs、U盘/KTV 或 U盘/songs，支持 mp4/mkv/avi/mp3/flac/wav。</string>
+    <string name="ui_a_0251" formatted="false">🎤  演唱模式</string>
+    <string name="ui_a_0252" formatted="false">🔊  音频控制</string>
+    <string name="ui_a_0253" formatted="false">🌐  声道设置</string>
+    <string name="ui_a_0254" formatted="false">🎚  音调控制</string>
+    <string name="ui_a_0255" formatted="false">📺  画面设置</string>
+    <string name="ui_a_0256" formatted="false">📃  跑马灯</string>
+    <string name="ui_a_0257" formatted="false">📶  网络设置</string>
+    <string name="ui_a_0258" formatted="false">ℹ  关于</string>
+    <string name="ui_a_0259" formatted="false">演唱模式</string>
+    <string name="ui_a_0260" formatted="false">练唱模式</string>
+    <string name="ui_a_0261" formatted="false">评分演唱</string>
+    <string name="ui_a_0262" formatted="false">静音练唱</string>
+    <string name="ui_a_0263" formatted="false">音频控制</string>
+    <string name="ui_a_0264" formatted="false">麦克风音量</string>
+    <string name="ui_a_0265" formatted="false">音乐音量</string>
+    <string name="ui_a_0266" formatted="false">音调</string>
+    <string name="ui_a_0267" formatted="false"> 调</string>
+    <string name="ui_a_0268" formatted="false">原唱模式</string>
+    <string name="ui_a_0269" formatted="false">开</string>
+    <string name="ui_a_0270" formatted="false">关</string>
+    <string name="ui_a_0271" formatted="false">声道模式</string>
+    <string name="ui_a_0272" formatted="false">声道</string>
+    <string name="ui_a_0273" formatted="false">左伴右原</string>
+    <string name="ui_a_0274" formatted="false">右伴左原</string>
+    <string name="ui_a_0275" formatted="false">全声道</string>
+    <string name="ui_a_0276" formatted="false">音调控制</string>
+    <string name="ui_a_0277" formatted="false">音调 -</string>
+    <string name="ui_a_0278" formatted="false">降调</string>
+    <string name="ui_a_0279" formatted="false">音调 +</string>
+    <string name="ui_a_0280" formatted="false">升调</string>
+    <string name="ui_a_0281" formatted="false">画面设置</string>
+    <string name="ui_a_0282" formatted="false">画面比例</string>
+    <string name="ui_a_0283" formatted="false">画面质量</string>
+    <string name="ui_a_0284" formatted="false">高</string>
+    <string name="ui_a_0285" formatted="false">全屏模式</string>
+    <string name="ui_a_0286" formatted="false">是</string>
+    <string name="ui_a_0287" formatted="false">跑马灯状态</string>
+    <string name="ui_a_0288" formatted="false">跑马灯内容</string>
+    <string name="ui_a_0289" formatted="false">麦动 欢迎光临</string>
+    <string name="ui_a_0290" formatted="false">滚动速度</string>
+    <string name="ui_a_0291" formatted="false">正常</string>
+    <string name="ui_a_0292" formatted="false">当前网络</string>
+    <string name="ui_a_0293" formatted="false">WIFI 已连接</string>
+    <string name="ui_a_0294" formatted="false">CDN 主地址</string>
+    <string name="ui_a_0295" formatted="false">CDN 备地址</string>
+    <string name="ui_a_0296" formatted="false">由歌源动态返回</string>
+    <string name="ui_a_0297" formatted="false">关于</string>
+    <string name="ui_a_0298" formatted="false">应用名称</string>
+    <string name="ui_a_0299" formatted="false">麦动</string>
+    <string name="ui_a_0300" formatted="false">版本号</string>
+    <string name="ui_a_0301" formatted="false">曲库</string>
+    <string name="ui_a_0302" formatted="false">已加载 (</string>
+    <string name="ui_a_0303" formatted="false"> 首)</string>
+    <string name="ui_a_0304" formatted="false">未加载</string>
+    <string name="ui_a_0305" formatted="false">原唱</string>
+    <string name="ui_a_0306" formatted="false">伴唱</string>
+    <string name="ui_a_0307" formatted="false">返回</string>
+    <string name="ui_a_0308" formatted="false">返回点歌</string>
+    <string name="ui_a_0309" formatted="false">暂停</string>
+    <string name="ui_a_0310" formatted="false">播放</string>
+    <string name="ui_a_0311" formatted="false">调音</string>
+    <string name="ui_a_0312" formatted="false">音量 －</string>
+    <string name="ui_a_0313" formatted="false">音量 ＋</string>
+    <string name="ui_a_0314" formatted="false">静音</string>
+    <string name="ui_a_0315" formatted="false">放音</string>
+    <string name="ui_a_0316" formatted="false">演唱模式：</string>
+    <string name="ui_a_0317" formatted="false">声道模式：</string>
+    <string name="ui_a_0318" formatted="false">弹窗-调音.jpg</string>
+    <string name="ui_a_0319" formatted="false">流行</string>
+    <string name="ui_a_0320" formatted="false">抒情</string>
+    <string name="ui_a_0321" formatted="false">摇滚</string>
+    <string name="ui_a_0322" formatted="false">唱将</string>
+    <string name="ui_a_0323" formatted="false">音效: </string>
+    <string name="ui_a_0324" formatted="false">热烈</string>
+    <string name="ui_a_0325" formatted="false">柔和</string>
+    <string name="ui_a_0326" formatted="false">派对</string>
+    <string name="ui_a_0327" formatted="false">气氛模式：</string>
+    <string name="ui_a_0328" formatted="false">当前歌曲：</string>
+    <string name="ui_a_0329" formatted="false">无</string>
+    <string name="ui_a_0330" formatted="false">\n已点：</string>
+    <string name="ui_a_0331" formatted="false">\n已唱：</string>
+    <string name="ui_a_0332" formatted="false">\n模式：</string>
+    <string name="ui_a_0333" formatted="false">手动切歌</string>
+    <string name="ui_a_0334" formatted="false">\n声道：</string>
+    <string name="ui_a_0335" formatted="false">\n声道模式：</string>
+    <string name="ui_a_0336" formatted="false">\n演唱模式：</string>
+    <string name="ui_a_0337" formatted="false">\n音乐音量：</string>
+    <string name="ui_a_0338" formatted="false">\n麦克风音量：</string>
+    <string name="ui_a_0339" formatted="false">\n音调：</string>
+    <string name="ui_a_0340" formatted="false">\n气氛：</string>
+    <string name="ui_a_0341" formatted="false">\n评分：</string>
+    <string name="ui_a_0342" formatted="false">\n录音：</string>
+    <string name="ui_a_0343" formatted="false">未录音</string>
+    <string name="ui_a_0344" formatted="false">录音中</string>
+    <string name="ui_a_0345" formatted="false">\n灯光：</string>
+    <string name="ui_a_0346" formatted="false">\n跑马灯：</string>
+    <string name="ui_a_0347" formatted="false">\n音画同步：</string>
+    <string name="ui_a_0348" formatted="false">\n包房广播：</string>
+    <string name="ui_a_0349" formatted="false">播放状态</string>
+    <string name="ui_a_0350" formatted="false">歌曲目录：</string>
+    <string name="ui_a_0351" formatted="false">\n可用空间：</string>
+    <string name="ui_a_0352" formatted="false">\n导入目录：</string>
+    <string name="ui_a_0353" formatted="false">\n录音目录：</string>
+    <string name="ui_a_0354" formatted="false">\n曲库总数：</string>
+    <string name="ui_a_0355" formatted="false">\n下载任务：</string>
+    <string name="ui_a_0356" formatted="false">存储信息</string>
+    <string name="ui_a_0357" formatted="false">网络状态：</string>
+    <string name="ui_a_0358" formatted="false">已连接</string>
+    <string name="ui_a_0359" formatted="false">未连接</string>
+    <string name="ui_a_0360" formatted="false">\n网络类型：</string>
+    <string name="ui_a_0361" formatted="false">未知</string>
+    <string name="ui_a_0362" formatted="false">\n曲库源：</string>
+    <string name="ui_a_0363" formatted="false">未设置</string>
+    <string name="ui_a_0364" formatted="false">\n本地曲库：</string>
+    <string name="ui_a_0365" formatted="false"> 首</string>
+    <string name="ui_a_0366" formatted="false">网络状态</string>
+    <string name="ui_a_0367" formatted="false">同步曲库</string>
+    <string name="ui_a_0368" formatted="false">应用</string>
+    <string name="ui_a_0369" formatted="false">配置备份</string>
+    <string name="ui_a_0370" formatted="false">本地工具</string>
+    <string name="ui_a_0371" formatted="false">点歌台</string>
+    <string name="ui_a_0372" formatted="false">歌星分类</string>
+    <string name="ui_a_0373" formatted="false">U盘加歌</string>
+    <string name="ui_a_0374" formatted="false">用户影片</string>
+    <string name="ui_a_0375" formatted="false">录音评分</string>
+    <string name="ui_a_0376" formatted="false">打开</string>
+    <string name="ui_a_0377" formatted="false">本地 APK / 升级包</string>
+    <string name="ui_a_0378" formatted="false">暂无 APK，请放入 /sdcard/MaidongKTV/apps 或 U盘/apps</string>
+    <string name="ui_a_0379" formatted="false">广播</string>
+    <string name="ui_a_0380" formatted="false">广播功能：开</string>
+    <string name="ui_a_0381" formatted="false">广播功能：关</string>
+    <string name="ui_a_0382" formatted="false">发送当前广播</string>
+    <string name="ui_a_0383" formatted="false">时长 -</string>
+    <string name="ui_a_0384" formatted="false">时长 +</string>
+    <string name="ui_a_0385" formatted="false">广播内容</string>
+    <string name="ui_a_0386" formatted="false">输入包房广播内容</string>
+    <string name="ui_a_0387" formatted="false">保存并发送</string>
+    <string name="ui_a_0388" formatted="false">显示时长：</string>
+    <string name="ui_a_0389" formatted="false"> 秒</string>
+    <string name="ui_a_0390" formatted="false">广播历史</string>
+    <string name="ui_a_0391" formatted="false">暂无广播记录</string>
+    <string name="ui_a_0392" formatted="false">备份</string>
+    <string name="ui_a_0393" formatted="false">备份当前配置</string>
+    <string name="ui_a_0394" formatted="false">从备份恢复</string>
+    <string name="ui_a_0395" formatted="false">打开曲库维护</string>
+    <string name="ui_a_0396" formatted="false">备份信息</string>
+    <string name="ui_a_0397" formatted="false">备份目录：</string>
+    <string name="ui_a_0398" formatted="false">暂无备份</string>
+    <string name="ui_a_0399" formatted="false">维护</string>
+    <string name="ui_a_0400" formatted="false">重扫本地曲库</string>
+    <string name="ui_a_0401" formatted="false">清除网络缓存</string>
+    <string name="ui_a_0402" formatted="false">网络曲库缓存已清除</string>
+    <string name="ui_a_0403" formatted="false">没有可清除的网络缓存</string>
+    <string name="ui_a_0404" formatted="false">清空下载任务</string>
+    <string name="ui_a_0405" formatted="false">清理失效已点</string>
+    <string name="ui_a_0406" formatted="false">恢复隐藏歌曲</string>
+    <string name="ui_a_0407" formatted="false">已恢复隐藏歌曲</string>
+    <string name="ui_a_0408" formatted="false">曲库概览</string>
+    <string name="ui_a_0409" formatted="false">总曲库：</string>
+    <string name="ui_a_0410" formatted="false">已点：</string>
+    <string name="ui_a_0411" formatted="false">已唱：</string>
+    <string name="ui_a_0412" formatted="false">下载任务：</string>
+    <string name="ui_a_0413" formatted="false">隐藏歌曲：</string>
+    <string name="ui_a_0414" formatted="false">本地目录：</string>
+    <string name="ui_a_0415" formatted="false">导入目录：</string>
+    <string name="ui_a_0416" formatted="false">请连接 Wi-Fi 或有线局域网后重试</string>
+    <string name="ui_a_0417" formatted="false">重新检测</string>
+    <string name="ui_a_0418" formatted="false">手机连接同一局域网后扫码点歌</string>
+    <string name="ui_a_0419" formatted="false">扫码点歌</string>
+    <string name="ui_a_0420" formatted="false">手机点歌二维码</string>
+    <string name="ui_a_0421" formatted="false">扫码手机点歌</string>
+    <string name="ui_a_0422" formatted="false">仅在菜单中显示二维码</string>
+    <string name="ui_a_0423" formatted="false">播放页右下角显示二维码</string>
+    <string name="ui_a_0424" formatted="false">查看二维码</string>
+    <string name="ui_a_0425" formatted="false">远程切换原唱</string>
+    <string name="ui_a_0426" formatted="false">远程切换伴唱</string>
+    <string name="ui_a_0427" formatted="false">远程灯光：</string>
+    <string name="ui_a_0428" formatted="false">远程跑马灯：</string>
+    <string name="ui_a_0429" formatted="false">远程清空已点</string>
+    <string name="ui_a_0430" formatted="false">远程删除已点：</string>
+    <string name="ui_a_0431" formatted="false">远程收藏：</string>
+    <string name="ui_a_0432" formatted="false">曲库正在初始化或重置，请稍后重试</string>
+    <string name="ui_a_0433" formatted="false">请求参数错误</string>
+    <string name="ui_a_0434" formatted="false">播放器状态暂不可用</string>
+    <string name="ui_a_0435" formatted="false">曲库暂不可用</string>
+    <string name="ui_a_0436" formatted="false">缺少歌手 ID</string>
+    <string name="ui_a_0437" formatted="false">下载任务状态暂不可用</string>
+    <string name="ui_a_0438" formatted="false">等待下载</string>
+    <string name="ui_a_0439" formatted="false">缺少歌曲 ID</string>
+    <string name="ui_a_0440" formatted="false">歌曲不存在或搜索结果已过期</string>
+    <string name="ui_a_0441" formatted="false">请先在麦动中登录 i歌霸账号</string>
+    <string name="ui_a_0442" formatted="false">歌曲已在已点列表中</string>
+    <string name="ui_a_0443" formatted="false">点歌成功</string>
+    <string name="ui_a_0444" formatted="false">已点歌曲不存在</string>
+    <string name="ui_a_0445" formatted="false">正在播放的歌曲不能修改</string>
+    <string name="ui_a_0446" formatted="false">已置顶</string>
+    <string name="ui_a_0447" formatted="false">已删除</string>
+    <string name="ui_a_0448" formatted="false">不支持的播放操作</string>
+    <string name="ui_a_0449" formatted="false">操作已执行</string>
+    <string name="ui_a_0450" formatted="false">缺少音频参数</string>
+    <string name="ui_a_0451" formatted="false">原伴唱参数无效</string>
+    <string name="ui_a_0452" formatted="false">音量必须在 0 到 100 之间</string>
+    <string name="ui_a_0453" formatted="false">音频设置已更新</string>
+    <string name="ui_a_0454" formatted="false">当前：</string>
+    <string name="ui_a_0455" formatted="false">已开启</string>
+    <string name="ui_a_0456" formatted="false">已关闭</string>
+    <string name="ui_a_0457" formatted="false">最近：</string>
+    <string name="ui_a_0458" formatted="false">评分记录</string>
+    <string name="ui_a_0459" formatted="false">暂无评分记录</string>
+    <string name="ui_a_0460" formatted="false">关闭评分</string>
+    <string name="ui_a_0461" formatted="false">开启评分</string>
+    <string name="ui_a_0462" formatted="false">录音操作</string>
+    <string name="ui_a_0463" formatted="false">开始录音</string>
+    <string name="ui_a_0464" formatted="false">刷新列表</string>
+    <string name="ui_a_0465" formatted="false">录音功能：开</string>
+    <string name="ui_a_0466" formatted="false">录音功能：关</string>
+    <string name="ui_a_0467" formatted="false">录音文件</string>
+    <string name="ui_a_0468" formatted="false">暂无录音</string>
+    <string name="ui_a_0469" formatted="false">跑马灯文字</string>
+    <string name="ui_a_0470" formatted="false">跑马灯设置</string>
+    <string name="ui_a_0471" formatted="false">保存</string>
+    <string name="ui_a_0472" formatted="false">跑马灯已保存</string>
+    <string name="ui_a_0473" formatted="false">开启</string>
+    <string name="ui_a_0474" formatted="false">迪斯科</string>
+    <string name="ui_a_0475" formatted="false">灯光 / 迪斯科</string>
+    <string name="ui_a_0476" formatted="false">开房灯</string>
+    <string name="ui_a_0477" formatted="false">关房灯</string>
+    <string name="ui_a_0478" formatted="false">暂停灯</string>
+    <string name="ui_a_0479" formatted="false">静音灯</string>
+    <string name="ui_a_0480" formatted="false">热舞</string>
+    <string name="ui_a_0481" formatted="false">全关</string>
+    <string name="ui_a_0482" formatted="false">当前模式</string>
+    <string name="ui_a_0483" formatted="false">切换灯效</string>
+    <string name="ui_a_0484" formatted="false">本地版记录灯效状态；接入实际灯控盒时可把这些模式映射到串口、HTTP 或红外命令。</string>
+    <string name="ui_a_0485" formatted="false">影片操作</string>
+    <string name="ui_a_0486" formatted="false">扫描影片目录</string>
+    <string name="ui_a_0487" formatted="false">目录：/sdcard/MaidongKTV/movies 或 U盘/movies</string>
+    <string name="ui_a_0488" formatted="false">用户 MV / 本地影片</string>
+    <string name="ui_a_0489" formatted="false">暂无影片</string>
+    <string name="ui_a_0490" formatted="false">连接：</string>
+    <string name="ui_a_0491" formatted="false">\n类型：</string>
+    <string name="ui_a_0492" formatted="false">正在测试曲库源...</string>
+    <string name="ui_a_0493" formatted="false">曲库源可用：</string>
+    <string name="ui_a_0494" formatted="false">曲库源不可用：</string>
+    <string name="ui_a_0495" formatted="false">包房广播已关闭</string>
+    <string name="ui_a_0496" formatted="false">包房广播：</string>
+    <string name="ui_a_0497" formatted="false">秒）</string>
+    <string name="ui_a_0498" formatted="false">广播已发送</string>
+    <string name="ui_a_0499" formatted="false">已清理：</string>
+    <string name="ui_a_0500" formatted="false">录音功能已关闭</string>
+    <string name="ui_a_0501" formatted="false">正在录音：</string>
+    <string name="ui_a_0502" formatted="false">录音启动失败：</string>
+    <string name="ui_a_0503" formatted="false">录音已保存：</string>
+    <string name="ui_a_0504" formatted="false"> 分    </string>
+    <string name="ui_a_0505" formatted="false">暂无评分</string>
+    <string name="ui_a_0506" formatted="false"> 分  </string>
+    <string name="ui_a_0507" formatted="false">无法打开安装器：</string>
+    <string name="ui_a_0508" formatted="false">正在播放影片：</string>
+    <string name="ui_a_0509" formatted="false">影片播放完成：</string>
+    <string name="ui_a_0510" formatted="false">影片播放失败：</string>
+    <string name="ui_a_0511" formatted="false">配置已备份</string>
+    <string name="ui_a_0512" formatted="false">备份失败：</string>
+    <string name="ui_a_0513" formatted="false">没有备份文件</string>
+    <string name="ui_a_0514" formatted="false">没有可恢复的备份</string>
+    <string name="ui_a_0515" formatted="false">将恢复最近的 state/catalog 备份，应用内状态会重新加载。</string>
+    <string name="ui_a_0516" formatted="false">恢复</string>
+    <string name="ui_a_0517" formatted="false">恢复完成</string>
+    <string name="ui_a_0518" formatted="false">恢复失败：</string>
+    <string name="ui_a_0519" formatted="false">歌星  </string>
+    <string name="ui_a_0520" formatted="false">香港</string>
+    <string name="ui_a_0521" formatted="false">台湾</string>
+    <string name="ui_a_0522" formatted="false">粤语</string>
+    <string name="ui_a_0523" formatted="false">闽南</string>
+    <string name="ui_a_0524" formatted="false">日本</string>
+    <string name="ui_a_0525" formatted="false">韩国</string>
+    <string name="ui_a_0526" formatted="false">日语</string>
+    <string name="ui_a_0527" formatted="false">韩语</string>
+    <string name="ui_a_0528" formatted="false">英语</string>
+    <string name="ui_a_0529" formatted="false">英文</string>
+    <string name="ui_a_0530" formatted="false">外语</string>
+    <string name="ui_a_0531" formatted="false">乐队</string>
+    <string name="ui_a_0532" formatted="false">未知歌手</string>
+    <string name="ui_a_0533" formatted="false">本地 </string>
+    <string name="ui_a_0534" formatted="false">已暂停</string>
+    <string name="ui_a_0535" formatted="false">加载中: </string>
+    <string name="ui_a_0536" formatted="false">播放失败：</string>
+    <string name="ui_a_0537" formatted="false">请重新连接此歌曲所属的 OpenList 服务</string>
+    <string name="ui_a_0538" formatted="false">网盘歌曲路径缺失</string>
+    <string name="ui_a_0539" formatted="false">歌曲不在设置的目录范围内</string>
+    <string name="ui_a_0540" formatted="false">网盘歌曲加载失败，已跳过；请检查连接、令牌和目录权限</string>
+    <string name="ui_a_0541" formatted="false">本地歌曲不可读，请检查文件、U盘连接及目录授权</string>
+    <string name="ui_a_0542" formatted="false">本地文件不可用，重新下载...</string>
+    <string name="ui_a_0543" formatted="false">播放失败</string>
+    <string name="ui_a_0544" formatted="false">下载失败: </string>
+    <string name="ui_a_0545" formatted="false">下载中: </string>
+    <string name="ui_a_0546" formatted="false">下载: </string>
+    <string name="ui_a_0547" formatted="false">播放重试 </string>
+    <string name="ui_a_0548" formatted="false">当前歌曲解码失败，正在播放下一首</string>
+    <string name="ui_a_0549" formatted="false">未播放</string>
+    <string name="ui_a_0550" formatted="false">请先设置 OpenList 连接和歌曲目录</string>
+    <string name="ui_a_0551" formatted="false">网盘歌曲索引保存失败</string>
+    <string name="ui_a_0552" formatted="false">歌曲已保存到网盘</string>
+    <string name="ui_a_0553" formatted="false">歌曲保存完成</string>
+    <string name="ui_a_0554" formatted="false">失败:</string>
+    <string name="ui_a_0555">下载失败：%2$s；已跳过，可在下载列表重试或删除：%1$s</string>
+    <string name="ui_a_0556" formatted="false">播放完成，请点歌</string>
+    <string name="ui_a_0557" formatted="false">播放完成</string>
+    <string name="ui_a_0558" formatted="false">，点击播放继续</string>
+    <string name="ui_a_0559" formatted="false">已点播放完成，正在随机本地歌曲...</string>
+    <string name="ui_a_0560">随机播放：%1$s</string>
+    <string name="ui_a_0561" formatted="false">播放完成，本地暂无可播放歌曲</string>
+    <string name="ui_a_0562" formatted="false">(声道</string>
+    <string name="ui_a_0563" formatted="false">已选择原唱音轨</string>
+    <string name="ui_a_0564" formatted="false">已选择伴唱音轨</string>
+    <string name="ui_a_0565" formatted="false">外置原伴唱播放失败，已恢复主音轨</string>
+    <string name="ui_a_0566" formatted="false">外置原伴唱加载失败：</string>
+    <string name="ui_a_0567" formatted="false">歌词文件：</string>
+    <string name="ui_a_0568" formatted="false">暂仅同步 LRC 歌词</string>
+    <string name="ui_a_0569" formatted="false">歌词读取失败</string>
+    <string name="ui_a_0570">已置顶：%1$s</string>
+    <string name="ui_a_0571" formatted="false">取消收藏</string>
+    <string name="ui_a_0572" formatted="false">收藏</string>
+    <string name="ui_a_0573" formatted="false">已收藏</string>
+    <string name="ui_a_0574" formatted="false">已取消收藏</string>
+    <string name="ui_a_0575" formatted="false">保存到</string>
+    <string name="ui_a_0576" formatted="false">删除本地文件</string>
+    <string name="ui_a_0577" formatted="false">删除远端文件</string>
+    <string name="ui_a_0578">确定删除 %1$s 的本地文件吗？歌曲仍保留在曲库中。</string>
+    <string name="ui_a_0579" formatted="false">请先连接此歌曲所属的 OpenList 服务</string>
+    <string name="ui_a_0580">确定删除《%1$s》的 OpenList/NAS 原文件吗？\n位置：%2$s\n本地副本不会删除，其他设备也将无法访问这个远端文件。</string>
+    <string name="ui_a_0581" formatted="false">正在播放的歌曲不能删除</string>
+    <string name="ui_a_0582" formatted="false">正在删除远端文件...</string>
+    <string name="ui_a_0583" formatted="false">远端文件已删除</string>
+    <string name="ui_a_0584" formatted="false">远端文件已删除，索引更新失败，请重新扫描网盘</string>
+    <string name="ui_a_0585" formatted="false">远端删除失败，请检查连接和删除权限</string>
+    <string name="ui_a_0586" formatted="false">歌名：</string>
+    <string name="ui_a_0587" formatted="false">\n歌手：</string>
+    <string name="ui_a_0588" formatted="false">\n分类：</string>
+    <string name="ui_a_0589" formatted="false">\n语种：</string>
+    <string name="ui_a_0590" formatted="false">\n拼音：</string>
+    <string name="ui_a_0591" formatted="false">\n原唱资源：</string>
+    <string name="ui_a_0592" formatted="false">\n伴唱资源：</string>
+    <string name="ui_a_0593" formatted="false">\n歌词资源：</string>
+    <string name="ui_a_0594" formatted="false">\n来源：</string>
+    <string name="ui_a_0595" formatted="false">网络曲库</string>
+    <string name="ui_a_0596" formatted="false">歌曲信息</string>
+    <string name="ui_a_0597" formatted="false">本地已下载</string>
+    <string name="ui_a_0598" formatted="false">网络可下载</string>
+    <string name="ui_a_0599" formatted="false">从网络曲库移除</string>
+    <string name="ui_a_0600" formatted="false">该操作会在本机隐藏这首网络曲库歌曲。</string>
+    <string name="ui_a_0601" formatted="false">该操作会删除本地文件，并从已点、收藏和歌单中移除。</string>
+    <string name="ui_a_0602" formatted="false">文件删除失败</string>
+    <string name="ui_a_0603" formatted="false">已移除：</string>
+    <string name="ui_a_0604" formatted="false">歌单名称</string>
+    <string name="ui_a_0605" formatted="false">新建歌单</string>
+    <string name="ui_a_0606" formatted="false">创建</string>
+    <string name="ui_a_0607" formatted="false">正在同步网络曲库...</string>
+    <string name="ui_a_0608" formatted="false">网络曲库已同步：</string>
+    <string name="ui_a_0609" formatted="false">网络曲库同步失败：</string>
+    <string name="ui_a_0610" formatted="false">正在扫描网盘歌曲...</string>
+    <string name="ui_a_0611" formatted="false">正在扫描曲库...</string>
+    <string name="ui_a_0612">曲库已更新：本地 %2$s 首，总计 %1$s 首</string>
+    <string name="ui_a_0613" formatted="false">曲库扫描失败</string>
+    <string name="ui_a_0614" formatted="false">曲库扫描失败，请检查保存位置</string>
+    <string name="ui_a_0615" formatted="false">http://你的服务器/catalog.json</string>
+    <string name="ui_a_0616" formatted="false">网络曲库源</string>
+    <string name="ui_a_0617" formatted="false">JSON: [{\&quot;title\&quot;:\&quot;歌名\&quot;,\&quot;singer\&quot;:\&quot;歌手\&quot;,\&quot;category\&quot;:\&quot;分类\&quot;,\&quot;url\&quot;:\&quot;http://.../song.mp4\&quot;}]</string>
+    <string name="ui_a_0618" formatted="false">保存并同步</string>
+    <string name="ui_a_0619" formatted="false">删</string>
+    <string name="ui_a_0620" formatted="false">清</string>
+    <string name="ui_a_0621" formatted="false">空格</string>
+    <string name="ui_a_0622" formatted="false">  下载</string>
+    <string name="ui_a_0623" formatted="false">  点歌</string>
+    <string name="ui_a_0624" formatted="false">正在播放: </string>
+    <string name="ui_a_0625" formatted="false">已删除: </string>
+    <string name="ui_a_0626" formatted="false">主页</string>
+    <string name="ui_a_0627" formatted="false"> / 首页</string>
+    <string name="ui_a_0628" formatted="false">Ⅱ\n暂停</string>
+    <string name="ui_a_0629" formatted="false">♟\n原唱</string>
+    <string name="ui_a_0630" formatted="false">♛\n伴唱</string>
+    <string name="ui_a_0631" formatted="false">主页 / 歌名</string>
+    <string name="ui_a_0632" formatted="false">主页 / 快搜</string>
+    <string name="ui_a_0633" formatted="false">主页 / 已点</string>
+    <string name="ui_a_0634" formatted="false">主页 / 本地</string>
+    <string name="ui_a_0635" formatted="false">猜你想唱</string>
+    <string name="ui_a_0636">一键点歌(%1$s首)</string>
+    <string name="ui_a_0637">一键点歌(%1$s首)</string>
+    <string name="ui_a_0638">一键点歌(%1$s首)</string>
+    <string name="ui_a_0639">您共唱过%1$s次</string>
+    <string name="ui_a_0640" formatted="false">飙升榜TOP1</string>
+    <string name="ui_a_0641" formatted="false">新歌榜TOP5</string>
+    <string name="ui_a_0642" formatted="false">抖音榜TOP1</string>
+    <string name="ui_a_0643" formatted="false">人气热歌</string>
+    <string name="ui_a_0644">热门TOP%1$s</string>
+    <string name="ui_a_0645">已点歌：%1$s</string>
+    <string name="ui_a_0646" formatted="false">全网</string>
+    <string name="ui_a_0647">分类，%1$s</string>
+    <string name="ui_a_0648" formatted="false">主页 / 排行榜</string>
+    <string name="ui_a_0649" formatted="false">排行榜</string>
+    <string name="ui_a_0650" formatted="false">曲库加载中...</string>
+    <string name="ui_a_0651" formatted="false">热歌榜</string>
+    <string name="ui_a_0652" formatted="false">主页 / 分类</string>
+    <string name="ui_a_0653">主页 / 分类 / %1$s</string>
+    <string name="ui_a_0654" formatted="false">主页 / 语种</string>
+    <string name="ui_a_0655" formatted="false">主页 / 字数</string>
+    <string name="ui_a_0656" formatted="false">2字</string>
+    <string name="ui_a_0657" formatted="false">3字</string>
+    <string name="ui_a_0658" formatted="false">4字</string>
+    <string name="ui_a_0659" formatted="false">5字</string>
+    <string name="ui_a_0660" formatted="false">6字</string>
+    <string name="ui_a_0661" formatted="false">7字以上</string>
+    <string name="ui_a_0662" formatted="false">主页 / 歌星</string>
+    <string name="ui_a_0663" formatted="false">大陆男</string>
+    <string name="ui_a_0664" formatted="false">大陆女</string>
+    <string name="ui_a_0665" formatted="false">港台男</string>
+    <string name="ui_a_0666" formatted="false">港台女</string>
+    <string name="ui_a_0667" formatted="false">中国组合</string>
+    <string name="ui_a_0668" formatted="false">外国组合</string>
+    <string name="ui_a_0669" formatted="false">主页 / 歌星 / </string>
+    <string name="ui_a_0670" formatted="false">主页 / 歌单</string>
+    <string name="ui_a_0671" formatted="false">暂无歌单</string>
+    <string name="ui_a_0672" formatted="false">已点歌曲 (</string>
+    <string name="ui_a_0673" formatted="false">主页 / 下载</string>
+    <string name="ui_a_0674" formatted="false">暂无下载任务</string>
+    <string name="ui_a_0675" formatted="false">主页 / 已唱</string>
+    <string name="ui_a_0676" formatted="false">已唱历史 (</string>
+    <string name="ui_a_0677" formatted="false">主页 / 收藏</string>
+    <string name="ui_a_0678" formatted="false">暂无收藏，长按歌曲可收藏</string>
+    <string name="ui_a_0679" formatted="false">已切换为简体中文</string>
+    <string name="ui_a_0680">当前版本 %1$s，更新来源：Gitee Release</string>
+    <string name="ui_a_0681" formatted="false">无线网络</string>
+    <string name="ui_a_0682">数据库 %1$s 首  本地已下载 %2$s 首</string>
+    <string name="ui_a_0683" formatted="false">立即加歌</string>
+    <string name="ui_a_0684" formatted="false">网盘歌曲已加入曲库，可直接检索</string>
+    <string name="ui_a_0685" formatted="false">正在检测U盘 / 内存卡...</string>
+    <string name="ui_a_0686" formatted="false">选择U盘 / 内存卡</string>
+    <string name="ui_a_0687">外置存储 %1$s</string>
+    <string name="ui_a_0688">新下载将保存到外置存储 %1$s</string>
+    <string name="ui_a_0689">外置存储扫描完成：找到 %1$s 首，新增 %2$s 首</string>
+    <string name="ui_a_0690" formatted="false">U盘不可用，请检查连接和读取权限</string>
+    <string name="ui_a_0691" formatted="false">无法读取U盘</string>
+    <string name="ui_a_0692" formatted="false">歌曲保存位置</string>
+    <string name="ui_a_0693" formatted="false">本地存储</string>
+    <string name="ui_a_0694" formatted="false">U盘存储</string>
+    <string name="ui_a_0695" formatted="false">OpenList 网盘</string>
+    <string name="ui_a_0696" formatted="false">保存歌曲到</string>
+    <string name="ui_a_0697" formatted="false">请先设置 OpenList</string>
+    <string name="ui_a_0698" formatted="false">未检测到U盘，请先使用U盘加歌</string>
+    <string name="ui_a_0699">%3$s 可用 %1$s / 总计 %2$s</string>
+    <string name="ui_a_0700" formatted="false">保存位置不可用</string>
+    <string name="ui_a_0701">已清理 %1$s 首歌曲，预留空间已恢复</string>
+    <string name="ui_a_0702">已清理 %1$s 首歌曲，受保护歌曲不会被删除，空间仍不足</string>
+    <string name="ui_a_0703" formatted="false">清理歌曲缓存失败</string>
+    <string name="ui_a_0704" formatted="false">重置曲库</string>
+    <string name="ui_a_0705" formatted="false">将停止播放和下载，清除本机歌曲缓存、已下载歌曲及点播记录，并恢复安装时内置曲库。收藏、自建歌单、导入文件和U盘内容保留，是否继续？</string>
+    <string name="ui_a_0706" formatted="false">确认</string>
+    <string name="ui_a_0707" formatted="false">无法清除本机曲库</string>
+    <string name="ui_a_0708" formatted="false">无法清除曲库临时文件</string>
+    <string name="ui_a_0709" formatted="false">无法打开内置曲库</string>
+    <string name="ui_a_0710" formatted="false">本机缓存已清除，已恢复内置曲库</string>
+    <string name="ui_a_0711" formatted="false">重置未完成：</string>
+    <string name="ui_a_0712" formatted="false">本机缓存不可写</string>
+    <string name="ui_a_0713" formatted="false">重试</string>
+    <string name="ui_a_0714" formatted="false">解码器</string>
+    <string name="ui_a_0715" formatted="false">自动模式优先使用 ExoPlayer，播放失败后切换 FFmpeg。修改从下一首歌曲生效。</string>
+    <string name="ui_a_0716">已选择 %1$s，下一首歌曲生效</string>
+    <string name="ui_a_0717" formatted="false">全屏</string>
+    <string name="ui_a_0718" formatted="false">视频比例</string>
+    <string name="ui_a_0719" formatted="false">30秒</string>
+    <string name="ui_a_0720" formatted="false">45秒</string>
+    <string name="ui_a_0721" formatted="false">1分钟</string>
+    <string name="ui_a_0722" formatted="false">2分钟</string>
+    <string name="ui_a_0723" formatted="false">关闭（不推荐）</string>
+    <string name="ui_a_0724" formatted="false">设置间隔</string>
+    <string name="ui_a_0725" formatted="false">音画同步</string>
+    <string name="ui_a_0726" formatted="false">重唱或切歌后生效</string>
+    <string name="ui_a_0727" formatted="false">新歌</string>
+    <string name="ui_a_0728" formatted="false">戏曲</string>
+    <string name="ui_a_0729" formatted="false">广场舞</string>
+    <string name="ui_a_0730" formatted="false">轮播图配置</string>
+    <string name="ui_a_0731">歌曲最大音量  %1$s%%</string>
+    <string name="ui_a_0732" formatted="false">切到点播歌曲时音量：</string>
+    <string name="ui_a_0733" formatted="false">跟随上首音量</string>
+    <string name="ui_a_0734" formatted="false">跟随上首点播歌曲音量</string>
+    <string name="ui_a_0735" formatted="false">点播歌曲原伴唱</string>
+    <string name="ui_a_0736" formatted="false">切到点播歌曲时原伴唱：</string>
+    <string name="ui_a_0737" formatted="false">跟随上首原伴唱</string>
+    <string name="ui_a_0738" formatted="false">跟随上首点播原伴唱</string>
+    <string name="ui_a_0739" formatted="false">固定点播原伴唱</string>
+    <string name="ui_a_0740" formatted="false">声音设置</string>
+    <string name="ui_a_0741" formatted="false">演唱模式 (当前: </string>
+    <string name="ui_a_0742" formatted="false">演唱模式: </string>
+    <string name="ui_a_0743">声道模式 (当前: %1$s)</string>
+    <string name="ui_a_0744" formatted="false">已开启: </string>
+    <string name="ui_a_0745" formatted="false">跑马灯设置 - </string>
+    <string name="ui_a_0746" formatted="false">编辑文字</string>
+    <string name="ui_a_0747" formatted="false">输入跑马灯文字</string>
+    <string name="ui_a_0748" formatted="false">编辑跑马灯文字</string>
+    <string name="ui_a_0749" formatted="false">跑马灯: </string>
+    <string name="ui_a_0750" formatted="false">\n手机遥控端口: 8765\n扫码连接手机点歌</string>
+    <string name="ui_a_0751" formatted="false">关于麦动</string>
+    <string name="ui_a_0752" formatted="false">power by 抖音@杨家三郎\n</string>
+    <string name="ui_a_0753" formatted="false">此软件免费开源，请勿付费获取\n</string>
+    <string name="ui_a_0754" formatted="false">版本：</string>
+    <string name="ui_a_0755">分类，%1$s</string>
+    <string name="ui_a_0756" formatted="false">热门歌曲</string>
+    <string name="ui_a_0757">搜索结果: %1$s</string>
+    <string name="ui_a_0758" formatted="false">曲库加载完成</string>
+    <string name="ui_a_0759" formatted="false">暂无歌曲</string>
+    <string name="ui_a_0760" formatted="false">中断</string>
+    <string name="ui_a_0761">正在播放: %1$s</string>
+    <string name="ui_a_0762" formatted="false">下载任务及缓存已删除</string>
+    <string name="ui_a_0763" formatted="false">下载任务已删除，部分缓存暂不可清理</string>
+    <string name="ui_a_0764" formatted="false">文件删除失败，请检查存储权限和U盘连接</string>
+    <string name="ui_a_0765" formatted="false">第%d/%d页</string>
+    <string name="ui_a_0766" formatted="false">已点列表 (</string>
+    <string name="ui_a_0767" formatted="false">暂无已点歌曲</string>
+    <string name="ui_a_0768" formatted="false">删除选中</string>
+    <string name="ui_a_0769" formatted="false">选择要删除的歌曲</string>
+    <string name="ui_a_0770" formatted="false">清空全部</string>
+    <string name="ui_a_0771" formatted="false">确认清空</string>
+    <string name="ui_a_0772" formatted="false">确定要清空全部</string>
+    <string name="ui_a_0773" formatted="false">首已点歌曲吗?</string>
+    <string name="ui_a_0774" formatted="false">已清空列表</string>
+    <string name="ui_a_0775" formatted="false">已在列表中: </string>
+    <string name="ui_a_0776">正在下载，完成后自动加入已点：%1$s</string>
+    <string name="ui_a_0777">歌曲正在下载，尚未进入已点：%1$s</string>
+    <string name="ui_a_0778" formatted="false">已点: </string>
+    <string name="ui_a_0779" formatted="false">歌单</string>
+    <string name="ui_a_0780" formatted="false">歌单歌曲</string>
+    <string name="ui_a_0781" formatted="false">选择左侧歌单查看歌曲；在点歌、排行、歌星等页面长按歌曲可加入或移出歌单。</string>
+    <string name="ui_a_0782" formatted="false">移出 </string>
+    <string name="ui_a_0783" formatted="false">加入 </string>
+    <string name="ui_a_0784" formatted="false">选择歌单</string>
+    <string name="ui_a_0785" formatted="false">已加入：</string>
+    <string name="ui_a_0786" formatted="false">已移出：</string>
+    <string name="ui_a_0787" formatted="false">分段响应缺少有效 Content-Range</string>
+    <string name="ui_a_0788" formatted="false">媒体分段范围不一致</string>
+    <string name="ui_a_0789" formatted="false">无法识别歌源分段协议</string>
+    <string name="ui_a_0790" formatted="false">服务地址（如 http://192.168.1.10:5244）</string>
+    <string name="ui_a_0791" formatted="false">访问令牌（访客访问可留空）</string>
+    <string name="ui_a_0792" formatted="false">歌曲目录（如 /KTV）</string>
+    <string name="ui_a_0793" formatted="false">目录密码（可留空）</string>
+    <string name="ui_a_0794" formatted="false">OpenList 连接设置</string>
+    <string name="ui_a_0795" formatted="false">连接并保存</string>
+    <string name="ui_a_0796" formatted="false">清除连接</string>
+    <string name="ui_a_0797" formatted="false">连接设置无效</string>
+    <string name="ui_a_0798" formatted="false">正在连接…</string>
+    <string name="ui_a_0799" formatted="false">连接失败，请检查地址、令牌、目录密码和服务状态</string>
+    <string name="ui_a_0800" formatted="false">网盘目录过多，请缩小歌曲目录</string>
+    <string name="ui_a_0801" formatted="false">网盘目录过深，请缩小歌曲目录</string>
+    <string name="ui_a_0802" formatted="false">网盘曲库过大，请缩小歌曲目录</string>
+    <string name="ui_a_0803" formatted="false">网盘分页不完整，请重试同步</string>
+    <string name="ui_a_0804" formatted="false">网盘索引保存失败</string>
+    <string name="ui_a_0805" formatted="false">歌曲文件为空</string>
+    <string name="ui_a_0806" formatted="false">保存路径超出歌曲目录</string>
+    <string name="ui_a_0807" formatted="false">保存已暂停</string>
+    <string name="ui_a_0808" formatted="false">歌曲长度发生变化</string>
+    <string name="ui_a_0809" formatted="false">歌曲读取不完整</string>
+    <string name="ui_a_0810" formatted="false">网盘上传失败，请检查连接和写入权限</string>
+    <string name="ui_a_0811" formatted="false">网盘保存失败，请检查写入权限、剩余空间或同名文件</string>
+    <string name="ui_a_0812" formatted="false">网盘文件长度校验失败</string>
+    <string name="ui_a_0813" formatted="false">删除路径超出歌曲目录</string>
+    <string name="ui_a_0814" formatted="false">只能删除歌曲文件</string>
+    <string name="ui_a_0815" formatted="false">不能删除歌曲目录</string>
+    <string name="ui_a_0816" formatted="false">请选择歌曲文件</string>
+    <string name="ui_a_0817" formatted="false">网盘未返回播放地址</string>
+    <string name="ui_a_0818" formatted="false">网盘返回的播放地址无效</string>
+    <string name="ui_a_0819" formatted="false">访问被拒绝，请检查令牌、目录密码和访问权限</string>
+    <string name="ui_a_0820" formatted="false">服务地址发生跳转，请填写最终服务地址</string>
+    <string name="ui_a_0821">OpenList 请求失败（HTTP %1$s）</string>
+    <string name="ui_a_0822" formatted="false">目录响应过大，请缩小目录范围</string>
+    <string name="ui_a_0823" formatted="false">OpenList 操作失败，请检查服务与网盘挂载状态</string>
+    <string name="ui_a_0824" formatted="false">请输入有效的服务地址</string>
+    <string name="ui_a_0825" formatted="false">服务地址必须为 HTTP 或 HTTPS，且不包含账号、查询参数或片段</string>
+    <string name="ui_a_0826" formatted="false">目录路径无效</string>
+    <string name="ui_a_0827" formatted="false">目录不能包含相对路径</string>
+    <string name="ui_a_0828" formatted="false">文件名无效</string>
+    <string name="ui_a_0829" formatted="false">目录超出设置的范围</string>
+    <string name="ui_a_0830" formatted="false">下载已暂停</string>
+    <string name="ui_a_0831" formatted="false">分段下载失败</string>
+    <string name="ui_a_0832" formatted="false">歌曲缓存目录不可用</string>
+    <string name="ui_a_0833" formatted="false">缓存文件路径超出清理范围</string>
+    <string name="ui_a_0834" formatted="false">歌曲缓存目录存在循环链接</string>
+    <string name="ui_a_0835" formatted="false">无法读取歌曲缓存目录</string>
+    <string name="ui_a_0836">无法删除旧歌曲缓存：%1$s</string>
+    <string name="ui_a_0837">已失效歌曲（%1$s）</string>
+    <string name="ui_a_0838" formatted="false">原曲库记录缺失</string>
+    <string name="ui_a_0839" formatted="false">个人歌曲记录保存失败</string>
+    <string name="ui_a_0840" formatted="false">个人记录保存校验失败</string>
+    <string name="ui_a_0841">已独立保留 %1$s 条失效个人引用</string>
+    <string name="ui_a_0842" formatted="false">旧曲库已停用，文件清理失败</string>
+    <string name="ui_a_0843">歌单，%1$s</string>
+    <string name="ui_a_0844">歌星，%1$s</string>
+    <string name="ui_a_0845" formatted="false">设置</string>
+    <string name="ui_a_0846" formatted="false">歌星图片迁移失败</string>
+    <string name="ui_a_0847" formatted="false">未命名歌曲</string>
+    <string name="ui_a_0848" formatted="false">伴奏Url</string>
+    <string name="ui_a_0849" formatted="false">本地歌曲</string>
+    <string name="ui_a_0850" formatted="false">广东</string>
+    <string name="ui_a_0851" formatted="false">台语</string>
+    <string name="ui_a_0852" formatted="false">福建</string>
+    <string name="ui_a_0853" formatted="false">闽南语</string>
+    <string name="ui_a_0854" formatted="false">舞曲</string>
+    <string name="ui_a_0855" formatted="false">慢摇</string>
+    <string name="ui_a_0856" formatted="false">DJ舞曲</string>
+    <string name="ui_a_0857" formatted="false">儿歌</string>
+    <string name="ui_a_0858" formatted="false">儿童</string>
+    <string name="ui_a_0859" formatted="false">少儿</string>
+    <string name="ui_a_0860" formatted="false">京剧</string>
+    <string name="ui_a_0861" formatted="false">豫剧</string>
+    <string name="ui_a_0862" formatted="false">黄梅戏</string>
+    <string name="ui_a_0863" formatted="false">越剧</string>
+    <string name="ui_a_0864" formatted="false">民歌</string>
+    <string name="ui_a_0865" formatted="false">民族</string>
+    <string name="ui_a_0866" formatted="false">军歌</string>
+    <string name="ui_a_0867" formatted="false">红歌</string>
+    <string name="ui_a_0868" formatted="false">经典</string>
+    <string name="ui_a_0869" formatted="false">老歌</string>
+    <string name="ui_a_0870" formatted="false">怀旧</string>
+    <string name="ui_a_0871" formatted="false">经典老歌</string>
+    <string name="ui_a_0872" formatted="false">语种歌曲</string>
+    <string name="ui_a_0873" formatted="false">下载文件长度不匹配</string>
+    <string name="ui_a_0874" formatted="false">无法识别媒体容器</string>
+    <string name="ui_a_0875" formatted="false">网盘同步失败，已保留上次索引；请检查连接和目录权限</string>
+    <string name="ui_a_0876" formatted="false">U盘歌曲扫描失败</string>
+    <string name="ui_a_0877">歌曲操作，%1$s</string>
+    <string name="ui_a_0878" formatted="false">NAS 直读</string>
+    <string name="ui_a_0879" formatted="false">需下载</string>
+    <string name="ui_a_0880">删除，%1$s</string>
+    <string name="ui_a_0881" formatted="false">曲库正在重置</string>
+    <string name="ui_a_0882" formatted="false">曲库正在重置，请稍后重试</string>
+    <string name="ui_a_0883" formatted="false">无法创建上传暂存目录</string>
+    <string name="ui_a_0884">U盘不可用或空间不足，回退本地，歌曲=%1$s</string>
+    <string name="ui_a_0885" formatted="false">下载失败</string>
+    <string name="ui_a_0886">传输统计 song=%7$s elapsedMs=%8$s bytes=%1$s requests=%2$s headerMs=%3$s readMs=%4$s writeMs=%5$s callbackMs=%6$s</string>
+    <string name="ui_a_0887" formatted="false">媒体分段不完整</string>
+    <string name="ui_a_0888" formatted="false">分段长度超出声明范围</string>
+    <string name="ui_a_0889" formatted="false">歌曲目录</string>
+    <string name="ui_a_0890" formatted="false">歌曲</string>
+    <string name="ui_a_0891" formatted="false">无法读取歌曲长度</string>
+    <string name="ui_a_0892" formatted="false">请先连接网盘</string>
+    <string name="ui_a_0893" formatted="false">请连接歌曲所属的网盘</string>
+    <string name="ui_a_0894" formatted="false">歌曲超出网盘目录范围</string>
+    <string name="ui_a_0895" formatted="false">网盘媒体下载失败</string>
+    <string name="ui_a_0896" formatted="false">网盘未返回歌曲长度，请启用代理下载</string>
+    <string name="ui_a_0897" formatted="false">歌曲文件过小</string>
+    <string name="ui_a_0898" formatted="false">歌曲下载不完整</string>
+    <string name="ui_a_0899" formatted="false">歌曲长度超出声明范围</string>
+    <string name="ui_a_0900" formatted="false">歌曲长度校验失败</string>
+    <string name="ui_a_0901" formatted="false">歌曲媒体校验失败</string>
+    <string name="ui_a_0902" formatted="false">保存歌曲失败</string>
+    <string name="ui_a_0903">媒体服务器 HTTP %1$s: %2$s</string>
+    <string name="ui_a_0904" formatted="false">该条目没有新歌源编号，无法下载</string>
+    <string name="ui_a_0905" formatted="false">账号已变更，请重试下载</string>
+    <string name="ui_a_0906" formatted="false">歌曲取址返回 403，已恢复当前账号登录并重试</string>
+    <string name="ui_a_0907" formatted="false">更新地址后媒体长度发生变化</string>
+    <string name="ui_a_0908" formatted="false">歌源返回的不是已验证的 MKV 媒体</string>
+    <string name="ui_a_0909" formatted="false">已恢复当前账号登录，重新获取歌曲地址</string>
+    <string name="ui_a_0910">保存位置 usb=%1$s path=%2$s available=%3$s reserve=%4$s songBytes=%5$s</string>
+    <string name="ui_a_0911" formatted="false">媒体长度或分段发生变化</string>
+    <string name="ui_a_0912" formatted="false">完整文件长度校验失败</string>
+    <string name="ui_a_0913" formatted="false">无法替换旧歌曲缓存</string>
+    <string name="ui_a_0914" formatted="false">无法清理旧歌曲校验文件</string>
+    <string name="ui_a_0915" formatted="false">无法保存下载文件</string>
+    <string name="ui_a_0916" formatted="false">下载媒体容器校验失败</string>
+    <string name="ui_a_0917" formatted="false">U盘写入检查文件清理失败</string>
+    <string name="ui_a_0918">U盘不可写，回退本地：%1$s</string>
+    <string name="ui_a_0919" formatted="false">U盘存储位置无效</string>
+    <string name="ui_a_0920" formatted="false">U盘未连接，请插入后重试</string>
+    <string name="ui_a_0921" formatted="false">U盘歌曲目录无效</string>
+    <string name="ui_a_0922" formatted="false">未检测到U盘，请插入后重试</string>
+    <string name="ui_a_0923" formatted="false">所选U盘已拔出，请重新选择</string>
+    <string name="ui_a_0924" formatted="false">无法读取U盘，请检查存储权限</string>
+    <string name="ui_a_0925" formatted="false">无法创建U盘 maidongktv 目录，请检查写入权限或只读状态</string>
+    <string name="ui_a_0926" formatted="false">无法清理U盘写入检查文件</string>
+    <string name="ui_a_0927" formatted="false">U盘不可用</string>
+    <string name="ui_a_0928" formatted="false">U盘不可读，请检查存储权限</string>
+    <string name="ui_a_0929" formatted="false">U盘歌曲目录不可写，请重新选择U盘存储</string>
+    <string name="ui_a_0930" formatted="false">请选择U盘中的歌曲文件夹</string>
+    <string name="ui_a_0931" formatted="false">请选择U盘文件夹，不能选择本机存储</string>
+    <string name="ui_a_0932" formatted="false">U盘目录授权已失效，请重新选择文件夹</string>
+    <string name="ui_a_0933" formatted="false">U盘未连接或目录不可用</string>
+    <string name="ui_a_0934" formatted="false">U盘歌曲路径不是文件夹</string>
+    <string name="ui_a_0935" formatted="false">U盘目录不可写，请检查只读状态</string>
+    <string name="ui_a_0936" formatted="false">没有获得U盘读取权限</string>
+    <string name="ui_a_0937" formatted="false">无法创建本地歌曲缓存目录</string>
+    <string name="ui_a_0938" formatted="false">请先在设置中选择U盘歌曲文件夹</string>
+    <string name="ui_a_0939" formatted="false">无法创建U盘 maidongktv 歌曲目录</string>
+    <string name="ui_a_0940" formatted="false">无法创建U盘歌曲缓存目录</string>
+    <string name="ui_a_0941" formatted="false">U盘歌曲缓存路径不是文件夹</string>
+    <string name="ui_a_0942" formatted="false">U盘目录无效</string>
+    <string name="ui_a_0943" formatted="false">U盘卷标无效</string>
+    <string name="ui_a_0944" formatted="false">保存位置容量无效</string>
+    <string name="ui_a_0945" formatted="false">U盘歌曲目录不可用</string>
+    <string name="ui_a_0946" formatted="false">U盘容量检查文件清理失败</string>
+    <string name="ui_a_0947" formatted="false">U盘容量信息无效</string>
+    <string name="ui_a_0948" formatted="false">歌曲文件名无效</string>
+    <string name="ui_a_0949" formatted="false">无法读取歌曲文件夹</string>
+    <string name="ui_a_0950" formatted="false">无法读取U盘歌曲文件夹</string>
+    <string name="ui_a_0951" formatted="false">本地媒体长度不足</string>
+    <string name="ui_a_0952" formatted="false">本地媒体读取不完整</string>
+    <string name="ui_a_0953" formatted="false">无法创建歌曲目录</string>
+    <string name="ui_a_0954" formatted="false">U盘歌曲不可读</string>
+    <string name="ui_a_0955" formatted="false">无法创建U盘歌曲文件</string>
+    <string name="ui_a_0956" formatted="false">U盘歌曲不可写</string>
+    <string name="ui_a_0957" formatted="false">歌曲文件写入中断</string>
+    <string name="ui_a_0958" formatted="false">U盘保存目录扫描失败</string>
+    <string name="ui_a_0959" formatted="false">无法读取U盘歌曲保存目录，请检查存储权限</string>
+    <string name="ui_a_0960" formatted="false">\n解析：顺序读取（索引异常，暂不支持跳转）</string>
+    <string name="ui_a_0961" formatted="false">解码器就绪后仍未输出视频首帧</string>
+    <string name="ui_a_0962" formatted="false">兼容解码库未能加载，请使用系统解码</string>
+    <string name="ui_a_0963" formatted="false">播放器已释放</string>
+    <string name="ui_a_0964" formatted="false">播放内核：</string>
+    <string name="ui_a_0965" formatted="false">等待播放</string>
+    <string name="ui_a_0966" formatted="false">当前兼容解码库暂不支持 H.264 High 4:4:4，请转换为 8 位 4:2:0 后播放</string>
+    <string name="ui_a_0967" formatted="false">无法打开歌曲文件</string>
+    <string name="ui_a_0968" formatted="false">无法读取歌曲</string>
+    <string name="ui_a_0969" formatted="false">音频输出不支持 48kHz PCM</string>
+    <string name="ui_a_0970" formatted="false">音频输出初始化失败</string>
+    <string name="ui_a_0971">音频输出失败：%1$s</string>
+    <string name="ui_a_0972" formatted="false">音频输出失败</string>
+    <string name="ui_a_0973" formatted="false">未找到系统可信证书</string>
+    <string name="ui_a_0974" formatted="false">无视频轨道</string>
+    <string name="ui_a_0975" formatted="false">无音频轨道</string>
+    <string name="ui_a_0976" formatted="false">自动（ExoPlayer 优先）</string>
+    <string name="ui_a_0977" formatted="false">上一首</string>
+    <string name="ui_a_0978" formatted="false">下一首</string>
+
+    <!-- 调音弹窗 dialog_tuning -->
+    <string name="ui_tune_pitch" formatted="false">升降调</string>
+    <string name="ui_tune_mic" formatted="false">麦克风</string>
+    <string name="ui_tune_preset_pop" formatted="false">♬\n流行</string>
+    <string name="ui_tune_preset_lyric" formatted="false">▥\n抒情</string>
+    <string name="ui_tune_preset_rock" formatted="false">♨\n摇滚</string>
+    <string name="ui_tune_preset_singer" formatted="false">♪\n唱将</string>
+
+    <!-- 音频控制弹窗 dialog_audio_control -->
+    <string name="ui_ac_title" formatted="false">🎚  调音设置</string>
+    <string name="ui_ac_stereo" formatted="false">🔊 立体声</string>
+    <string name="ui_ac_accomp" formatted="false">🎤 伴唱</string>
+    <string name="ui_ac_origin" formatted="false">🎙 原唱</string>
+    <string name="ui_ac_mute" formatted="false">🔇 静音</string>
+    <string name="ui_ac_mic_volume" formatted="false">麦克风音量</string>
+    <string name="ui_ac_mic_effect" formatted="false">麦克风效果</string>
+    <string name="ui_ac_music_volume" formatted="false">音乐音量</string>
+    <string name="ui_ac_default" formatted="false">恢复默认</string>
+    <string name="ui_ac_save" formatted="false">保存</string>
+    <!-- 曲库语种显示名：中文值与数据库一致，作为逻辑键；英文资源用于界面显示 -->
+    <string name="lang_show_other" formatted="false">其它</string>
+    <string name="lang_show_russian" formatted="false">俄语</string>
+    <string name="lang_show_hindi" formatted="false">印度语</string>
+    <string name="lang_show_taiwanese" formatted="false">台语</string>
+    <string name="lang_show_hani" formatted="false">哈尼语</string>
+    <string name="lang_show_mandarin" formatted="false">国语</string>
+    <string name="lang_show_dialect" formatted="false">地方语言</string>
+    <string name="lang_show_cosmic" formatted="false">宇宙语</string>
+    <string name="lang_show_hakka" formatted="false">客家话</string>
+    <string name="lang_show_hakka2" formatted="false">客家语</string>
+    <string name="lang_show_yi" formatted="false">彝语</string>
+    <string name="lang_show_italian" formatted="false">意大利语</string>
+    <string name="lang_show_japanese" formatted="false">日语</string>
+    <string name="lang_show_thai" formatted="false">泰语</string>
+    <string name="lang_show_hainanese" formatted="false">海南话</string>
+    <string name="lang_show_teochew" formatted="false">潮汕语</string>
+    <string name="lang_show_aini" formatted="false">爱伲语</string>
+    <string name="lang_show_qidong" formatted="false">祁东话</string>
+    <string name="lang_show_fuding" formatted="false">福鼎方言</string>
+    <string name="lang_show_cantonese" formatted="false">粤语</string>
+    <string name="lang_show_uyghur" formatted="false">维语</string>
+    <string name="lang_show_hmong" formatted="false">苗语</string>
+    <string name="lang_show_english" formatted="false">英语</string>
+    <string name="lang_show_mongolian" formatted="false">蒙古语</string>
+    <string name="lang_show_tibetan" formatted="false">藏语</string>
+    <string name="lang_show_spanish" formatted="false">西班牙语</string>
+    <string name="lang_show_minnan" formatted="false">闽南语</string>
+    <string name="lang_show_korean" formatted="false">韩语</string>
+    <string name="lang_show_khmer" formatted="false">高棉语</string>
+</resources>

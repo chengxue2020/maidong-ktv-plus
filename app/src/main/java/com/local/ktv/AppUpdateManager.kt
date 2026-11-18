@@ -49,7 +49,7 @@ object AppUpdateManager {
                 if (version.isBlank() || apkUrl.isBlank() || compareVersions(version, currentVersion) <= 0) null
                 else Release(
                     version = version,
-                    title = root.optString("name").ifBlank { "麦动 KTV $version" },
+                    title = root.optString("name").ifBlank { KtvRaw.display(R.string.ui_a_0001, version) },
                     notes = root.optString("body"),
                     apkUrl = apkUrl,
                     apkName = apkName,
@@ -77,7 +77,7 @@ object AppUpdateManager {
                     setRequestProperty("User-Agent", "MaidongKTV/${BuildConfig.VERSION_NAME}")
                 }
                 try {
-                    require(connection.responseCode in 200..299) { "下载失败：HTTP ${connection.responseCode}" }
+                    require(connection.responseCode in 200..299) { KtvRaw.display(R.string.ui_p_update_dl_http, connection.responseCode) }
                     val total = connection.contentLengthCompat()
                     connection.inputStream.use { input ->
                         FileOutputStream(partial).use { output ->
@@ -96,14 +96,14 @@ object AppUpdateManager {
                 } finally {
                     connection.disconnect()
                 }
-                require(partial.length() > 1_000_000L) { "下载的安装包不完整" }
+                require(partial.length() > 1_000_000L) { KtvRaw.get(R.string.ui_a_0003) }
                 partial.inputStream().use { input ->
-                    require(input.read() == 'P'.code && input.read() == 'K'.code) { "下载内容不是 APK" }
+                    require(input.read() == 'P'.code && input.read() == 'K'.code) { KtvRaw.get(R.string.ui_a_0004) }
                 }
                 val info = activity.packageManager.getPackageArchiveInfo(partial.absolutePath, 0)
-                require(info?.packageName == activity.packageName) { "安装包应用标识不匹配" }
+                require(info?.packageName == activity.packageName) { KtvRaw.get(R.string.ui_a_0005) }
                 target.delete()
-                require(partial.renameTo(target)) { "无法保存安装包" }
+                require(partial.renameTo(target)) { KtvRaw.get(R.string.ui_a_0006) }
                 target
             })
         }, "gitea-update-download").start()
@@ -163,7 +163,7 @@ object AppUpdateManager {
         }
         return try {
             require(connection.responseCode == HttpURLConnection.HTTP_OK) {
-                "检查更新失败：HTTP ${connection.responseCode}"
+                KtvRaw.display(R.string.ui_p_update_check_http, connection.responseCode)
             }
             connection.inputStream.bufferedReader(Charsets.UTF_8).use { it.readText() }
         } finally {

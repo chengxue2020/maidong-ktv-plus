@@ -111,6 +111,8 @@ import java.util.Locale
 import java.util.LinkedHashMap
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 import kotlin.Any
 import kotlin.Array
@@ -139,8 +141,18 @@ import kotlin.toString
 class MainActivity : AppCompatActivity() {
     private val main = Handler(Looper.getMainLooper())
     private val keyboardSearchRunnable = Runnable { performSearch() }
-    private val io: ExecutorService = Executors.newFixedThreadPool(4)
-    private val stateIo: ExecutorService = Executors.newSingleThreadExecutor()
+    // ⚠️ 必须用 DiscardPolicy 而非 Executors 默认的 AbortPolicy：
+    // 切语言会重建 Activity，onDestroy 里 io.shutdownNow() 关闭线程池；此时 initializeDatabase
+    // 等残留的 main.post 回调若再 io.execute()，默认策略会抛 RejectedExecutionException 导致启动闪退。
+    // 静默丢弃这些本就不再需要的任务是正确行为，运行期与 newFixedThreadPool 完全一致（对齐 ori）。
+    private val io: ExecutorService = ThreadPoolExecutor(
+        4, 4, 0L, TimeUnit.MILLISECONDS, LinkedBlockingQueue<Runnable>(),
+        ThreadPoolExecutor.DiscardPolicy()
+    )
+    private val stateIo: ExecutorService = ThreadPoolExecutor(
+        1, 1, 0L, TimeUnit.MILLISECONDS, LinkedBlockingQueue<Runnable>(),
+        ThreadPoolExecutor.DiscardPolicy()
+    )
 
     /**
      * 「切歌 → 公放」专用单线程执行器。
@@ -310,7 +322,7 @@ class MainActivity : AppCompatActivity() {
     /** 电视/投影等设备需 App 占用麦克风输入后才会启用麦克风声音输出(供演唱)。 */
     private val micActivator = MicActivator()
     private var currentRecording: File? = null
-    private var currentPage = "首页"
+    private var currentPage = KtvRaw.get(R.string.ui_a_0108)
 
     private data class FocusBookmark(
         val resourceName: String?,
@@ -380,7 +392,7 @@ class MainActivity : AppCompatActivity() {
     private var activeSettingsEntries: List<SettingsEntry> = emptyList()
     private var activeSettingsAdapter: SettingsListAdapter? = null
     private var activeSearchQuery = ""
-    private var searchLanguage = "全部"
+    private var searchLanguage = KtvRaw.get(R.string.ui_a_0069)
     private var searchContextId = ""
     private var suppressSearchWatcher = false
 
@@ -493,8 +505,8 @@ class MainActivity : AppCompatActivity() {
                 downloads += DownloadTask(snapshot.song).apply {
                     progress = snapshot.progress
                     state = when (snapshot.status) {
-                        "queued", "downloading" -> "下载中断，可重试"
-                        "completed" -> "完成"
+                        "queued", "downloading" -> KtvRaw.get(R.string.ui_a_0109)
+                        "completed" -> KtvRaw.get(R.string.ui_a_0110)
                         "failed" -> "失败：${snapshot.error.orEmpty()}"
                         else -> snapshot.status
                     }
@@ -505,7 +517,7 @@ class MainActivity : AppCompatActivity() {
                         "failed",
                         snapshot.progress,
                         snapshot.localPath,
-                        "应用重启，等待重试",
+                        KtvRaw.get(R.string.ui_a_0112),
                     )
                 }
             }
@@ -529,23 +541,23 @@ class MainActivity : AppCompatActivity() {
             main.post {
                 if (isFinishing || isDestroyed) return@post
                 AlertDialog.Builder(this)
-                    .setTitle("歌曲源临时受限")
+                    .setTitle(getString(R.string.ui_p_001))
                     .setMessage(
-                        "歌曲源在当前网络(公网 IP)下暂时无法获取新歌播放地址(风控/试用窗口)。\n\n" +
-                            "解决办法：重启光猫/路由器重新拨号更换公网 IP，恢复后即可继续点歌。\n\n" +
-                            "已缓存的歌曲不受影响，可正常播放。",
+                        getString(R.string.ui_p_risk_dialog),
                     )
-                    .setPositiveButton("知道了", null)
+                    .setPositiveButton(getString(R.string.ui_p_002), null)
                     .create()
                     .showForTv(DialogInterface.BUTTON_POSITIVE)
             }
         }
         // 初始化新布局的 UI 组件
         initTvLayout()
+        val languageResume = LanguageSwitchPlayback.consume(restoredState.currentSong)
         val startupSong = restoredState.currentSong ?: orderQueue!!.firstOrNull()
+        val startupShouldPlay = languageResume?.shouldPlay ?: true
         startupSong?.let { restoredSong ->
-            play(restoredSong)
-            updateBottomBar(restoredSong, true)
+            play(restoredSong, languageResume?.positionMs ?: 0, startupShouldPlay)
+            updateBottomBar(restoredSong, startupShouldPlay)
         } ?: run {
             // 启动时没有恢复的播放与已点歌曲: 曲库就绪后自动随机播放本地已下载歌曲
             // (与"点歌列表播放完毕自动随机本地歌曲"同一逻辑), 避免开机后空白等待。
@@ -671,7 +683,7 @@ class MainActivity : AppCompatActivity() {
         if (databaseBootstrapRunning) return
         databaseBootstrapRunning = true
         lastDatabaseProgressText = ""
-        showDatabaseLoading(true, "正在初始化曲库...", null)
+        showDatabaseLoading(true, getString(R.string.ui_p_003), null)
         io.execute {
             var bootstrapError: Throwable? = null
             var usedOldDatabase = false
@@ -722,7 +734,7 @@ class MainActivity : AppCompatActivity() {
                     refreshLibrary {
                         showDatabaseLoading(false, "", null)
                         showHomePage()
-                        if (usedOldDatabase && bootstrapError != null) toast("曲库更新失败，已使用本地曲库")
+                        if (usedOldDatabase && bootstrapError != null) toast(getString(R.string.ui_p_004))
                         if (catalogRefreshPending) refreshCurrentCatalogPage()
                         // 启动自动随机播放: 仅当启动时无恢复播放/空队列且允许顺序播放时触发一次。
                         if (startupRandomPending) {
@@ -733,8 +745,8 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
                 } else {
-                    val reason = bootstrapError?.message.orEmpty().ifBlank { "未找到可用曲库" }
-                    showDatabaseLoadingFailure("曲库初始化失败：$reason")
+                    val reason = bootstrapError?.message.orEmpty().ifBlank { getString(R.string.ui_db_not_found) }
+                    showDatabaseLoadingFailure(getString(R.string.ui_db_init_failed, reason))
                 }
             }
         }
@@ -753,10 +765,10 @@ class MainActivity : AppCompatActivity() {
     private fun showDatabaseDownloadProgress(value: Int, detail: String?) {
         val percent = value.coerceIn(0, 100)
         val phase = when {
-            percent < 80 -> "正在下载曲库"
-            percent < 90 -> "正在解压曲库"
-            percent < 100 -> "正在校验曲库"
-            else -> "曲库就绪"
+            percent < 80 -> getString(R.string.ui_p_sync_dl)
+            percent < 90 -> getString(R.string.ui_p_sync_unzip)
+            percent < 100 -> getString(R.string.ui_p_sync_verify)
+            else -> getString(R.string.ui_p_055)
         }
         val text = detail ?: "$phase $percent%"
         if (text == lastDatabaseProgressText) return
@@ -767,7 +779,7 @@ class MainActivity : AppCompatActivity() {
     private fun warmRemoteBrowseCache(count: Int) {
         val pageSize = MuseDatabase.PAGE_SIZE
         val songs = library.muse.hotSongs(0, pageSize * 2)
-        synchronized(browseCountCache) { browseCountCache["hot\u0001\u0001全部\u0001"] = count }
+        synchronized(browseCountCache) { browseCountCache["hot\\u0001\\u0001全部\\u0001"] = count }
         songs.chunked(pageSize).forEachIndexed { page, pageSongs ->
             val key = BrowseCacheKey("hot", "", "全部", "", page, pageSize)
             synchronized(browsePageCache) { browsePageCache[key] = BrowsePageResult(pageSongs, count) }
@@ -798,6 +810,8 @@ class MainActivity : AppCompatActivity() {
         if (::playbackEngine.isInitialized) playbackEngine.release()
         KtvEqualizer.releaseAll()
         if (isFinishing) {
+            // 真退出时丢弃一次性语言切换续播状态，避免下次冷启动误恢复。
+            LanguageSwitchPlayback.clear()
             // 公放随机清单只在内存中，App 退出即清理（不属于已点清单，也不落盘）。
             RandomPlayQueue.clear()
             MiliLog.info("RANDOM-CLEAR app exit")
@@ -812,31 +826,31 @@ class MainActivity : AppCompatActivity() {
     private fun checkAppUpdate(manual: Boolean) {
         if (updateCheckStarted) return
         updateCheckStarted = true
-        if (manual) toast("正在检查更新...")
+        if (manual) toast(getString(R.string.ui_a_0126))
         AppUpdateManager.check(BuildConfig.VERSION_NAME) { result ->
             main.post {
                 updateCheckStarted = false
                 result.onSuccess { release ->
                     if (release == null) {
-                        if (manual) toast("当前已是最新版本 ${BuildConfig.VERSION_NAME}")
+                        if (manual) toast(getString(R.string.ui_p_073, BuildConfig.VERSION_NAME))
                     } else {
                         showAppUpdateDialog(release)
                     }
                 }.onFailure { error ->
                     Log.w(TAG, "Update check failed", error)
-                    if (manual) toast(error.message ?: "检查更新失败")
+                    if (manual) toast(error.message ?: getString(R.string.ui_a_0128))
                 }
             }
         }
     }
 
     private fun showAppUpdateDialog(release: AppUpdateManager.Release) {
-        val notes = release.notes.trim().ifBlank { "发现新版本，建议立即更新。" }
+        val notes = release.notes.trim().ifBlank { getString(R.string.ui_a_0129) }
         AlertDialog.Builder(this)
-            .setTitle("发现新版本 ${release.version}")
+            .setTitle(getString(R.string.ui_p_074, release.version))
             .setMessage("${release.title}\n\n$notes")
-            .setNegativeButton("稍后", null)
-            .setPositiveButton("下载并安装") { _, _ -> downloadAppUpdate(release) }
+            .setNegativeButton(getString(R.string.ui_a_0131), null)
+            .setPositiveButton(getString(R.string.ui_a_0132)) { _, _ -> downloadAppUpdate(release) }
             .create().showForTv(DialogInterface.BUTTON_POSITIVE)
     }
 
@@ -845,35 +859,35 @@ class MainActivity : AppCompatActivity() {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(24), dp(18), dp(24), dp(12))
         }
-        val value = label("正在下载 ${release.apkName}…", 16, Color.WHITE).apply { gravity = Gravity.CENTER }
+        val value = label(getString(R.string.ui_p_075, release.apkName), 16, Color.WHITE).apply { gravity = Gravity.CENTER }
         val bar = ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal).apply { max = 100 }
         box.addView(value, LinearLayout.LayoutParams(-1, dp(44)))
         box.addView(bar, LinearLayout.LayoutParams(-1, dp(24)))
         val dialog = AlertDialog.Builder(this)
-            .setTitle("应用更新")
+            .setTitle(getString(R.string.ui_set_update))
             .setView(box)
-            .setNegativeButton("后台下载", null)
+            .setNegativeButton(getString(R.string.ui_a_0135), null)
             .create()
         dialog.showForTv()
         AppUpdateManager.download(this, release, { progress ->
             main.post {
                 bar.progress = progress
-                value.text = "正在下载 ${release.apkName}… $progress%"
+                value.text = getString(R.string.ui_p_076, release.apkName, progress)
             }
         }) { result ->
             main.post {
                 dialog.dismiss()
                 result.onSuccess { apk ->
                     AlertDialog.Builder(this)
-                        .setTitle("下载完成")
-                        .setMessage("版本 ${release.version} 已下载，是否现在安装？")
-                        .setNegativeButton("稍后", null)
-                        .setPositiveButton("安装") { _, _ -> AppUpdateManager.install(this, apk) }
+                        .setTitle(getString(R.string.ui_a_0137))
+                        .setMessage(getString(R.string.ui_p_077, release.version))
+                        .setNegativeButton(getString(R.string.ui_a_0131), null)
+                        .setPositiveButton(getString(R.string.ui_a_0139)) { _, _ -> AppUpdateManager.install(this, apk) }
                         .create().showForTv(DialogInterface.BUTTON_POSITIVE)
                 }.onFailure { error ->
-                    AlertDialog.Builder(this).setTitle("更新失败")
-                        .setMessage(error.message ?: "下载安装包失败")
-                        .setPositiveButton("确定", null).show()
+                    AlertDialog.Builder(this).setTitle(getString(R.string.ui_a_0140))
+                        .setMessage(error.message ?: getString(R.string.ui_a_0141))
+                        .setPositiveButton(getString(R.string.ui_ok), null).show()
                 }
             }
         }
@@ -1070,31 +1084,31 @@ class MainActivity : AppCompatActivity() {
         nav!!.setPadding(dp(10), dp(10), dp(10), dp(10))
         navScroll.addView(nav, FrameLayout.LayoutParams(-1, -2))
 
-        val brand = label("麦动", 26, GOLD)
+        val brand = label(getString(R.string.ui_brand), 26, GOLD)
         brand.setGravity(Gravity.CENTER)
         nav!!.addView(brand, LinearLayout.LayoutParams(-1, dp(64)))
         // 导航项(图标 + 文字),选中态由 selectNav() 维护
         navButtons.clear()
-        addNav("🏠 主页", View.OnClickListener { v: View? -> showHome() })
-        addNav("🎵 点歌", View.OnClickListener { v: View? -> showSongs("全部") })
-        addNav("🎤 歌星", View.OnClickListener { v: View? -> showSingers() })
-        addNav("🏆 排行榜", View.OnClickListener { v: View? -> showRank() })
-        addNav("🌐 语种", View.OnClickListener { v: View? -> showLanguages() })
-        addNav("🔢 字数", View.OnClickListener { v: View? -> showWordCounts() })
-        addNav("⭐ 收藏", View.OnClickListener { v: View? -> showFavorites() })
-        addNav("📋 歌单", View.OnClickListener { v: View? -> showPlaylists() })
-        addNav("📝 已点", View.OnClickListener { v: View? -> showQueue() })
-        addNav("🎵 已唱", View.OnClickListener { v: View? -> showSang() })
-        addNav("⬇️ 下载", View.OnClickListener { v: View? -> showDownloads() })
-        addNav("💾 U盘", View.OnClickListener { v: View? -> showUdisk() })
-        addNav("🎬 影片", View.OnClickListener { v: View? -> showLocalMovies() })
-        addNav("🎉 派对", View.OnClickListener { v: View? -> showDisco() })
-        addNav("📡 网络", View.OnClickListener { v: View? -> showNetworkDialog() })
-        addNav("🖥️ 屏幕", View.OnClickListener { v: View? -> showScreenDialog() })
-        addNav("📦 应用", View.OnClickListener { v: View? -> showAppCenter() })
-        addNav("🔧 维护", View.OnClickListener { v: View? -> showLibraryMaintenance() })
-        addNav("📻 广播", View.OnClickListener { v: View? -> showTableBroadcast() })
-        addNav("⚙️ 设置", View.OnClickListener { v: View? -> showSettings() })
+        addNav(getString(R.string.ui_nav_home), View.OnClickListener { v: View? -> showHome() })
+        addNav(getString(R.string.ui_nav_songs), View.OnClickListener { v: View? -> showSongs(KtvRaw.get(R.string.ui_a_0069)) })
+        addNav(getString(R.string.ui_nav_singers), View.OnClickListener { v: View? -> showSingers() })
+        addNav(getString(R.string.ui_nav_rank), View.OnClickListener { v: View? -> showRank() })
+        addNav(getString(R.string.ui_nav_language), View.OnClickListener { v: View? -> showLanguages() })
+        addNav(getString(R.string.ui_nav_wordcount), View.OnClickListener { v: View? -> showWordCounts() })
+        addNav(getString(R.string.ui_nav_favorites), View.OnClickListener { v: View? -> showFavorites() })
+        addNav(getString(R.string.ui_nav_playlist), View.OnClickListener { v: View? -> showPlaylists() })
+        addNav(getString(R.string.ui_nav_queue), View.OnClickListener { v: View? -> showQueue() })
+        addNav(getString(R.string.ui_nav_sang), View.OnClickListener { v: View? -> showSang() })
+        addNav(getString(R.string.ui_nav_download), View.OnClickListener { v: View? -> showDownloads() })
+        addNav(getString(R.string.ui_nav_udisk), View.OnClickListener { v: View? -> showUdisk() })
+        addNav(getString(R.string.ui_nav_movie), View.OnClickListener { v: View? -> showLocalMovies() })
+        addNav(getString(R.string.ui_nav_party), View.OnClickListener { v: View? -> showDisco() })
+        addNav(getString(R.string.ui_nav_network), View.OnClickListener { v: View? -> showNetworkDialog() })
+        addNav(getString(R.string.ui_nav_screen), View.OnClickListener { v: View? -> showScreenDialog() })
+        addNav(getString(R.string.ui_nav_app), View.OnClickListener { v: View? -> showAppCenter() })
+        addNav(getString(R.string.ui_nav_maintenance), View.OnClickListener { v: View? -> showLibraryMaintenance() })
+        addNav(getString(R.string.ui_nav_broadcast), View.OnClickListener { v: View? -> showTableBroadcast() })
+        addNav(getString(R.string.ui_nav_settings), View.OnClickListener { v: View? -> showSettings() })
 
         val body = LinearLayout(this)
         body.setOrientation(LinearLayout.VERTICAL)
@@ -1104,9 +1118,9 @@ class MainActivity : AppCompatActivity() {
         val top = LinearLayout(this)
         top.setGravity(Gravity.CENTER_VERTICAL)
         top.setPadding(0, 0, 0, dp(6))
-        header = label("首页", 24, TEXT_WHITE)
+        header = label(getString(R.string.ui_header_home), 24, TEXT_WHITE)
         top.addView(header, LinearLayout.LayoutParams(0, dp(54), 1f))
-        status = label("准备就绪", 16, TEXT_DIM)
+        status = label(getString(R.string.ui_status_ready), 16, TEXT_DIM)
         status!!.setGravity(Gravity.RIGHT or Gravity.CENTER_VERTICAL)
         top.addView(status, LinearLayout.LayoutParams(dp(430), dp(54)))
         body.addView(top)
@@ -1163,120 +1177,120 @@ class MainActivity : AppCompatActivity() {
     private fun showHome() {
         if (content == null) return  // buildShell 未启用
 
-        setPage("首页")
+        setPage("首页", getString(R.string.ui_a_0108))
         selectNav(0)
         if (content == null) return
         content!!.removeAllViews()
         val left = panel()
         content!!.addView(left, LinearLayout.LayoutParams(0, -1, 1.25f))
-        left.addView(sectionTitle("快速入口"))
+        left.addView(sectionTitle(getString(R.string.ui_a_0143)))
         val grid = GridLayout(this)
         grid.setColumnCount(3)
         left.addView(grid, LinearLayout.LayoutParams(-1, 0, 1f))
         addTile(
             grid,
-            "新歌推荐",
-            "网络/本地新增歌曲",
-            View.OnClickListener { v: View? -> showSongs("全部") })
-        addTile(grid, "热门排行", "按点播热度排序", View.OnClickListener { v: View? -> showRank() })
-        addTile(grid, "歌星点歌", "按歌手查找", View.OnClickListener { v: View? -> showSingers() })
+            getString(R.string.ui_a_0144),
+            getString(R.string.ui_a_0145),
+            View.OnClickListener { v: View? -> showSongs(KtvRaw.get(R.string.ui_a_0069)) })
+        addTile(grid, getString(R.string.ui_a_0146), getString(R.string.ui_a_0147), View.OnClickListener { v: View? -> showRank() })
+        addTile(grid, getString(R.string.ui_a_0148), getString(R.string.ui_a_0149), View.OnClickListener { v: View? -> showSingers() })
         addTile(
             grid,
-            "语种点歌",
-            "国语/粤语/外语",
+            getString(R.string.ui_a_0150),
+            getString(R.string.ui_a_0151),
             View.OnClickListener { v: View? -> showLanguages() })
         addTile(
             grid,
-            "字数点歌",
-            "按歌名字数查找",
+            getString(R.string.ui_a_0152),
+            getString(R.string.ui_a_0153),
             View.OnClickListener { v: View? -> showWordCounts() })
         addTile(
             grid,
-            "拼音搜索",
-            "支持简码/歌名/歌手",
+            getString(R.string.ui_a_0154),
+            getString(R.string.ui_a_0155),
             View.OnClickListener { v: View? -> showSearch() })
         addTile(
             grid,
-            "我的收藏",
-            "常唱歌曲快速点播",
+            getString(R.string.ui_a_0094),
+            getString(R.string.ui_a_0156),
             View.OnClickListener { v: View? -> showFavorites() })
         addTile(
             grid,
-            "我的歌单",
-            "本地自建歌单",
+            getString(R.string.ui_a_0157),
+            getString(R.string.ui_a_0158),
             View.OnClickListener { v: View? -> showPlaylists() })
-        addTile(grid, "U盘导入", "扫描导入目录", View.OnClickListener { v: View? -> showUdisk() })
+        addTile(grid, getString(R.string.ui_a_0159), getString(R.string.ui_a_0160), View.OnClickListener { v: View? -> showUdisk() })
         addTile(
             grid,
-            "下载管理",
-            "网络曲库下载",
+            getString(R.string.ui_a_0161),
+            getString(R.string.ui_a_0162),
             View.OnClickListener { v: View? -> showDownloads() })
 
         addTile(
             grid,
-            "音量音调",
-            "音量 / 均衡器",
+            getString(R.string.ui_a_0163),
+            getString(R.string.ui_p_vol_eq),
             View.OnClickListener { v: View? -> showTuningDialog() })
         addTile(
             grid,
-            "气氛模式",
+            getString(R.string.ui_a_0165),
             atmosphere,
             View.OnClickListener { v: View? -> showAtmosphereDialog() })
         addTile(
             grid,
-            "演唱评分",
-            if (scoreEnabled) scoreSummary() else "评分已关闭",
+            getString(R.string.ui_a_0166),
+            if (scoreEnabled) scoreSummary() else getString(R.string.ui_a_0167),
             View.OnClickListener { v: View? -> showScoreDialog() })
         addTile(
             grid,
-            "本地录音",
-            if (recorder == null) "录制演唱音频" else "正在录音",
+            getString(R.string.ui_a_0168),
+            if (recorder == null) getString(R.string.ui_a_0169) else getString(R.string.ui_a_0170),
             View.OnClickListener { v: View? -> showRecordings() })
         addTile(
             grid,
-            "手机点歌",
+            getString(R.string.ui_a_0171),
             remoteUrl(),
             View.OnClickListener { v: View? -> showMobileRemoteDialog() })
         addTile(
             grid,
-            "跑马灯",
-            if (marqueeEnabled) marqueeText else "跑马灯已关闭",
+            getString(R.string.ui_a_0172),
+            if (marqueeEnabled) marqueeText else getString(R.string.ui_a_0173),
             View.OnClickListener { v: View? -> showMarqueeSettings() })
-        addTile(grid, "灯光迪斯科", lightMode, View.OnClickListener { v: View? -> showDisco() })
+        addTile(grid, getString(R.string.ui_a_0174), lightMode, View.OnClickListener { v: View? -> showDisco() })
         addTile(
             grid,
-            "本地影片",
-            "用户 MV / 影片播放",
+            getString(R.string.ui_a_0175),
+            getString(R.string.ui_a_0176),
             View.OnClickListener { v: View? -> showLocalMovies() })
         addTile(
             grid,
-            "网络设置",
+            getString(R.string.ui_a_0177),
             remoteUrl(),
             View.OnClickListener { v: View? -> showNetworkDialog() })
         addTile(
             grid,
-            "屏幕设置",
+            getString(R.string.ui_a_0178),
             screenMode,
             View.OnClickListener { v: View? -> showScreenDialog() })
         addTile(
             grid,
-            "应用工具",
-            "本地工具 / 维护",
+            getString(R.string.ui_a_0179),
+            getString(R.string.ui_a_0180),
             View.OnClickListener { v: View? -> showAppCenter() })
         addTile(
             grid,
-            "曲库维护",
-            "清理 / 重建 / 导出",
+            getString(R.string.ui_a_0181),
+            getString(R.string.ui_a_0182),
             View.OnClickListener { v: View? -> showLibraryMaintenance() })
         addTile(
             grid,
-            "包房广播",
-            if (tableBroadcastEnabled) tableBroadcastText else "广播已关闭",
+            getString(R.string.ui_a_0183),
+            if (tableBroadcastEnabled) tableBroadcastText else getString(R.string.ui_a_0184),
             View.OnClickListener { v: View? -> showTableBroadcast() })
 
         val right = panel()
         content!!.addView(right, LinearLayout.LayoutParams(0, -1, 0.8f))
-        right.addView(sectionTitle("播放预览"))
+        right.addView(sectionTitle(getString(R.string.ui_a_0185)))
         // 用 FrameLayout 包裹共享播放 Surface,以便叠加控制层
         val playerContainer = FrameLayout(this)
         player = KtvVideoView(this).also {
@@ -1296,7 +1310,7 @@ class MainActivity : AppCompatActivity() {
             playerController!!.updatePlayState(playWhenPrepared)
             playerController!!.setVocalMode(originalVocal)
         }
-        lyricCurrent = label("暂无歌词", 22, GOLD)
+        lyricCurrent = label(getString(R.string.ui_no_lyrics), 22, GOLD)
         lyricCurrent!!.setGravity(Gravity.CENTER)
         lyricNext = label("", 18, Color.LTGRAY)
         lyricNext!!.setGravity(Gravity.CENTER)
@@ -1305,20 +1319,20 @@ class MainActivity : AppCompatActivity() {
         val controls = LinearLayout(this)
         controls.setGravity(Gravity.CENTER_VERTICAL)
         controls.addView(
-            button("暂停/继续", View.OnClickListener { v: View? -> togglePlay() }),
+            button(getString(R.string.ui_a_0186), View.OnClickListener { v: View? -> togglePlay() }),
             LinearLayout.LayoutParams(0, dp(50), 1f)
         )
         controls.addView(
-            button("重唱", View.OnClickListener { v: View? -> replay() }),
+            button(getString(R.string.ui_repeat), View.OnClickListener { v: View? -> replay() }),
             LinearLayout.LayoutParams(0, dp(50), 1f)
         )
         controls.addView(
-            button("切歌", View.OnClickListener { v: View? -> playNext() }),
+            button(getString(R.string.ui_next_song), View.OnClickListener { v: View? -> playNext() }),
             LinearLayout.LayoutParams(0, dp(50), 1f)
         )
-        controls.addView(button("单曲循环", View.OnClickListener { v: View? ->
+        controls.addView(button(getString(R.string.ui_a_0189), View.OnClickListener { v: View? ->
             loopOne = !loopOne
-            toast(if (loopOne) "单曲循环" else "顺序播放")
+            toast(if (loopOne) getString(R.string.ui_a_0189) else getString(R.string.ui_a_0190))
         }), LinearLayout.LayoutParams(0, dp(50), 1f))
         controls.addView(
             button(
@@ -1328,24 +1342,24 @@ class MainActivity : AppCompatActivity() {
         )
         controls.addView(
             button(
-                "音控",
+                getString(R.string.ui_a_0191),
                 View.OnClickListener { v: View? -> showTuningDialog() }),
             LinearLayout.LayoutParams(0, dp(50), 1f)
         )
         controls.addView(
             button(
-                if (recorder == null) "录音" else "停止录音",
+                if (recorder == null) getString(R.string.ui_a_0192) else getString(R.string.ui_a_0193),
                 View.OnClickListener { v: View? -> toggleRecording() }),
             LinearLayout.LayoutParams(0, dp(50), 1f)
         )
         controls.addView(
             button(
-                "状态",
+                getString(R.string.ui_a_0194),
                 View.OnClickListener { v: View? -> showPlayerStatusDialog() }),
             LinearLayout.LayoutParams(0, dp(50), 1f)
         )
         right.addView(controls)
-        right.addView(sectionTitle("已点 " + orderQueue!!.size))
+        right.addView(sectionTitle(getString(R.string.ui_p_005) + orderQueue!!.size))
         queueList = listView()
         queueAdapter = tvAdapter()
         queueList!!.setAdapter(queueAdapter)
@@ -1359,15 +1373,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showSearch() {
-        showSongs("全部")
+        showSongs(KtvRaw.get(R.string.ui_a_0069))
     }
 
     fun showSongs(category: String?) {
-        setPage("点歌")
+        setPage("点歌", getString(R.string.ui_a_0196))
         content!!.removeAllViews()
         val left = panel()
         content!!.addView(left, LinearLayout.LayoutParams(dp(230), -1))
-        left.addView(sectionTitle("分类"))
+        left.addView(sectionTitle(getString(R.string.ui_a_0197)))
         // 分类按钮:优先使用数据库语种,回退到本地分类
         val cats: MutableList<String?> = ArrayList<String?>()
         if (library.muse.isAvailable()) {
@@ -1379,8 +1393,8 @@ class MainActivity : AppCompatActivity() {
             cats.addAll(library.categories())
         }
         for (item in cats) {
-            left.addView(button(item, View.OnClickListener { v: View? ->
-                val cat = (v as TextView).getText().toString()
+            left.addView(button(displayCategory(item), View.OnClickListener { v: View? ->
+                val cat = item ?: ""
                 if (library.muse.isAvailable() && ("本地" != cat) && ("网络" != cat)) {
                     browseMode = "language"
                     browseParam = cat
@@ -1391,7 +1405,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }))
         }
-        left.addView(button("网络同步", View.OnClickListener { v: View? -> fetchCatalog() }))
+        left.addView(button(getString(R.string.ui_a_0200), View.OnClickListener { v: View? -> fetchCatalog() }))
 
         val center = panel()
         content!!.addView(center, LinearLayout.LayoutParams(0, -1, 1f))
@@ -1399,7 +1413,7 @@ class MainActivity : AppCompatActivity() {
         searchRow.setGravity(Gravity.CENTER_VERTICAL)
         search = EditText(this)
         search!!.setSingleLine(true)
-        search!!.setHint("输入歌名 / 歌手 / 拼音简码")
+        search!!.setHint(getString(R.string.ui_a_0201))
         search!!.setTextColor(Color.WHITE)
         search!!.setHintTextColor(Color.GRAY)
         search!!.setInputType(InputType.TYPE_CLASS_TEXT)
@@ -1409,12 +1423,12 @@ class MainActivity : AppCompatActivity() {
         })
         searchRow.addView(search, LinearLayout.LayoutParams(0, dp(54), 1f))
         searchRow.addView(
-            button("键盘", View.OnClickListener { v: View? -> showKeyboardDialog() }),
+            button(getString(R.string.ui_a_0202), View.OnClickListener { v: View? -> showKeyboardDialog() }),
             LinearLayout.LayoutParams(dp(110), dp(54))
         )
         searchRow.addView(
             button(
-                "搜索",
+                getString(R.string.ui_a_0203),
                 View.OnClickListener { v: View? ->
                     filterSongs(
                         category,
@@ -1427,14 +1441,14 @@ class MainActivity : AppCompatActivity() {
         val pageBar = LinearLayout(this)
         pageBar.setGravity(Gravity.CENTER_VERTICAL)
         pageBar.addView(
-            button("上一页", View.OnClickListener { v: View? -> prevPage() }),
+            button(getString(R.string.ui_prev_page), View.OnClickListener { v: View? -> prevPage() }),
             LinearLayout.LayoutParams(dp(110), dp(44))
         )
         pageInfo = label("", 14, GOLD)
         pageInfo!!.setGravity(Gravity.CENTER)
         pageBar.addView(pageInfo, LinearLayout.LayoutParams(0, dp(44), 1f))
         pageBar.addView(
-            button("下一页", View.OnClickListener { v: View? -> nextPage() }),
+            button(getString(R.string.ui_next_page), View.OnClickListener { v: View? -> nextPage() }),
             LinearLayout.LayoutParams(dp(110), dp(44))
         )
         center.addView(pageBar)
@@ -1463,15 +1477,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showSingers() {
-        setPage("歌星")
+        setPage("歌星", getString(R.string.ui_a_0206))
         content!!.removeAllViews()
         val groupPanel = panel()
         content!!.addView(groupPanel, LinearLayout.LayoutParams(dp(190), -1))
-        groupPanel.addView(sectionTitle("歌手分类"))
+        groupPanel.addView(sectionTitle(getString(R.string.ui_a_0207)))
 
         val singerPanel = panel()
         content!!.addView(singerPanel, LinearLayout.LayoutParams(dp(340), -1))
-        singerPanel.addView(sectionTitle("歌星列表"))
+        singerPanel.addView(sectionTitle(getString(R.string.ui_a_0208)))
         val singers = listView()
         val adapter = tvAdapter()
         singers.setAdapter(adapter)
@@ -1479,19 +1493,19 @@ class MainActivity : AppCompatActivity() {
 
         val songs = panel()
         content!!.addView(songs, LinearLayout.LayoutParams(0, -1, 1f))
-        songs.addView(sectionTitle("歌星歌曲"))
+        songs.addView(sectionTitle(getString(R.string.ui_a_0209)))
         // 分页控制栏
         val pageBar = LinearLayout(this)
         pageBar.setGravity(Gravity.CENTER_VERTICAL)
         pageBar.addView(
-            button("上一页", View.OnClickListener { v: View? -> prevPage() }),
+            button(getString(R.string.ui_prev_page), View.OnClickListener { v: View? -> prevPage() }),
             LinearLayout.LayoutParams(dp(100), dp(44))
         )
         pageInfo = label("", 13, GOLD)
         pageInfo!!.setGravity(Gravity.CENTER)
         pageBar.addView(pageInfo, LinearLayout.LayoutParams(0, dp(44), 1f))
         pageBar.addView(
-            button("下一页", View.OnClickListener { v: View? -> nextPage() }),
+            button(getString(R.string.ui_next_page), View.OnClickListener { v: View? -> nextPage() }),
             LinearLayout.LayoutParams(dp(100), dp(44))
         )
         songs.addView(pageBar)
@@ -1530,11 +1544,11 @@ class MainActivity : AppCompatActivity() {
             for (group in groups) {
                 groupPanel.addView(
                     button(
-                        group,
+                        displayCategory(group),
                         View.OnClickListener { v: View? ->
                             populateSingerListFromDb(
                                 adapter,
-                                (v as TextView).getText().toString()
+                                group
                             )
                         })
                 )
@@ -1543,27 +1557,27 @@ class MainActivity : AppCompatActivity() {
         } else {
             val groups = arrayOf<String?>(
                 "全部歌手",
-                "热门歌手",
-                "大陆/内地",
-                "港台",
-                "日韩",
-                "欧美",
-                "组合/乐队",
-                "其他"
+                KtvRaw.get(R.string.ui_a_0213),
+                KtvRaw.get(R.string.ui_a_0214),
+                KtvRaw.get(R.string.ui_a_0077),
+                KtvRaw.get(R.string.ui_a_0078),
+                KtvRaw.get(R.string.ui_a_0079),
+                KtvRaw.get(R.string.ui_a_0215),
+                KtvRaw.get(R.string.ui_a_0080)
             )
             for (group in groups) {
                 groupPanel.addView(
                     button(
-                        group,
+                        displayCategory(group),
                         View.OnClickListener { v: View? ->
                             populateSingerList(
                                 adapter,
-                                (v as TextView).getText().toString()
+                                group
                             )
                         })
                 )
             }
-            populateSingerList(adapter, "全部歌手")
+            populateSingerList(adapter, KtvRaw.get(R.string.ui_a_0210))
         }
     }
 
@@ -1576,41 +1590,41 @@ class MainActivity : AppCompatActivity() {
     private fun populateSingerListFromDb(adapter: ArrayAdapter<String?>, group: String?) {
         if (!library.muse.isAvailable()) return
         adapter.clear()
-        busy(true, "正在加载歌手...")
+        busy(true, getString(R.string.ui_a_0216))
         io.execute(Runnable {
             var area: String? = null
             var type: String? = null
-            if ("大陆" == group) area = "大陆"
-            else if ("港台" == group) area = "港台"
-            else if ("外国" == group) area = "外国"
-            else if ("中国" == group) area = "中国"
-            else if ("男" == group) type = "男"
-            else if ("女" == group) type = "女"
-            else if ("组合" == group) type = "组合"
+            if (KtvRaw.get(R.string.ui_a_0072) == group) area = KtvRaw.get(R.string.ui_a_0072)
+            else if (KtvRaw.get(R.string.ui_a_0077) == group) area = KtvRaw.get(R.string.ui_a_0077)
+            else if (KtvRaw.get(R.string.ui_a_0211) == group) area = KtvRaw.get(R.string.ui_a_0211)
+            else if (KtvRaw.get(R.string.ui_a_0212) == group) area = KtvRaw.get(R.string.ui_a_0212)
+            else if (KtvRaw.get(R.string.ui_a_0073) == group) type = KtvRaw.get(R.string.ui_a_0073)
+            else if (KtvRaw.get(R.string.ui_a_0074) == group) type = KtvRaw.get(R.string.ui_a_0074)
+            else if (KtvRaw.get(R.string.ui_a_0075) == group) type = KtvRaw.get(R.string.ui_a_0075)
             val result: MutableList<Array<String?>> = library.muse.singers(area, type, 0, 200)
             main.post(Runnable {
                 for (s in result) adapter.add(s[1]) // s[1] 是歌手名
-                busy(false, "加载了 " + result.size + " 位歌手")
+                busy(false, getString(R.string.ui_p_006) + result.size + getString(R.string.ui_p_007))
             })
         })
     }
 
     private fun showLanguages() {
-        setPage("语种")
+        setPage("语种", getString(R.string.ui_a_0219))
         content!!.removeAllViews()
         val left = panel()
         content!!.addView(left, LinearLayout.LayoutParams(dp(230), -1))
-        left.addView(sectionTitle("语种"))
+        left.addView(sectionTitle(getString(R.string.ui_a_0219)))
         val langs: MutableList<String?> = ArrayList<String?>()
         if (library.muse.isAvailable()) {
-            langs.add("全部")
+            langs.add(KtvRaw.get(R.string.ui_a_0069))
             langs.addAll(library.muse.languages())
         } else {
             langs.addAll(library.languages())
         }
         for (language in langs) {
-            left.addView(button(language, View.OnClickListener { v: View? ->
-                val lang = (v as TextView).getText().toString()
+            left.addView(button(displayCategory(language), View.OnClickListener { v: View? ->
+                val lang = language
                 if (library.muse.isAvailable()) {
                     browseMode = "language"
                     browseParam = lang
@@ -1624,19 +1638,19 @@ class MainActivity : AppCompatActivity() {
 
         val right = panel()
         content!!.addView(right, LinearLayout.LayoutParams(0, -1, 1f))
-        right.addView(sectionTitle("语种点歌"))
+        right.addView(sectionTitle(getString(R.string.ui_a_0150)))
         // 分页控制栏
         val pageBar = LinearLayout(this)
         pageBar.setGravity(Gravity.CENTER_VERTICAL)
         pageBar.addView(
-            button("上一页", View.OnClickListener { v: View? -> prevPage() }),
+            button(getString(R.string.ui_prev_page), View.OnClickListener { v: View? -> prevPage() }),
             LinearLayout.LayoutParams(dp(110), dp(44))
         )
         pageInfo = label("", 14, GOLD)
         pageInfo!!.setGravity(Gravity.CENTER)
         pageBar.addView(pageInfo, LinearLayout.LayoutParams(0, dp(44), 1f))
         pageBar.addView(
-            button("下一页", View.OnClickListener { v: View? -> nextPage() }),
+            button(getString(R.string.ui_next_page), View.OnClickListener { v: View? -> nextPage() }),
             LinearLayout.LayoutParams(dp(110), dp(44))
         )
         right.addView(pageBar)
@@ -1655,29 +1669,30 @@ class MainActivity : AppCompatActivity() {
         right.addView(songList, LinearLayout.LayoutParams(-1, 0, 1f))
         if (library.muse.isAvailable()) {
             browseMode = "language"
-            browseParam = "全部"
+            browseParam = KtvRaw.get(R.string.ui_a_0069)
             browsePage = 0
             loadBrowsePage()
         } else {
-            filterLanguage("全部")
+            filterLanguage(KtvRaw.get(R.string.ui_a_0069))
         }
     }
 
     private fun showWordCounts() {
-        setPage("字数")
+        setPage("字数", getString(R.string.ui_a_0220))
         content!!.removeAllViews()
         val left = panel()
         content!!.addView(left, LinearLayout.LayoutParams(dp(230), -1))
-        left.addView(sectionTitle("歌名字数"))
-        val groups = arrayOf<String?>("全部", "一字", "二字", "三字", "四字", "五字", "六字以上")
-        for (group in groups) {
-            left.addView(button(group, View.OnClickListener { v: View? ->
-                val g = (v as TextView).getText().toString()
+        left.addView(sectionTitle(getString(R.string.ui_a_0221)))
+        val labels = arrayOf(getString(R.string.ui_a_0069), getString(R.string.ui_a_0222), getString(R.string.ui_a_0223), getString(R.string.ui_a_0224), getString(R.string.ui_a_0225), getString(R.string.ui_a_0226), getString(R.string.ui_a_0227))
+        val values = arrayOf(KtvRaw.get(R.string.ui_a_0069), KtvRaw.get(R.string.ui_a_0222), KtvRaw.get(R.string.ui_a_0223), KtvRaw.get(R.string.ui_a_0224), KtvRaw.get(R.string.ui_a_0225), KtvRaw.get(R.string.ui_a_0226), KtvRaw.get(R.string.ui_a_0227))
+        for (i in labels.indices) {
+            left.addView(button(labels[i], View.OnClickListener { _ ->
+                val g = values[i]
                 if (library.muse.isAvailable()) {
-                    val wc = if ("一字" == g) 1 else if ("二字" == g) 2 else if ("三字" == g)
+                    val wc = if (KtvRaw.get(R.string.ui_a_0222) == g) 1 else if (KtvRaw.get(R.string.ui_a_0223) == g) 2 else if (KtvRaw.get(R.string.ui_a_0224) == g)
                         3
                     else
-                        if ("四字" == g) 4 else if ("五字" == g) 5 else if ("六字以上" == g) 6 else 0
+                        if (KtvRaw.get(R.string.ui_a_0225) == g) 4 else if (KtvRaw.get(R.string.ui_a_0226) == g) 5 else if (KtvRaw.get(R.string.ui_a_0227) == g) 6 else 0
                     browseMode = "wordcount"
                     browseParam = wc.toString()
                     browsePage = 0
@@ -1690,19 +1705,19 @@ class MainActivity : AppCompatActivity() {
 
         val right = panel()
         content!!.addView(right, LinearLayout.LayoutParams(0, -1, 1f))
-        right.addView(sectionTitle("字数点歌"))
+        right.addView(sectionTitle(getString(R.string.ui_a_0152)))
         // 分页控制栏
         val pageBar = LinearLayout(this)
         pageBar.setGravity(Gravity.CENTER_VERTICAL)
         pageBar.addView(
-            button("上一页", View.OnClickListener { v: View? -> prevPage() }),
+            button(getString(R.string.ui_prev_page), View.OnClickListener { v: View? -> prevPage() }),
             LinearLayout.LayoutParams(dp(110), dp(44))
         )
         pageInfo = label("", 14, GOLD)
         pageInfo!!.setGravity(Gravity.CENTER)
         pageBar.addView(pageInfo, LinearLayout.LayoutParams(0, dp(44), 1f))
         pageBar.addView(
-            button("下一页", View.OnClickListener { v: View? -> nextPage() }),
+            button(getString(R.string.ui_next_page), View.OnClickListener { v: View? -> nextPage() }),
             LinearLayout.LayoutParams(dp(110), dp(44))
         )
         right.addView(pageBar)
@@ -1725,28 +1740,28 @@ class MainActivity : AppCompatActivity() {
             browsePage = 0
             loadBrowsePage()
         } else {
-            filterWordCount("全部")
+            filterWordCount(KtvRaw.get(R.string.ui_a_0069))
         }
     }
 
     private fun showRank() {
-        setPage("排行")
+        setPage("排行", getString(R.string.ui_a_0228))
         content!!.removeAllViews()
         val panel = panel()
         content!!.addView(panel, LinearLayout.LayoutParams(-1, -1))
-        panel.addView(sectionTitle("热门排行"))
+        panel.addView(sectionTitle(getString(R.string.ui_a_0146)))
         // 分页控制栏
         val pageBar = LinearLayout(this)
         pageBar.setGravity(Gravity.CENTER_VERTICAL)
         pageBar.addView(
-            button("上一页", View.OnClickListener { v: View? -> prevPage() }),
+            button(getString(R.string.ui_prev_page), View.OnClickListener { v: View? -> prevPage() }),
             LinearLayout.LayoutParams(dp(110), dp(44))
         )
         pageInfo = label("", 14, GOLD)
         pageInfo!!.setGravity(Gravity.CENTER)
         pageBar.addView(pageInfo, LinearLayout.LayoutParams(0, dp(44), 1f))
         pageBar.addView(
-            button("下一页", View.OnClickListener { v: View? -> nextPage() }),
+            button(getString(R.string.ui_next_page), View.OnClickListener { v: View? -> nextPage() }),
             LinearLayout.LayoutParams(dp(110), dp(44))
         )
         panel.addView(pageBar)
@@ -1781,14 +1796,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showQueue() {
-        setPage("已点")
+        setPage("已点", getString(R.string.ui_a_0229))
         content!!.removeAllViews()
         val panel = panel()
         content!!.addView(panel, LinearLayout.LayoutParams(-1, -1))
         val actions = LinearLayout(this)
         actions.addView(
             button(
-                "播放第一首",
+                getString(R.string.ui_a_0230),
                 View.OnClickListener { v: View? ->
                     if (!orderQueue!!.isEmpty()) play(
                         orderQueue.get(
@@ -1798,20 +1813,20 @@ class MainActivity : AppCompatActivity() {
                 }), LinearLayout.LayoutParams(dp(150), dp(54))
         )
         actions.addView(
-            button("切歌", View.OnClickListener { v: View? -> playNext() }),
+            button(getString(R.string.ui_next_song), View.OnClickListener { v: View? -> playNext() }),
             LinearLayout.LayoutParams(dp(110), dp(54))
         )
         actions.addView(
             button(
-                "置顶",
+                getString(R.string.ui_a_0231),
                 View.OnClickListener { v: View? -> moveSelectedQueueToTop() }),
             LinearLayout.LayoutParams(dp(110), dp(54))
         )
         actions.addView(
-            button("删除", View.OnClickListener { v: View? -> removeSelectedQueue() }),
+            button(getString(R.string.ui_a_0232), View.OnClickListener { v: View? -> removeSelectedQueue() }),
             LinearLayout.LayoutParams(dp(110), dp(54))
         )
-        actions.addView(button("清空", View.OnClickListener { v: View? ->
+        actions.addView(button(getString(R.string.ui_a_0233), View.OnClickListener { v: View? ->
             orderQueue!!.clear()
             renderQueue()
             saveState()
@@ -1830,11 +1845,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showSang() {
-        setPage("已唱")
+        setPage("已唱", getString(R.string.ui_a_0234))
         content!!.removeAllViews()
         val panel = panel()
         content!!.addView(panel, LinearLayout.LayoutParams(-1, -1))
-        panel.addView(sectionTitle("已唱记录"))
+        panel.addView(sectionTitle(getString(R.string.ui_a_0235)))
         val list = listView()
         val adapter = tvAdapter()
         for (song in sangHistory) adapter.add(song.displayTitle())
@@ -1843,30 +1858,30 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showDownloads() {
-        setPage("下载")
+        setPage("下载", getString(R.string.ui_a_0236))
         content!!.removeAllViews()
         val left = panel()
         content!!.addView(left, LinearLayout.LayoutParams(dp(280), -1))
-        left.addView(sectionTitle("下载操作"))
-        left.addView(button("同步网络曲库", View.OnClickListener { v: View? -> fetchCatalog() }))
-        left.addView(button("设置网络源", View.OnClickListener { v: View? -> showCatalogDialog() }))
+        left.addView(sectionTitle(getString(R.string.ui_a_0237)))
+        left.addView(button(getString(R.string.ui_a_0238), View.OnClickListener { v: View? -> fetchCatalog() }))
+        left.addView(button(getString(R.string.ui_a_0239), View.OnClickListener { v: View? -> showCatalogDialog() }))
         left.addView(
             button(
-                "重扫本地歌曲",
+                getString(R.string.ui_a_0240),
                 View.OnClickListener { v: View? -> refreshLibrary(null) })
         )
         left.addView(
             button(
-                "取消全部下载",
+                getString(R.string.ui_a_0241),
                 View.OnClickListener { v: View? -> cancelAllDownloads() })
         )
-        left.addView(button("清理已完成", View.OnClickListener { v: View? ->
+        left.addView(button(getString(R.string.ui_a_0242), View.OnClickListener { v: View? ->
             for (i in downloads.indices.reversed()) {
-                if ("完成" == downloads.get(i).state) downloads.removeAt(i)
+                if (KtvRaw.get(R.string.ui_a_0110) == downloads.get(i).state) downloads.removeAt(i)
             }
             showDownloads()
         }))
-        left.addView(button("清理失败任务", View.OnClickListener { v: View? ->
+        left.addView(button(getString(R.string.ui_a_0243), View.OnClickListener { v: View? ->
             for (i in downloads.indices.reversed()) {
                 if (downloads.get(i).state.startsWith("失败") || "已取消" == downloads.get(i).state) downloads.removeAt(
                     i
@@ -1877,7 +1892,7 @@ class MainActivity : AppCompatActivity() {
 
         val right = panel()
         content!!.addView(right, LinearLayout.LayoutParams(0, -1, 1f))
-        right.addView(sectionTitle("下载队列"))
+        right.addView(sectionTitle(getString(R.string.ui_a_0246)))
         val list = listView()
         val adapter = tvAdapter()
         for (task in downloads) adapter.add(task.display())
@@ -1885,7 +1900,7 @@ class MainActivity : AppCompatActivity() {
         list.setOnItemClickListener(OnItemClickListener { p: AdapterView<*>?, v: View?, pos: Int, id: Long ->
             if (pos >= 0 && pos < downloads.size) {
                 downloads.get(pos).cancelled = true
-                downloads.get(pos).state = "正在取消"
+                downloads.get(pos).state = KtvRaw.get(R.string.ui_a_0247)
                 showDownloads()
             }
         })
@@ -1893,21 +1908,21 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showUdisk() {
-        setPage("U盘")
+        setPage("U盘", getString(R.string.ui_a_0248))
         content!!.removeAllViews()
         val panel = panel()
         content!!.addView(panel, LinearLayout.LayoutParams(-1, -1))
-        panel.addView(sectionTitle("本地导入"))
+        panel.addView(sectionTitle(getString(R.string.ui_a_0249)))
         panel.addView(
             label(
-                "请把歌曲放入 ${AppPaths.importDir.absolutePath}、${AppPaths.songsDir.absolutePath}、U盘/KTV 或 U盘/songs，支持 mp4/mkv/avi/mp3/flac/wav。",
+                getString(R.string.ui_p_import_hint, AppPaths.importDir.absolutePath, AppPaths.songsDir.absolutePath),
                 20,
                 Color.LTGRAY
             )
         )
-        panel.addView(button("扫描导入目录", View.OnClickListener { v: View? ->
+        panel.addView(button(getString(R.string.ui_a_0160), View.OnClickListener { v: View? ->
             refreshLibrary(
-                Runnable { showSongs("本地") })
+                Runnable { showSongs(KtvRaw.get(R.string.ui_a_0198)) })
         }), LinearLayout.LayoutParams(dp(180), dp(58)))
         songList = listView()
         songAdapter = tvAdapter()
@@ -1918,7 +1933,7 @@ class MainActivity : AppCompatActivity() {
             )
         })
         panel.addView(songList, LinearLayout.LayoutParams(-1, 0, 1f))
-        filterSongs("本地", "")
+        filterSongs(KtvRaw.get(R.string.ui_a_0198), "")
     }
 
     fun showSettings() {
@@ -2045,12 +2060,12 @@ class MainActivity : AppCompatActivity() {
 
     private fun showExitDialog() {
         AlertDialog.Builder(this)
-            .setTitle("退出确认")
-            .setMessage("确定要退出麦动吗?")
+            .setTitle(getString(R.string.ui_exit_confirm_title))
+            .setMessage(getString(R.string.ui_exit_confirm_msg))
             .setPositiveButton(
-                "确定退出",
+                getString(R.string.ui_exit_confirm_ok),
                 DialogInterface.OnClickListener { d: DialogInterface?, w: Int -> finish() })
-            .setNegativeButton("取消", null)
+            .setNegativeButton(getString(R.string.ui_cancel), null)
             .create()
             .showForTv(DialogInterface.BUTTON_POSITIVE)
     }
@@ -2068,8 +2083,8 @@ class MainActivity : AppCompatActivity() {
         val content = root.findViewById<LinearLayout>(R.id.settings_content)
 
         val menuItems = arrayOf<String?>(
-            "🎤  演唱模式", "🔊  音频控制", "🌐  声道设置", "🎚  音调控制",
-            "📺  画面设置", "📃  跑马灯", "📶  网络设置", "ℹ  关于"
+            KtvRaw.get(R.string.ui_a_0251), KtvRaw.get(R.string.ui_a_0252), KtvRaw.get(R.string.ui_a_0253), KtvRaw.get(R.string.ui_a_0254),
+            KtvRaw.get(R.string.ui_a_0255), KtvRaw.get(R.string.ui_a_0256), KtvRaw.get(R.string.ui_a_0257), KtvRaw.get(R.string.ui_a_0258)
         )
         val adapter: ArrayAdapter<String?> =
             object : ArrayAdapter<String?>(this, R.layout.settings_menu_item, menuItems) {
@@ -2113,14 +2128,14 @@ class MainActivity : AppCompatActivity() {
         when (index) {
             0 -> {
                 // 演唱模式
-                addSettingsTitle(content, "演唱模式")
+                addSettingsTitle(content, getString(R.string.ui_a_0259))
                 addSettingsOptions(
                     content,
-                    "演唱模式",
+                    getString(R.string.ui_a_0259),
                     arrayOf<String>(
-                        "普通演唱", "练唱模式", "评分演唱", "静音练唱"
+                        KtvRaw.get(R.string.ui_a_0088), KtvRaw.get(R.string.ui_a_0260), KtvRaw.get(R.string.ui_a_0261), KtvRaw.get(R.string.ui_a_0262)
                     ),
-                    arrayOf<String?>(null, null, "评分演唱", "静音练唱"),
+                    arrayOf<String?>(null, null, KtvRaw.get(R.string.ui_a_0261), KtvRaw.get(R.string.ui_a_0262)),
                     singMode,
                     OnValueClickListener { v: View?, `val`: Any? ->
                         setSingMode((`val` as kotlin.String?)!!)
@@ -2129,39 +2144,39 @@ class MainActivity : AppCompatActivity() {
 
             1 -> {
                 // 音量与均衡器统一走「调音」弹窗（升降调在下一页单独设置）
-                addSettingsTitle(content, "音频控制")
+                addSettingsTitle(content, getString(R.string.ui_a_0263))
                 addSettingsItem(
                     content,
-                    "音量与均衡器",
-                    "音量 " + musicVolume + "% · 均衡器" + (if (KtvEqualizer.enabled) "开" else "关"),
+                    getString(R.string.ui_p_vol_eq2),
+                    getString(R.string.ui_p_vol_eq_status, musicVolume, if (KtvEqualizer.enabled) getString(R.string.ui_a_0269) else getString(R.string.ui_a_0270)),
                     View.OnClickListener { v: View? -> showTuningDialog() })
                 addSettingsItem(
                     content,
-                    "均衡器预设",
+                    getString(R.string.ui_p_eq_preset),
                     KtvEqualizer.preset,
                     View.OnClickListener { v: View? -> showTuningDialog() })
                 addSettingsItem(
                     content,
-                    "麦克风音量",
-                    "由功放/混音器硬件调节",
-                    View.OnClickListener { v: View? -> toast("麦克风音量由功放/混音器硬件调节") })
+                    getString(R.string.ui_a_0264),
+                    getString(R.string.ui_p_mic_hw),
+                    View.OnClickListener { v: View? -> toast(getString(R.string.ui_p_008)) })
                 addSettingsItem(
                     content,
-                    "原唱模式",
-                    if (originalVocal) "开" else "关",
+                    getString(R.string.ui_a_0268),
+                    if (originalVocal) getString(R.string.ui_a_0269) else getString(R.string.ui_a_0270),
                     View.OnClickListener { v: View? -> toggleOriginalVocal() })
             }
 
             2 -> {
                 // 声道设置
-                addSettingsTitle(content, "声道模式")
+                addSettingsTitle(content, getString(R.string.ui_a_0271))
                 addSettingsOptions(
                     content,
-                    "声道",
+                    getString(R.string.ui_a_0272),
                     arrayOf<String>(
-                        "自动", "左伴右原", "右伴左原", "全声道"
+                        getString(R.string.ui_a_0086), getString(R.string.ui_a_0273), getString(R.string.ui_a_0274), getString(R.string.ui_a_0275)
                     ),
-                    arrayOf<String>("自动", "左伴右原", "右伴左原", "全声道"),
+                    arrayOf<String>(KtvRaw.get(R.string.ui_a_0086), KtvRaw.get(R.string.ui_a_0273), KtvRaw.get(R.string.ui_a_0274), KtvRaw.get(R.string.ui_a_0275)),
                     vocalChannelMode,
                     OnValueClickListener { v: View?, `val`: Any? ->
                         setVocalChannelMode((`val` as kotlin.String?)!!)
@@ -2170,13 +2185,13 @@ class MainActivity : AppCompatActivity() {
 
             3 -> {
                 // 音调控制
-                addSettingsTitle(content, "音调控制")
-                addSettingsItem(content, "音调 -", "降调", View.OnClickListener { v: View? ->
+                addSettingsTitle(content, getString(R.string.ui_a_0276))
+                addSettingsItem(content, getString(R.string.ui_a_0277), getString(R.string.ui_a_0278), View.OnClickListener { v: View? ->
                     tone = clamp(tone - 1, -5, 5)
                     player?.setTone(tone)
                     saveState()
                 })
-                addSettingsItem(content, "音调 +", "升调", View.OnClickListener { v: View? ->
+                addSettingsItem(content, getString(R.string.ui_a_0279), getString(R.string.ui_a_0280), View.OnClickListener { v: View? ->
                     tone = clamp(tone + 1, -5, 5)
                     player?.setTone(tone)
                     saveState()
@@ -2185,39 +2200,39 @@ class MainActivity : AppCompatActivity() {
 
             4 -> {
                 // 画面设置
-                addSettingsTitle(content, "画面设置")
-                addSettingsItem(content, "画面比例", "16:9", null)
-                addSettingsItem(content, "画面质量", "高", null)
-                addSettingsItem(content, "全屏模式", "是", null)
+                addSettingsTitle(content, getString(R.string.ui_a_0281))
+                addSettingsItem(content, getString(R.string.ui_a_0282), "16:9", null)
+                addSettingsItem(content, getString(R.string.ui_a_0283), getString(R.string.ui_a_0284), null)
+                addSettingsItem(content, getString(R.string.ui_a_0285), getString(R.string.ui_a_0286), null)
             }
 
             5 -> {
                 // 跑马灯
-                addSettingsTitle(content, "跑马灯")
-                addSettingsItem(content, "跑马灯状态", "关", null)
-                addSettingsItem(content, "跑马灯内容", "麦动 欢迎光临", null)
-                addSettingsItem(content, "滚动速度", "正常", null)
+                addSettingsTitle(content, getString(R.string.ui_a_0172))
+                addSettingsItem(content, getString(R.string.ui_a_0287), getString(R.string.ui_a_0270), null)
+                addSettingsItem(content, getString(R.string.ui_a_0288), getString(R.string.ui_a_0289), null)
+                addSettingsItem(content, getString(R.string.ui_a_0290), getString(R.string.ui_a_0291), null)
             }
 
             6 -> {
                 // 网络设置
-                addSettingsTitle(content, "网络设置")
-                addSettingsItem(content, "当前网络", "WIFI 已连接", null)
-                addSettingsItem(content, "CDN 主地址", "pub.cdn.cherryonline.cn", null)
-                addSettingsItem(content, "CDN 备地址", "pub.mcdn.cherryonline.cn", null)
+                addSettingsTitle(content, getString(R.string.ui_a_0177))
+                addSettingsItem(content, getString(R.string.ui_a_0292), getString(R.string.ui_a_0293), null)
+                addSettingsItem(content, getString(R.string.ui_a_0294), "pub.cdn.cherryonline.cn", null)
+                addSettingsItem(content, getString(R.string.ui_a_0295), "pub.mcdn.cherryonline.cn", null)
             }
 
             7 -> {
                 // 关于
-                addSettingsTitle(content, "关于")
-                addSettingsItem(content, "应用名称", "麦动", null)
-                addSettingsItem(content, "框架来源", "杨家三郎/麦动KTV", null)
-                addSettingsItem(content, "内核", "由 DSH 重构数据库源", null)
-                addSettingsItem(content, "版本号", BuildConfig.VERSION_NAME, null)
+                addSettingsTitle(content, getString(R.string.ui_set_about))
+                addSettingsItem(content, getString(R.string.ui_a_0298), getString(R.string.ui_a_0299), null)
+                addSettingsItem(content, getString(R.string.ui_p_009), getString(R.string.ui_p_010), null)
+                addSettingsItem(content, getString(R.string.ui_p_011), getString(R.string.ui_p_012), null)
+                addSettingsItem(content, getString(R.string.ui_a_0300), BuildConfig.VERSION_NAME, null)
                 addSettingsItem(
                     content,
-                    "曲库",
-                    if (library.muse.isAvailable()) "已加载 (" + library.muse.songCount() + " 首)" else "未加载",
+                    getString(R.string.ui_sec_library),
+                    if (library.muse.isAvailable()) getString(R.string.ui_a_0302) + library.muse.songCount() + getString(R.string.ui_a_0303) else getString(R.string.ui_a_0304),
                     null
                 )
             }
@@ -2368,7 +2383,7 @@ class MainActivity : AppCompatActivity() {
         originalVocal = targetOriginal
         applyPlaybackMode()
         saveState()
-        showPlaybackModeNotice(if (targetOriginal) "原唱" else "伴唱")
+        showPlaybackModeNotice(if (targetOriginal) R.string.ui_a_0629 else R.string.ui_a_0630)
         // 同步状态到控制层
         if (playerController != null) {
             playerController!!.setVocalMode(originalVocal)
@@ -2381,7 +2396,27 @@ class MainActivity : AppCompatActivity() {
     }
 
     /** 控制按钮显示下一次动作；播放框提示显示本次切换后实际生效的模式。 */
-    private fun vocalActionText(): String = if (originalVocal) "伴唱" else "原唱"
+    private fun vocalActionText(): String = if (originalVocal) getString(R.string.ui_a_0306) else getString(R.string.ui_a_0305)
+
+    /** 语言按钮显示「点击后将切换到的语言」：中文界面显示 EN，英文界面显示「中文」。 */
+    private fun refreshLanguageButtonText() {
+        val label = if (KtvApplication.isEnglish()) {
+            getString(R.string.ui_lang_short_zh)
+        } else {
+            getString(R.string.ui_lang_short_en)
+        }
+        btnTopLanguage?.text = label
+        btnTopLanguage?.contentDescription = getString(R.string.ui_set_language)
+    }
+
+    /**
+     * 语言切换会重建 Activity 并释放播放器：切换前记录当前歌曲的进度与播放/暂停状态，
+     * 重建后的 onCreate 会从原位置恢复，避免从头重放。
+     */
+    private fun switchLanguageKeepingPlayback(toEnglish: Boolean) {
+        LanguageSwitchPlayback.capture(currentSong, playbackPosition, playWhenPrepared)
+        KtvApplication.switchLanguage(toEnglish)
+    }
 
     private fun vocalActionIcon(): Int = if (originalVocal) {
         R.drawable.ott_ic_ctrl_music_accomp
@@ -2464,7 +2499,7 @@ class MainActivity : AppCompatActivity() {
         fullScreenSongInfo = song
         header.addView(song, LinearLayout.LayoutParams(0, dp(48), 1f))
         // 播放页面右上角「网络未连接」提示(仅断网时显示, 网络恢复自动消失)。
-        val networkBadge = label("● 网络未连接", 14, Color.WHITE).apply {
+        val networkBadge = label(getString(R.string.ui_p_013), 14, Color.WHITE).apply {
             gravity = Gravity.CENTER
             background = GradientDrawable().apply {
                 cornerRadius = dp(11).toFloat()
@@ -2479,7 +2514,7 @@ class MainActivity : AppCompatActivity() {
             networkBadge,
             LinearLayout.LayoutParams(dp(if (compactUi) 108 else 124), dp(28)).apply { marginEnd = dp(8) },
         )
-        val back = label("返回", 15, Color.WHITE)
+        val back = label(getString(R.string.ui_a_0307), 15, Color.WHITE)
         back.setGravity(Gravity.CENTER)
         back.setBackgroundResource(R.drawable.bg_btn_glass)
         back.setOnClickListener(View.OnClickListener { v: View? -> exitFullScreenPlayer() })
@@ -2551,8 +2586,8 @@ class MainActivity : AppCompatActivity() {
             return caption to icon
         }
 
-        addControl(R.drawable.ic_return_order, "返回点歌") { exitFullScreenPlayer() }
-        addControl(R.drawable.ott_ic_ctrl_orderlist, "已点") {
+        addControl(R.drawable.ic_return_order, getString(R.string.ui_a_0308)) { exitFullScreenPlayer() }
+        addControl(R.drawable.ott_ic_ctrl_orderlist, getString(R.string.ui_a_0229)) {
             exitFullScreenPlayer()
             showOrderListPage()
         }
@@ -2562,13 +2597,13 @@ class MainActivity : AppCompatActivity() {
         ) {
             toggleOriginalVocal()
         }.also { (text, icon) -> fullScreenVocalText = text; fullScreenVocalIcon = icon }
-        addControl(R.drawable.ott_ic_ctrl_switch_song, "切歌") { playNext() }
+        addControl(R.drawable.ott_ic_ctrl_switch_song, getString(R.string.ui_a_0188)) { playNext() }
         addControl(
             if (playWhenPrepared) R.drawable.ott_ic_ctrl_pause else R.drawable.ott_ic_ctrl_play,
-            if (playWhenPrepared) "暂停" else "播放"
+            if (playWhenPrepared) getString(R.string.ui_a_0309) else getString(R.string.ui_a_0310)
         ) { togglePlay() }.also { (text, icon) -> fullScreenPauseText = text; fullScreenPauseIcon = icon }
-        addControl(R.drawable.ott_ic_ctrl_replay, "重唱") { replay() }
-        addControl(R.drawable.ott_ic_ctrl_volume, "调音") { showTuningDialog() }
+        addControl(R.drawable.ott_ic_ctrl_replay, getString(R.string.ui_a_0187)) { replay() }
+        addControl(R.drawable.ott_ic_ctrl_volume, getString(R.string.ui_a_0311)) { showTuningDialog() }
 
         controlItems.forEachIndexed { index, item ->
             item.nextFocusLeftId = controlItems.getOrNull(index - 1)?.id ?: item.id
@@ -2733,27 +2768,27 @@ class MainActivity : AppCompatActivity() {
 
     private fun setSingMode(mode: String) {
         singMode = mode
-        if ("练唱模式" == mode) {
+        if (KtvRaw.get(R.string.ui_a_0260) == mode) {
             recordEnabled = true
             scoreEnabled = false
-        } else if ("评分演唱" == mode) {
+        } else if (KtvRaw.get(R.string.ui_a_0261) == mode) {
             recordEnabled = true
             scoreEnabled = true
-        } else if ("静音练唱" == mode) {
+        } else if (KtvRaw.get(R.string.ui_a_0262) == mode) {
             recordEnabled = true
             scoreEnabled = false
-            atmosphere = "静音练唱"
+            atmosphere = KtvRaw.get(R.string.ui_a_0262)
         }
         applyPlaybackMode()
         saveState()
-        toast("演唱模式：" + singMode)
+        toast(getString(R.string.ui_a_0316) + singMode)
     }
 
     private fun setVocalChannelMode(mode: String) {
         vocalChannelMode = mode
         applyPlaybackMode()
         saveState()
-        toast("声道模式：" + vocalChannelMode)
+        toast(getString(R.string.ui_a_0317) + vocalChannelMode)
     }
     // ===== 均衡器 =====
 
@@ -2805,6 +2840,19 @@ class MainActivity : AppCompatActivity() {
      *   3. 均衡器预设：自定义（用户改动频段后自动保存）/ 流行 / 摇滚 / 舞曲；
      *   4. EQ 频段调节：竖向控制杆（频段数与增益范围取自设备真实能力）。
      */
+    /**
+     * 把均衡器预设的内部中文键转成跟随语言的显示文案。
+     * 内部键（PRESETS / applyPreset / markCustomPreset 的比较）仍用固定中文，
+     * 仅显示层用本方法，切语言不影响预设逻辑。
+     */
+    private fun displayPreset(name: String?): String = when (name) {
+        KtvEqualizer.CUSTOM_PRESET -> getString(R.string.ui_preset_custom)
+        KtvRaw.get(R.string.ui_a_0319) -> getString(R.string.ui_a_0319)
+        KtvRaw.get(R.string.ui_a_0321) -> getString(R.string.ui_a_0321)
+        KtvRaw.get(R.string.ui_a_0854) -> getString(R.string.ui_a_0854)
+        else -> name ?: ""
+    }
+
     private fun showTuningDialog() {
         val caps = KtvEqualizer.capabilities(this)
         val bandLabels = KtvEqualizer.bandLabels(caps)
@@ -2859,7 +2907,7 @@ class MainActivity : AppCompatActivity() {
         // ── 标题 ──
         val titleRow = FrameLayout(this)
         titleRow.addView(
-            label("调音", if (compact) 17 else 23, Color.WHITE).apply {
+            label(getString(R.string.ui_tune), if (compact) 17 else 23, Color.WHITE).apply {
                 gravity = Gravity.CENTER
                 includeFontPadding = false
                 typeface = Typeface.DEFAULT_BOLD
@@ -2887,7 +2935,7 @@ class MainActivity : AppCompatActivity() {
 
         // ── 1. 音量：横向控制杆（即时生效）──
         // 交互：遥控器按「确认」进入调节态后才能左右调；触控必须按住滑块才能拖动。
-        val volumeTitle = label("音量  $musicVolume%", if (compact) 13 else 16, Color.WHITE).apply {
+        val volumeTitle = label(getString(R.string.ui_p_078, musicVolume), if (compact) 13 else 16, Color.WHITE).apply {
             typeface = Typeface.DEFAULT_BOLD
         }
         panel.addView(volumeTitle, LinearLayout.LayoutParams(-1, -2))
@@ -2898,7 +2946,7 @@ class MainActivity : AppCompatActivity() {
             onLevelChanged = { value, fromUser ->
                 if (fromUser) {
                     musicVolume = Math.round(value).coerceIn(0, 100)
-                    volumeTitle.text = "音量  $musicVolume%"
+                    volumeTitle.text = getString(R.string.ui_p_079, musicVolume)
                     // 按 100ms 节流即时生效，避免每一步都重建音轨。
                     val now = System.currentTimeMillis()
                     if (now - lastVolumeAppliedAt >= 100L) {
@@ -2918,16 +2966,16 @@ class MainActivity : AppCompatActivity() {
         lateinit var eqSwitch: TextView
         lateinit var eqArea: LinearLayout
         fun renderEqEnabled() {
-            eqSwitch.text = if (KtvEqualizer.enabled) "均衡器：开启" else "均衡器：关闭"
+            eqSwitch.text = if (KtvEqualizer.enabled) getString(R.string.ui_p_016) else getString(R.string.ui_p_017)
             eqSwitch.setTextColor(if (KtvEqualizer.enabled) Color.rgb(39, 204, 164) else Color.WHITE)
             // 关闭时预设/频段整体降透明度，直观表达"当前不生效"。
             eqArea.alpha = if (KtvEqualizer.enabled) 1f else 0.45f
         }
-        eqSwitch = pill(if (KtvEqualizer.enabled) "均衡器：开启" else "均衡器：关闭") {
+        eqSwitch = pill(if (KtvEqualizer.enabled) getString(R.string.ui_p_016) else getString(R.string.ui_p_017)) {
             KtvEqualizer.setEnabled(!KtvEqualizer.enabled)
             renderEqEnabled()
             applyEqualizerSettings()
-            toast(if (KtvEqualizer.enabled) "均衡器已开启" else "均衡器已关闭")
+            toast(if (KtvEqualizer.enabled) getString(R.string.ui_p_018) else getString(R.string.ui_p_019))
         }
         panel.addView(
             eqSwitch,
@@ -3027,7 +3075,7 @@ class MainActivity : AppCompatActivity() {
 
         KtvEqualizer.appPresetNames().forEach { name ->
             val presetButton = TextView(this).apply {
-                text = name
+                text = displayPreset(name)
                 textSize = if (compact) 13f else 15f
                 setTextColor(Color.WHITE)
                 gravity = Gravity.CENTER
@@ -3128,104 +3176,105 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showAtmosphereDialog() {
-        val items = arrayOf<String>("标准", "热烈", "柔和", "派对", "静音练唱")
+        val labels = arrayOf(getString(R.string.ui_a_0087), getString(R.string.ui_a_0324), getString(R.string.ui_a_0325), getString(R.string.ui_a_0326), getString(R.string.ui_a_0262))
+        val values = arrayOf(KtvRaw.get(R.string.ui_a_0087), KtvRaw.get(R.string.ui_a_0324), KtvRaw.get(R.string.ui_a_0325), KtvRaw.get(R.string.ui_a_0326), KtvRaw.get(R.string.ui_a_0262))
         AlertDialog.Builder(this)
-            .setTitle("气氛模式")
+            .setTitle(getString(R.string.ui_a_0165))
             .setItems(
-                items,
+                labels,
                 DialogInterface.OnClickListener { dialog: DialogInterface?, which: Int ->
-                    atmosphere = items[which]
+                    atmosphere = values[which]
                     saveState()
-                    toast("气氛模式：" + atmosphere)
+                    toast(getString(R.string.ui_a_0327) + atmosphere)
                 })
             .create().showForTv()
     }
 
     private fun showPlayerStatusDialog() {
         val now = if (orderQueue!!.isEmpty()) null else orderQueue.get(0)
-        val message = ("当前歌曲：" + (if (now == null) "无" else now.displayTitle())
-                + "\n已点：" + orderQueue.size
-                + "\n已唱：" + sangHistory.size
-                + "\n模式：" + (if (loopOne) "单曲循环" else (if (autoNext) "顺序播放" else "手动切歌"))
-                + "\n声道：" + (if (originalVocal) "原唱" else "伴唱")
-                + "\n声道模式：" + vocalChannelMode
-                + "\n演唱模式：" + singMode
-                + "\n音乐音量：" + musicVolume
-                + "\n麦克风音量：" + micVolume
-                + "\n音调：" + tone
-                + "\n气氛：" + atmosphere
-                + "\n评分：" + scoreSummary()
-                + "\n录音：" + (if (recorder == null) "未录音" else "录音中")
-                + "\n灯光：" + lightMode
-                + "\n跑马灯：" + (if (marqueeEnabled) marqueeText else "关闭")
-                + "\n音画同步：" + audioDelayMs + "ms"
-                + "\n包房广播：" + (if (tableBroadcastEnabled) tableBroadcastText else "关闭"))
-        AlertDialog.Builder(this).setTitle("播放状态").setMessage(message)
-            .setPositiveButton("确定", null).create().showForTv(DialogInterface.BUTTON_POSITIVE)
+        val message = (getString(R.string.ui_a_0328) + (if (now == null) getString(R.string.ui_a_0329) else now.displayTitle())
+                + getString(R.string.ui_a_0330) + orderQueue.size
+                + getString(R.string.ui_a_0331) + sangHistory.size
+                + getString(R.string.ui_a_0332) + (if (loopOne) getString(R.string.ui_a_0189) else (if (autoNext) getString(R.string.ui_a_0190) else getString(R.string.ui_a_0333)))
+                + getString(R.string.ui_a_0334) + (if (originalVocal) getString(R.string.ui_a_0305) else getString(R.string.ui_a_0306))
+                + getString(R.string.ui_a_0335) + vocalChannelMode
+                + getString(R.string.ui_a_0336) + singMode
+                + getString(R.string.ui_a_0337) + musicVolume
+                + getString(R.string.ui_a_0338) + micVolume
+                + getString(R.string.ui_a_0339) + tone
+                + getString(R.string.ui_a_0340) + atmosphere
+                + getString(R.string.ui_a_0341) + scoreSummary()
+                + getString(R.string.ui_a_0342) + (if (recorder == null) getString(R.string.ui_a_0343) else getString(R.string.ui_a_0344))
+                + getString(R.string.ui_a_0345) + lightMode
+                + getString(R.string.ui_a_0346) + (if (marqueeEnabled) marqueeText else getString(R.string.ui_a_0037))
+                + getString(R.string.ui_a_0347) + audioDelayMs + "ms"
+                + getString(R.string.ui_a_0348) + (if (tableBroadcastEnabled) tableBroadcastText else getString(R.string.ui_a_0037)))
+        AlertDialog.Builder(this).setTitle(getString(R.string.ui_a_0349)).setMessage(message)
+            .setPositiveButton(getString(R.string.ui_ok), null).create().showForTv(DialogInterface.BUTTON_POSITIVE)
     }
 
     private fun showStorageDialog() {
         val root = library.rootDir
         val importRoot = library.importDir
-        val message = ("歌曲目录：" + root.getAbsolutePath()
-                + "\n可用空间：" + formatSize(root.getFreeSpace())
-                + "\n导入目录：" + importRoot.getAbsolutePath()
-                + "\n录音目录：" + recordDir().getAbsolutePath()
-                + "\n曲库总数：" + library.allSongs().size
-                + "\n下载任务：" + downloads.size)
-        AlertDialog.Builder(this).setTitle("存储信息").setMessage(message)
-            .setPositiveButton("确定", null).create().showForTv(DialogInterface.BUTTON_POSITIVE)
+        val message = (KtvRaw.get(R.string.ui_a_0350) + root.getAbsolutePath()
+                + KtvRaw.get(R.string.ui_a_0351) + formatSize(root.getFreeSpace())
+                + KtvRaw.get(R.string.ui_a_0352) + importRoot.getAbsolutePath()
+                + KtvRaw.get(R.string.ui_a_0353) + recordDir().getAbsolutePath()
+                + KtvRaw.get(R.string.ui_a_0354) + library.allSongs().size
+                + KtvRaw.get(R.string.ui_a_0355) + downloads.size)
+        AlertDialog.Builder(this).setTitle(getString(R.string.ui_a_0356)).setMessage(message)
+            .setPositiveButton(getString(R.string.ui_ok), null).create().showForTv(DialogInterface.BUTTON_POSITIVE)
     }
 
     private fun showNetworkDialog() {
         val cm = getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager?
         val info = if (cm == null) null else cm.getActiveNetworkInfo()
         val message =
-            ("网络状态：" + (if (info != null && info.isConnected()) "已连接" else "未连接")
-                    + "\n网络类型：" + (if (info == null) "未知" else info.getTypeName())
-                    + "\n曲库源：" + prefs()!!.getString(KEY_CATALOG_URL, "未设置")
-                    + "\n本地曲库：" + library.allSongs().size + " 首")
+            (KtvRaw.get(R.string.ui_a_0357) + (if (info != null && info.isConnected()) KtvRaw.get(R.string.ui_a_0358) else KtvRaw.get(R.string.ui_a_0359))
+                    + KtvRaw.get(R.string.ui_a_0360) + (if (info == null) KtvRaw.get(R.string.ui_a_0361) else info.getTypeName())
+                    + KtvRaw.get(R.string.ui_a_0362) + prefs()!!.getString(KEY_CATALOG_URL, KtvRaw.get(R.string.ui_a_0363))
+                    + KtvRaw.get(R.string.ui_a_0364) + library.allSongs().size + getString(R.string.ui_p_064))
         AlertDialog.Builder(this)
-            .setTitle("网络状态")
+            .setTitle(getString(R.string.ui_a_0366))
             .setMessage(message)
             .setPositiveButton(
-                "同步曲库",
+                getString(R.string.ui_a_0367),
                 DialogInterface.OnClickListener { d: DialogInterface?, w: Int -> fetchCatalog() })
-            .setNegativeButton("关闭", null)
+            .setNegativeButton(getString(R.string.ui_close), null)
             .create().showForTv()
     }
 
 
     private fun showAppCenter() {
-        setPage("应用")
+        setPage("应用", getString(R.string.ui_a_0368))
         content!!.removeAllViews()
         val left = panel()
         content!!.addView(left, LinearLayout.LayoutParams(dp(320), -1))
-        left.addView(sectionTitle("应用工具"))
-        left.addView(button("网络设置", View.OnClickListener { v: View? -> showNetworkDialog() }))
-        left.addView(button("屏幕设置", View.OnClickListener { v: View? -> showScreenDialog() }))
+        left.addView(sectionTitle(getString(R.string.ui_a_0179)))
+        left.addView(button(getString(R.string.ui_sec_network), View.OnClickListener { v: View? -> showNetworkDialog() }))
+        left.addView(button(getString(R.string.ui_a_0178), View.OnClickListener { v: View? -> showScreenDialog() }))
         left.addView(
             button(
-                "曲库维护",
+                getString(R.string.ui_a_0181),
                 View.OnClickListener { v: View? -> showLibraryMaintenance() })
         )
-        left.addView(button("存储信息", View.OnClickListener { v: View? -> showStorageDialog() }))
-        left.addView(button("配置备份", View.OnClickListener { v: View? -> showBackupTools() }))
+        left.addView(button(getString(R.string.ui_a_0356), View.OnClickListener { v: View? -> showStorageDialog() }))
+        left.addView(button(getString(R.string.ui_a_0369), View.OnClickListener { v: View? -> showBackupTools() }))
 
         val right = panel()
         content!!.addView(right, LinearLayout.LayoutParams(0, -1, 1f))
-        right.addView(sectionTitle("本地工具"))
+        right.addView(sectionTitle(getString(R.string.ui_a_0370)))
         val tools = arrayOf<String?>(
-            "点歌台",
-            "语种点歌",
-            "字数点歌",
-            "歌星分类",
-            "下载管理",
-            "U盘加歌",
-            "用户影片",
-            "灯光迪斯科",
-            "手机点歌",
-            "录音评分"
+            KtvRaw.get(R.string.ui_a_0371),
+            getString(R.string.ui_a_0150),
+            getString(R.string.ui_a_0152),
+            KtvRaw.get(R.string.ui_a_0372),
+            getString(R.string.ui_a_0161),
+            getString(R.string.ui_sec_usb_add),
+            KtvRaw.get(R.string.ui_a_0374),
+            getString(R.string.ui_a_0174),
+            getString(R.string.ui_a_0171),
+            KtvRaw.get(R.string.ui_a_0375)
         )
         val grid = GridLayout(this)
         grid.setColumnCount(4)
@@ -3234,19 +3283,19 @@ class MainActivity : AppCompatActivity() {
             addTile(
                 grid,
                 tool,
-                "打开",
+                KtvRaw.get(R.string.ui_a_0376),
                 View.OnClickListener { v: View? ->
                     openTool(
                         (v as TextView).getText().toString().split("\n".toRegex())
                             .dropLastWhile { it.isEmpty() }.toTypedArray()[0])
                 })
         }
-        right.addView(sectionTitle("本地 APK / 升级包"))
+        right.addView(sectionTitle(getString(R.string.ui_a_0377)))
         val list = listView()
         val adapter = tvAdapter()
         val apks = localApks()
         for (apk in apks) adapter.add(apk.getName() + "    " + formatSize(apk.length()))
-        if (adapter.isEmpty()) adapter.add("暂无 APK，请放入 ${AppPaths.appsDir.absolutePath} 或 U盘/apps")
+        if (adapter.isEmpty()) adapter.add(getString(R.string.ui_p_no_apk, AppPaths.appsDir.absolutePath))
         list.setAdapter(adapter)
         list.setOnItemClickListener(OnItemClickListener { p: AdapterView<*>?, v: View?, pos: Int, id: Long ->
             if (pos >= 0 && pos < apks.size) installApk(apks.get(pos))
@@ -3255,14 +3304,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showTableBroadcast() {
-        setPage("广播")
+        setPage("广播", getString(R.string.ui_a_0379))
         content!!.removeAllViews()
         val left = panel()
         content!!.addView(left, LinearLayout.LayoutParams(dp(340), -1))
-        left.addView(sectionTitle("包房广播"))
+        left.addView(sectionTitle(getString(R.string.ui_a_0183)))
         left.addView(
             button(
-                if (tableBroadcastEnabled) "广播功能：开" else "广播功能：关",
+                if (tableBroadcastEnabled) KtvRaw.get(R.string.ui_a_0380) else KtvRaw.get(R.string.ui_a_0381),
                 View.OnClickListener { v: View? ->
                     tableBroadcastEnabled = !tableBroadcastEnabled
                     saveState()
@@ -3271,10 +3320,10 @@ class MainActivity : AppCompatActivity() {
         )
         left.addView(
             button(
-                "发送当前广播",
+                getString(R.string.ui_a_0382),
                 View.OnClickListener { v: View? -> sendTableBroadcast(tableBroadcastText) })
         )
-        left.addView(controlRow("时长 -", "时长 +", Runnable {
+        left.addView(controlRow(getString(R.string.ui_a_0383), getString(R.string.ui_a_0384), Runnable {
             tableBroadcastSeconds = clamp(tableBroadcastSeconds - 1, 2, 60)
             saveState()
             showTableBroadcast()
@@ -3286,48 +3335,48 @@ class MainActivity : AppCompatActivity() {
 
         val right = panel()
         content!!.addView(right, LinearLayout.LayoutParams(0, -1, 1f))
-        right.addView(sectionTitle("广播内容"))
+        right.addView(sectionTitle(getString(R.string.ui_a_0385)))
         val input = EditText(this)
         input.setSingleLine(true)
         input.setText(tableBroadcastText)
-        input.setHint("输入包房广播内容")
+        input.setHint(getString(R.string.ui_a_0386))
         right.addView(input, LinearLayout.LayoutParams(-1, dp(58)))
-        right.addView(button("保存并发送", View.OnClickListener { v: View? ->
+        right.addView(button(getString(R.string.ui_a_0387), View.OnClickListener { v: View? ->
             tableBroadcastText = input.getText().toString().trim { it <= ' ' }
-            if (tableBroadcastText!!.isEmpty()) tableBroadcastText = "欢迎光临"
+            if (tableBroadcastText!!.isEmpty()) tableBroadcastText = getString(R.string.ui_a_0090)
             saveState()
             sendTableBroadcast(tableBroadcastText)
             showTableBroadcast()
         }), LinearLayout.LayoutParams(dp(180), dp(58)))
-        right.addView(label("显示时长：" + tableBroadcastSeconds + " 秒", 20, Color.WHITE))
-        right.addView(sectionTitle("广播历史"))
+        right.addView(label(getString(R.string.ui_a_0388) + tableBroadcastSeconds + getString(R.string.ui_p_065), 20, Color.WHITE))
+        right.addView(sectionTitle(getString(R.string.ui_a_0390)))
         val list = listView()
         val adapter = tvAdapter()
-        if (store.broadcastHistory.isEmpty()) adapter.add("暂无广播记录")
+        if (store.broadcastHistory.isEmpty()) adapter.add(getString(R.string.ui_a_0391))
         else adapter.addAll(store.broadcastHistory)
         list.setAdapter(adapter)
         right.addView(list, LinearLayout.LayoutParams(-1, 0, 1f))
     }
 
     private fun showBackupTools() {
-        setPage("备份")
+        setPage("备份", getString(R.string.ui_a_0392))
         content!!.removeAllViews()
         val left = panel()
         content!!.addView(left, LinearLayout.LayoutParams(dp(340), -1))
-        left.addView(sectionTitle("配置备份"))
-        left.addView(button("备份当前配置", View.OnClickListener { v: View? -> backupConfig() }))
-        left.addView(button("从备份恢复", View.OnClickListener { v: View? -> restoreConfig() }))
+        left.addView(sectionTitle(getString(R.string.ui_a_0369)))
+        left.addView(button(getString(R.string.ui_a_0393), View.OnClickListener { v: View? -> backupConfig() }))
+        left.addView(button(getString(R.string.ui_a_0394), View.OnClickListener { v: View? -> restoreConfig() }))
         left.addView(
             button(
-                "打开曲库维护",
+                getString(R.string.ui_a_0395),
                 View.OnClickListener { v: View? -> showLibraryMaintenance() })
         )
 
         val right = panel()
         content!!.addView(right, LinearLayout.LayoutParams(0, -1, 1f))
-        right.addView(sectionTitle("备份信息"))
+        right.addView(sectionTitle(getString(R.string.ui_a_0396)))
         val backupDir = backupDir()
-        right.addView(label("备份目录：" + backupDir.getAbsolutePath(), 20, Color.LTGRAY))
+        right.addView(label(getString(R.string.ui_a_0397) + backupDir.getAbsolutePath(), 20, Color.LTGRAY))
         val list = listView()
         val adapter = tvAdapter()
         val files = backupDir.listFiles()
@@ -3341,56 +3390,56 @@ class MainActivity : AppCompatActivity() {
                 })
             for (file in values) adapter.add(file.getName() + "    " + formatSize(file.length()))
         }
-        if (adapter.isEmpty()) adapter.add("暂无备份")
+        if (adapter.isEmpty()) adapter.add(getString(R.string.ui_a_0398))
         list.setAdapter(adapter)
         right.addView(list, LinearLayout.LayoutParams(-1, 0, 1f))
     }
 
     private fun showLibraryMaintenance() {
-        setPage("维护")
+        setPage("维护", getString(R.string.ui_a_0399))
         content!!.removeAllViews()
         val left = panel()
         content!!.addView(left, LinearLayout.LayoutParams(dp(340), -1))
-        left.addView(sectionTitle("曲库维护"))
-        left.addView(button("重扫本地曲库", View.OnClickListener { v: View? ->
+        left.addView(sectionTitle(getString(R.string.ui_a_0181)))
+        left.addView(button(getString(R.string.ui_a_0400), View.OnClickListener { v: View? ->
             refreshLibrary(
                 Runnable { showLibraryMaintenance() })
         }))
-        left.addView(button("同步网络曲库", View.OnClickListener { v: View? -> fetchCatalog() }))
-        left.addView(button("清除网络缓存", View.OnClickListener { v: View? ->
+        left.addView(button(getString(R.string.ui_a_0238), View.OnClickListener { v: View? -> fetchCatalog() }))
+        left.addView(button(getString(R.string.ui_a_0401), View.OnClickListener { v: View? ->
             val deleted = library.clearRemoteCache()
             refreshLibrary(Runnable {
-                toast(if (deleted) "网络曲库缓存已清除" else "没有可清除的网络缓存")
+                toast(if (deleted) getString(R.string.ui_a_0402) else getString(R.string.ui_a_0403))
                 showLibraryMaintenance()
             })
         }))
-        left.addView(button("清空下载任务", View.OnClickListener { v: View? ->
+        left.addView(button(getString(R.string.ui_a_0404), View.OnClickListener { v: View? ->
             downloads.clear()
             showLibraryMaintenance()
         }))
-        left.addView(button("清理失效已点", View.OnClickListener { v: View? ->
+        left.addView(button(getString(R.string.ui_a_0405), View.OnClickListener { v: View? ->
             removeMissingQueueItems()
             showLibraryMaintenance()
         }))
-        left.addView(button("恢复隐藏歌曲", View.OnClickListener { v: View? ->
+        left.addView(button(getString(R.string.ui_a_0406), View.OnClickListener { v: View? ->
             store.hiddenSongIds.clear()
             saveState()
             refreshLibrary(Runnable {
-                toast("已恢复隐藏歌曲")
+                toast(getString(R.string.ui_a_0407))
                 showLibraryMaintenance()
             })
         }))
 
         val right = panel()
         content!!.addView(right, LinearLayout.LayoutParams(0, -1, 1f))
-        right.addView(sectionTitle("曲库概览"))
-        right.addView(label("总曲库：" + library.allSongs().size + " 首", 22, Color.WHITE))
-        right.addView(label("已点：" + orderQueue!!.size + " 首", 20, Color.LTGRAY))
-        right.addView(label("已唱：" + sangHistory.size + " 首", 20, Color.LTGRAY))
-        right.addView(label("下载任务：" + downloads.size, 20, Color.LTGRAY))
-        right.addView(label("隐藏歌曲：" + store.hiddenSongIds.size + " 首", 20, Color.LTGRAY))
-        right.addView(label("本地目录：" + library.rootDir.getAbsolutePath(), 18, Color.LTGRAY))
-        right.addView(label("导入目录：" + library.importDir.getAbsolutePath(), 18, Color.LTGRAY))
+        right.addView(sectionTitle(getString(R.string.ui_a_0408)))
+        right.addView(label(getString(R.string.ui_a_0409) + library.allSongs().size + getString(R.string.ui_p_064), 22, Color.WHITE))
+        right.addView(label(getString(R.string.ui_a_0330) + orderQueue!!.size + getString(R.string.ui_p_064), 20, Color.LTGRAY))
+        right.addView(label(getString(R.string.ui_a_0331) + sangHistory.size + getString(R.string.ui_p_064), 20, Color.LTGRAY))
+        right.addView(label(getString(R.string.ui_a_0355) + downloads.size, 20, Color.LTGRAY))
+        right.addView(label(getString(R.string.ui_a_0413) + store.hiddenSongIds.size + getString(R.string.ui_p_064), 20, Color.LTGRAY))
+        right.addView(label(getString(R.string.ui_a_0414) + library.rootDir.getAbsolutePath(), 18, Color.LTGRAY))
+        right.addView(label(getString(R.string.ui_a_0352) + library.importDir.getAbsolutePath(), 18, Color.LTGRAY))
     }
 
     private fun showMobileRemoteDialog() {
@@ -3399,17 +3448,17 @@ class MainActivity : AppCompatActivity() {
         val url = remoteUrl()
         if (url.isBlank()) {
             val ip = localIp()
-            val reason = remoteServer.error() ?: "请连接 Wi-Fi 或有线局域网后重试"
+            val reason = remoteServer.error() ?: getString(R.string.ui_a_0416)
             val detected = when {
-                ip.isEmpty() -> "未检测到局域网 IP"
-                ip == "127.0.0.1" || ip.startsWith("169.254") -> "检测到不可用 IP：$ip"
-                else -> "检测到 IP：$ip"
+                ip.isEmpty() -> getString(R.string.ui_p_no_lan_ip)
+                ip == "127.0.0.1" || ip.startsWith("169.254") -> getString(R.string.ui_p_bad_ip, ip)
+                else -> getString(R.string.ui_p_detected_ip, ip)
             }
             AlertDialog.Builder(this)
-                .setTitle("手机点歌")
+                .setTitle(getString(R.string.ui_a_0171))
                 .setMessage("$reason\n$detected")
-                .setNegativeButton("关闭", null)
-                .setPositiveButton("重新检测") { _, _ -> restartRemoteServer() }
+                .setNegativeButton(getString(R.string.ui_close), null)
+                .setPositiveButton(getString(R.string.ui_a_0417)) { _, _ -> restartRemoteServer() }
                 .create().showForTv(DialogInterface.BUTTON_POSITIVE)
             return
         }
@@ -3454,7 +3503,7 @@ class MainActivity : AppCompatActivity() {
         // 右列固定宽度: 横版布局下避免被压缩导致地址/文案被截断。
         val infoWidth = dp(if (compact) 196 else 240)
         info.addView(
-            label("扫码点歌", if (compact) 16 else 20, Color.WHITE).apply {
+            label(getString(R.string.ui_a_0419), if (compact) 16 else 20, Color.WHITE).apply {
                 gravity = Gravity.CENTER
                 includeFontPadding = false
                 setTypeface(typeface, Typeface.BOLD)
@@ -3468,7 +3517,7 @@ class MainActivity : AppCompatActivity() {
             LinearLayout.LayoutParams(-1, dp(2)).apply { topMargin = dp(5); bottomMargin = dp(6) },
         )
         val tip = label(
-            "手机连接同一局域网\n后扫码点歌",
+            getString(R.string.ui_p_scan_tip),
             if (compact) 12 else 14,
             Color.argb(214, 255, 255, 255),
         )
@@ -3486,7 +3535,7 @@ class MainActivity : AppCompatActivity() {
             )
         }
         val confirm = TextView(this).apply {
-            text = "确 定"
+            text = getString(R.string.ui_p_confirm)
             textSize = if (compact) 13f else 15f
             setTextColor(Color.rgb(59, 18, 92))
             gravity = Gravity.CENTER
@@ -3542,10 +3591,10 @@ class MainActivity : AppCompatActivity() {
             setBackgroundColor(Color.argb(205, 255, 255, 255))
             addView(ImageView(this@MainActivity).apply {
                 setImageBitmap(qrBitmap(url, dp(112)))
-                contentDescription = "手机点歌二维码"
+                contentDescription = getString(R.string.ui_a_0420)
             }, LinearLayout.LayoutParams(dp(116), dp(116)))
             addView(TextView(this@MainActivity).apply {
-                text = "手机点歌"
+                text = getString(R.string.ui_a_0171)
                 textSize = 13f
                 gravity = Gravity.CENTER
                 setTextColor(Color.rgb(59, 18, 92))
@@ -3580,10 +3629,10 @@ class MainActivity : AppCompatActivity() {
             UiCompat.setElevation(this, dp(12).toFloat())
             addView(ImageView(this@MainActivity).apply {
                 setImageBitmap(qrBitmap(url, qrSize))
-                contentDescription = "扫码手机点歌"
+                contentDescription = getString(R.string.ui_a_0421)
             }, LinearLayout.LayoutParams(qrSize, qrSize))
             addView(TextView(this@MainActivity).apply {
-                text = "扫码点歌"
+                text = getString(R.string.ui_a_0419)
                 textSize = if (compactUi) 9f else 10f
                 gravity = Gravity.CENTER
                 setTextColor(Color.rgb(59, 18, 92))
@@ -3607,14 +3656,14 @@ class MainActivity : AppCompatActivity() {
     private fun showMobileRemoteSettings() {
         val enabled = prefs()?.getBoolean(KEY_SHOW_MOBILE_QR, false) == true
         AlertDialog.Builder(this)
-            .setTitle("手机点歌")
-            .setSingleChoiceItems(arrayOf("仅在菜单中显示二维码", "播放页右下角显示二维码"), if (enabled) 1 else 0) { dialog, which ->
+            .setTitle(getString(R.string.ui_a_0171))
+            .setSingleChoiceItems(arrayOf(getString(R.string.ui_a_0422), getString(R.string.ui_a_0423)), if (enabled) 1 else 0) { dialog, which ->
                 prefs()?.edit()?.putBoolean(KEY_SHOW_MOBILE_QR, which == 1)?.apply()
                 updateMobileQrOverlay()
                 dialog.dismiss()
             }
-            .setNeutralButton("查看二维码") { _, _ -> showMobileRemoteDialog() }
-            .setNegativeButton("关闭", null)
+            .setNeutralButton(getString(R.string.ui_a_0424)) { _, _ -> showMobileRemoteDialog() }
+            .setNegativeButton(getString(R.string.ui_close), null)
             .create().showForTv()
     }
 
@@ -3640,7 +3689,7 @@ class MainActivity : AppCompatActivity() {
                     json.put("historySize", sangHistory.size)
                     json.put("playing", player?.isPlaying == true)
                     json.put("score", scoreSummary())
-                    json.put("vocal", if (originalVocal) "原唱" else "伴唱")
+                    json.put("vocal", if (originalVocal) KtvRaw.get(R.string.ui_a_0305) else KtvRaw.get(R.string.ui_a_0306))
                     json.put("vocalChannelMode", vocalChannelMode)
                     json.put("singMode", singMode)
                     json.put("remoteUrl", remoteUrl())
@@ -3790,10 +3839,10 @@ class MainActivity : AppCompatActivity() {
                 else if ("vocal" == a) {
                     val mode = params.get("mode")
                     main.post(Runnable {
-                        originalVocal = "original" == mode || "原唱" == mode
+                        originalVocal = "original" == mode || KtvRaw.get(R.string.ui_a_0305) == mode
                         applyPlaybackMode()
                         saveState()
-                        status!!.setText(if (originalVocal) "远程切换原唱" else "远程切换伴唱")
+                        status!!.setText(if (originalVocal) getString(R.string.ui_a_0425) else getString(R.string.ui_a_0426))
                     })
                 } else if ("singmode" == a) {
                     val mode = params.get("mode")
@@ -3812,7 +3861,7 @@ class MainActivity : AppCompatActivity() {
                     main.post(Runnable {
                         lightMode = mode
                         saveState()
-                        status!!.setText("远程灯光：" + mode)
+                        status!!.setText(getString(R.string.ui_a_0427) + mode)
                     })
                 } else if ("marquee" == a) {
                     val text = params.get("text")
@@ -3821,7 +3870,7 @@ class MainActivity : AppCompatActivity() {
                             text.trim { it <= ' ' }
                         marqueeEnabled = true
                         saveState()
-                        status!!.setText("远程跑马灯：" + marqueeText)
+                        status!!.setText(getString(R.string.ui_a_0428) + marqueeText)
                     })
                 } else if ("broadcast" == a) {
                     val text = params.get("text")
@@ -3837,7 +3886,7 @@ class MainActivity : AppCompatActivity() {
                         orderQueue!!.clear()
                         saveState()
                         renderQueue()
-                        status!!.setText("远程清空已点")
+                        status!!.setText(getString(R.string.ui_a_0429))
                     })
                 } else if ("remove_queue" == a) {
                     val index = params.get("index")
@@ -3848,7 +3897,7 @@ class MainActivity : AppCompatActivity() {
                                 val removed = orderQueue.removeAt(pos)
                                 saveState()
                                 renderQueue()
-                                status!!.setText("远程删除已点：" + removed.title)
+                                status!!.setText(getString(R.string.ui_a_0430) + removed.title)
                             }
                         })
                     } catch (e: Exception) {
@@ -3865,7 +3914,7 @@ class MainActivity : AppCompatActivity() {
                             main.post(Runnable {
                                 store.toggleFavorite(song)
                                 saveState()
-                                status!!.setText("远程收藏：" + song.title)
+                                status!!.setText(getString(R.string.ui_a_0431) + song.title)
                             })
                             return "{\"ok\":true,\"message\":\"favorite toggled\"}"
                         }
@@ -3950,7 +3999,7 @@ class MainActivity : AppCompatActivity() {
     private fun onNetworkStateChanged(online: Boolean, initial: Boolean = false) {
         fullScreenNetworkBadge?.visibility = if (online) View.GONE else View.VISIBLE
         if (!online) {
-            status?.text = "网络未连接"
+            status?.text = getString(R.string.ui_p_014)
             MiliLog.warn("NET-DOWN 设备网络已断开")
             return
         }
@@ -3989,10 +4038,10 @@ class MainActivity : AppCompatActivity() {
         val retried = SongOkDownloadManager.retryNetworkFailed()
         MiliLog.notice("NET-REFRESH reason=$reason retried=$retried")
         if (retried > 0) {
-            status?.text = "网络已恢复，正在重试 $retried 首未完成的下载"
-            if (notify) toast("网络已恢复，正在重试 $retried 首未完成的下载")
+            status?.text = getString(R.string.ui_p_080, retried)
+            if (notify) toast(getString(R.string.ui_p_081, retried))
         } else if (notify) {
-            status?.text = "网络已恢复"
+            status?.text = getString(R.string.ui_p_015)
         }
     }
 
@@ -4080,10 +4129,10 @@ class MainActivity : AppCompatActivity() {
                 path.startsWith("/api/v1/queue/") && method in arrayOf("PATCH", "DELETE") -> {
                     remoteQueueMutation(method, URLDecoder.decode(path.substringAfterLast('/'), "UTF-8"))
                 }
-                else -> remoteError(404, "NOT_FOUND", "接口不存在")
+                else -> remoteError(404, "NOT_FOUND", getString(R.string.ui_a_0104))
             }
         } catch (e: Exception) {
-            remoteError(400, "BAD_REQUEST", e.message ?: "请求参数错误")
+            remoteError(400, "BAD_REQUEST", e.message ?: getString(R.string.ui_a_0433))
         }
     }
 
@@ -4134,7 +4183,7 @@ class MainActivity : AppCompatActivity() {
     private fun remoteEqualizer(json: JSONObject): LocalRemoteServer.ApiResponse {
         if (json.has("globalMix")) {
             if (!KtvEqualizer.globalMixSupported()) {
-                return remoteError(400, "GLOBAL_MIX_UNSUPPORTED", "本机不支持全局混音")
+                return remoteError(400, "GLOBAL_MIX_UNSUPPORTED", getString(R.string.ui_p_020))
             }
             KtvEqualizer.setGlobalMix(json.optBoolean("globalMix"))
         }
@@ -4144,13 +4193,13 @@ class MainActivity : AppCompatActivity() {
         if (json.has("preset")) {
             val name = json.optString("preset")
             if (name !in KtvEqualizer.presetNames()) {
-                return remoteError(400, "BAD_PRESET", "预设不存在")
+                return remoteError(400, "BAD_PRESET", getString(R.string.ui_p_021))
             }
             KtvEqualizer.applyPreset(name)
         }
         if (json.has("levels")) {
             val array = json.optJSONArray("levels")
-                ?: return remoteError(400, "BAD_LEVELS", "频段格式错误")
+                ?: return remoteError(400, "BAD_LEVELS", getString(R.string.ui_p_022))
             val caps = KtvEqualizer.capabilities(this)
             val levels = FloatArray(caps.bandCount) { index ->
                 array.optDouble(index, 0.0).toFloat().coerceIn(caps.minDb, caps.maxDb)
@@ -4163,7 +4212,7 @@ class MainActivity : AppCompatActivity() {
             saveState()
             remoteStateVersion++
         }
-        return remoteOk(equalizerJson().put("message", "均衡器已更新"))
+        return remoteOk(equalizerJson().put("message", getString(R.string.ui_p_eq_updated)))
     }
 
     /** 远程搜索结果缓存有效期。 */
@@ -4237,37 +4286,37 @@ class MainActivity : AppCompatActivity() {
 
     private fun remoteOrder(json: JSONObject): LocalRemoteServer.ApiResponse {
         val id = json.optString("songId").trim()
-        if (id.isEmpty()) return remoteError(400, "MISSING_SONG_ID", "缺少歌曲 ID")
+        if (id.isEmpty()) return remoteError(400, "MISSING_SONG_ID", KtvRaw.get(R.string.ui_a_0439))
         val song = remoteSongCache[id] ?: library.allSongs().firstOrNull { stableId(it) == id }
-            ?: return remoteError(404, "SONG_NOT_FOUND", "歌曲不存在或搜索结果已过期")
+            ?: return remoteError(404, "SONG_NOT_FOUND", KtvRaw.get(R.string.ui_a_0440))
         if (orderQueue?.any { stableId(it) == id } == true) {
-            return remoteError(409, "ALREADY_QUEUED", "歌曲已在已点列表中")
+            return remoteError(409, "ALREADY_QUEUED", KtvRaw.get(R.string.ui_a_0442))
         }
         main.post {
             addToQueue(song)
             remoteStateVersion++
             saveState()
         }
-        return remoteOk(JSONObject().put("message", "点歌成功"), 201)
+        return remoteOk(JSONObject().put("message", KtvRaw.get(R.string.ui_a_0443)), 201)
     }
 
     private fun remoteQueueMutation(method: String, id: String): LocalRemoteServer.ApiResponse {
         val song = orderQueue?.firstOrNull { stableId(it) == id }
-            ?: return remoteError(404, "QUEUE_ITEM_NOT_FOUND", "已点歌曲不存在")
+            ?: return remoteError(404, "QUEUE_ITEM_NOT_FOUND", KtvRaw.get(R.string.ui_a_0444))
         if (stableId(currentSong ?: song) == id && currentSong != null) {
-            return remoteError(409, "CURRENT_SONG", "正在播放的歌曲不能修改")
+            return remoteError(409, "CURRENT_SONG", KtvRaw.get(R.string.ui_a_0445))
         }
         main.post {
             if (method == "PATCH") moveQueuedSongToNext(song) else deleteQueuedSong(song)
             remoteStateVersion++
         }
-        return remoteOk(JSONObject().put("message", if (method == "PATCH") "已置顶" else "已删除"))
+        return remoteOk(JSONObject().put("message", if (method == "PATCH") KtvRaw.get(R.string.ui_a_0446) else KtvRaw.get(R.string.ui_a_0447)))
     }
 
     private fun remotePlayerAction(json: JSONObject): LocalRemoteServer.ApiResponse {
         val action = json.optString("action")
         if (action !in arrayOf("pause", "resume", "next", "replay")) {
-            return remoteError(400, "BAD_ACTION", "不支持的播放操作")
+            return remoteError(400, "BAD_ACTION", KtvRaw.get(R.string.ui_a_0448))
         }
         main.post {
             when (action) {
@@ -4278,21 +4327,21 @@ class MainActivity : AppCompatActivity() {
             }
             remoteStateVersion++
         }
-        return remoteOk(JSONObject().put("message", "操作已执行"))
+        return remoteOk(JSONObject().put("message", KtvRaw.get(R.string.ui_a_0449)))
     }
 
     private fun remoteAudio(json: JSONObject): LocalRemoteServer.ApiResponse {
         if (!json.has("vocalMode") && !json.has("musicVolume") && !json.has("micVolume")) {
-            return remoteError(400, "MISSING_AUDIO_VALUE", "缺少音频参数")
+            return remoteError(400, "MISSING_AUDIO_VALUE", KtvRaw.get(R.string.ui_a_0450))
         }
         val vocal = json.optString("vocalMode", "")
         if (vocal.isNotEmpty() && vocal !in arrayOf("original", "accompany")) {
-            return remoteError(400, "BAD_VOCAL_MODE", "原伴唱参数无效")
+            return remoteError(400, "BAD_VOCAL_MODE", KtvRaw.get(R.string.ui_a_0451))
         }
         val music = if (json.has("musicVolume")) json.optInt("musicVolume", -1) else null
         val mic = if (json.has("micVolume")) json.optInt("micVolume", -1) else null
         if ((music != null && music !in 0..100) || (mic != null && mic !in 0..100)) {
-            return remoteError(400, "BAD_VOLUME", "音量必须在 0 到 100 之间")
+            return remoteError(400, "BAD_VOLUME", KtvRaw.get(R.string.ui_a_0452))
         }
         main.post {
             if (vocal.isNotEmpty()) originalVocal = vocal == "original"
@@ -4303,7 +4352,7 @@ class MainActivity : AppCompatActivity() {
             saveState()
             remoteStateVersion++
         }
-        return remoteOk(JSONObject().put("message", "音频设置已更新"))
+        return remoteOk(JSONObject().put("message", KtvRaw.get(R.string.ui_a_0453)))
     }
 
     private fun remoteOk(data: JSONObject, statusCode: Int = 200): LocalRemoteServer.ApiResponse {
@@ -4403,43 +4452,43 @@ class MainActivity : AppCompatActivity() {
     private fun showScoreDialog() {
         val box = LinearLayout(this)
         box.setOrientation(LinearLayout.VERTICAL)
-        box.addView(label("当前：" + (if (scoreEnabled) "已开启" else "已关闭"), 20, Color.WHITE))
-        box.addView(label("最近：" + scoreSummary(), 20, Color.LTGRAY))
-        box.addView(sectionTitle("评分记录"))
+        box.addView(label(getString(R.string.ui_a_0454) + (if (scoreEnabled) getString(R.string.ui_a_0455) else getString(R.string.ui_a_0456)), 20, Color.WHITE))
+        box.addView(label(getString(R.string.ui_a_0457) + scoreSummary(), 20, Color.LTGRAY))
+        box.addView(sectionTitle(getString(R.string.ui_a_0458)))
         val list = listView()
         val adapter = tvAdapter()
-        if (store.scoreHistory.isEmpty()) adapter.add("暂无评分记录")
+        if (store.scoreHistory.isEmpty()) adapter.add(getString(R.string.ui_a_0459))
         else adapter.addAll(store.scoreHistory)
         list.setAdapter(adapter)
         box.addView(list, LinearLayout.LayoutParams(-1, dp(260)))
         AlertDialog.Builder(this)
-            .setTitle("演唱评分")
+            .setTitle(getString(R.string.ui_a_0166))
             .setView(box)
             .setPositiveButton(
-                if (scoreEnabled) "关闭评分" else "开启评分",
+                if (scoreEnabled) KtvRaw.get(R.string.ui_a_0460) else KtvRaw.get(R.string.ui_a_0461),
                 DialogInterface.OnClickListener { d: DialogInterface?, w: Int ->
                     scoreEnabled = !scoreEnabled
                     saveState()
                 })
-            .setNegativeButton("确定", null)
+            .setNegativeButton(getString(R.string.ui_ok), null)
             .create().showForTv()
     }
 
     private fun showRecordings() {
-        setPage("录音")
+        setPage("录音", getString(R.string.ui_a_0192))
         content!!.removeAllViews()
         val left = panel()
         content!!.addView(left, LinearLayout.LayoutParams(dp(280), -1))
-        left.addView(sectionTitle("录音操作"))
+        left.addView(sectionTitle(getString(R.string.ui_a_0462)))
         left.addView(
             button(
-                if (recorder == null) "开始录音" else "停止录音",
+                if (recorder == null) getString(R.string.ui_a_0463) else getString(R.string.ui_a_0193),
                 View.OnClickListener { v: View? -> toggleRecording() })
         )
-        left.addView(button("刷新列表", View.OnClickListener { v: View? -> showRecordings() }))
+        left.addView(button(getString(R.string.ui_a_0464), View.OnClickListener { v: View? -> showRecordings() }))
         left.addView(
             button(
-                if (recordEnabled) "录音功能：开" else "录音功能：关",
+                if (recordEnabled) KtvRaw.get(R.string.ui_a_0465) else KtvRaw.get(R.string.ui_a_0466),
                 View.OnClickListener { v: View? ->
                     recordEnabled = !recordEnabled
                     if (!recordEnabled) stopRecording(true)
@@ -4449,7 +4498,7 @@ class MainActivity : AppCompatActivity() {
         )
         val right = panel()
         content!!.addView(right, LinearLayout.LayoutParams(0, -1, 1f))
-        right.addView(sectionTitle("录音文件"))
+        right.addView(sectionTitle(getString(R.string.ui_a_0467)))
         val list = listView()
         val adapter = tvAdapter()
         val files = recordDir().listFiles()
@@ -4463,7 +4512,7 @@ class MainActivity : AppCompatActivity() {
                 })
             for (file in values) adapter.add(file.getName() + "    " + formatSize(file.length()))
         }
-        if (adapter.isEmpty()) adapter.add("暂无录音")
+        if (adapter.isEmpty()) adapter.add(getString(R.string.ui_a_0468))
         list.setAdapter(adapter)
         right.addView(list, LinearLayout.LayoutParams(-1, 0, 1f))
     }
@@ -4474,22 +4523,22 @@ class MainActivity : AppCompatActivity() {
         val input = EditText(this)
         input.setSingleLine(true)
         input.setText(marqueeText)
-        input.setHint("跑马灯文字")
-        box.addView(label("当前：" + (if (marqueeEnabled) "已开启" else "已关闭"), 20, Color.WHITE))
+        input.setHint(getString(R.string.ui_a_0469))
+        box.addView(label(getString(R.string.ui_a_0454) + (if (marqueeEnabled) getString(R.string.ui_a_0455) else getString(R.string.ui_a_0456)), 20, Color.WHITE))
         box.addView(input, LinearLayout.LayoutParams(-1, dp(58)))
         AlertDialog.Builder(this)
-            .setTitle("跑马灯设置")
+            .setTitle(getString(R.string.ui_a_0470))
             .setView(box)
             .setPositiveButton(
-                "保存",
+                getString(R.string.ui_a_0471),
                 DialogInterface.OnClickListener { d: DialogInterface?, w: Int ->
                     marqueeText = input.getText().toString().trim { it <= ' ' }
-                    if (marqueeText!!.isEmpty()) marqueeText = "欢迎使用麦动"
+                    if (marqueeText!!.isEmpty()) marqueeText = getString(R.string.ui_a_0089)
                     saveState()
-                    toast("跑马灯已保存")
+                    toast(getString(R.string.ui_a_0472))
                 })
             .setNegativeButton(
-                if (marqueeEnabled) "关闭" else "开启",
+                if (marqueeEnabled) getString(R.string.ui_a_0037) else getString(R.string.ui_a_0473),
                 DialogInterface.OnClickListener { d: DialogInterface?, w: Int ->
                     marqueeEnabled = !marqueeEnabled
                     saveState()
@@ -4498,33 +4547,33 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showDisco() {
-        setPage("迪斯科")
+        setPage("迪斯科", getString(R.string.ui_a_0474))
         content!!.removeAllViews()
         val panel = panel()
         content!!.addView(panel, LinearLayout.LayoutParams(-1, -1))
-        panel.addView(sectionTitle("灯光 / 迪斯科"))
-        val modes =
-            arrayOf<String?>("自动", "开房灯", "关房灯", "暂停灯", "静音灯", "热舞", "柔和", "全关")
+        panel.addView(sectionTitle(getString(R.string.ui_a_0475)))
+        val labels = arrayOf(getString(R.string.ui_a_0086), getString(R.string.ui_a_0476), getString(R.string.ui_a_0477), getString(R.string.ui_a_0478), getString(R.string.ui_a_0479), getString(R.string.ui_a_0480), getString(R.string.ui_a_0325), getString(R.string.ui_a_0481))
+        val values = arrayOf(KtvRaw.get(R.string.ui_a_0086), KtvRaw.get(R.string.ui_a_0476), KtvRaw.get(R.string.ui_a_0477), KtvRaw.get(R.string.ui_a_0478), KtvRaw.get(R.string.ui_a_0479), KtvRaw.get(R.string.ui_a_0480), KtvRaw.get(R.string.ui_a_0325), KtvRaw.get(R.string.ui_a_0481))
         val grid = GridLayout(this)
         grid.setColumnCount(4)
         panel.addView(grid, LinearLayout.LayoutParams(-1, 0, 1f))
-        for (mode in modes) {
+        for (i in labels.indices) {
+            val mode = values[i]
             addTile(
                 grid,
-                mode,
-                if (mode == lightMode) "当前模式" else "切换灯效",
-                View.OnClickListener { v: View? ->
-                    lightMode = (v as TextView).getText().toString().split("\n".toRegex())
-                        .dropLastWhile { it.isEmpty() }.toTypedArray()[0]
-                    if ("热舞" == lightMode) atmosphere = "派对"
-                    if ("柔和" == lightMode) atmosphere = "柔和"
+                labels[i],
+                if (mode == lightMode) getString(R.string.ui_a_0482) else getString(R.string.ui_a_0483),
+                View.OnClickListener { _ ->
+                    lightMode = mode
+                    if (KtvRaw.get(R.string.ui_a_0480) == lightMode) atmosphere = KtvRaw.get(R.string.ui_a_0326)
+                    if (KtvRaw.get(R.string.ui_a_0325) == lightMode) atmosphere = KtvRaw.get(R.string.ui_a_0325)
                     saveState()
                     showDisco()
                 })
         }
         panel.addView(
             label(
-                "本地版记录灯效状态；接入实际灯控盒时可把这些模式映射到串口、HTTP 或红外命令。",
+                getString(R.string.ui_a_0484),
                 18,
                 Color.LTGRAY
             )
@@ -4532,22 +4581,22 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showLocalMovies() {
-        setPage("本地影片")
+        setPage("本地影片", getString(R.string.ui_a_0175))
         content!!.removeAllViews()
         val left = panel()
         content!!.addView(left, LinearLayout.LayoutParams(dp(300), -1))
-        left.addView(sectionTitle("影片操作"))
-        left.addView(button("扫描影片目录", View.OnClickListener { v: View? -> showLocalMovies() }))
-        left.addView(label("目录：${AppPaths.moviesDir.absolutePath} 或 U盘/movies", 18, Color.LTGRAY))
+        left.addView(sectionTitle(getString(R.string.ui_a_0485)))
+        left.addView(button(getString(R.string.ui_a_0486), View.OnClickListener { v: View? -> showLocalMovies() }))
+        left.addView(label(getString(R.string.ui_p_082, AppPaths.moviesDir.absolutePath), 18, Color.LTGRAY))
 
         val right = panel()
         content!!.addView(right, LinearLayout.LayoutParams(0, -1, 1f))
-        right.addView(sectionTitle("用户 MV / 本地影片"))
+        right.addView(sectionTitle(getString(R.string.ui_a_0488)))
         val list = listView()
         val adapter = tvAdapter()
         val movies = localMovies()
         for (file in movies) adapter.add(file.getName() + "    " + formatSize(file.length()))
-        if (adapter.isEmpty()) adapter.add("暂无影片")
+        if (adapter.isEmpty()) adapter.add(getString(R.string.ui_a_0489))
         list.setAdapter(adapter)
         list.setOnItemClickListener(OnItemClickListener { p: AdapterView<*>?, v: View?, pos: Int, id: kotlin.Long ->
             if (pos >= 0 && pos < movies.size) playMovie(movies.get(pos))
@@ -4560,9 +4609,9 @@ class MainActivity : AppCompatActivity() {
         val info = if (cm == null) null else cm.getActiveNetworkInfo()
         val wifi = getApplicationContext().getSystemService(WIFI_SERVICE) as WifiManager?
         val wifiState =
-            if (wifi == null) "未知" else (if (wifi.isWifiEnabled()) "已开启" else "已关闭")
-        return ("连接：" + (if (info != null && info.isConnected()) "已连接" else "未连接")
-                + "\n类型：" + (if (info == null) "未知" else info.getTypeName())
+            if (wifi == null) KtvRaw.get(R.string.ui_a_0361) else (if (wifi.isWifiEnabled()) getString(R.string.ui_a_0455) else getString(R.string.ui_a_0456))
+        return (KtvRaw.get(R.string.ui_a_0490) + (if (info != null && info.isConnected()) KtvRaw.get(R.string.ui_a_0358) else KtvRaw.get(R.string.ui_a_0359))
+                + KtvRaw.get(R.string.ui_a_0491) + (if (info == null) KtvRaw.get(R.string.ui_a_0361) else info.getTypeName())
                 + "\nWiFi：" + wifiState
                 + "\nIP：" + localIp())
     }
@@ -4573,38 +4622,38 @@ class MainActivity : AppCompatActivity() {
             showCatalogDialog()
             return
         }
-        busy(true, "正在测试曲库源...")
+        busy(true, getString(R.string.ui_a_0492))
         io.execute(Runnable {
             try {
                 val array = CatalogClient().fetch(url)
-                main.post(Runnable { busy(false, "曲库源可用：" + array.length() + " 首") })
+                main.post(Runnable { busy(false, getString(R.string.ui_a_0493) + array.length() + getString(R.string.ui_p_064)) })
             } catch (e: Exception) {
-                main.post(Runnable { busy(false, "曲库源不可用：" + e.message) })
+                main.post(Runnable { busy(false, getString(R.string.ui_a_0494) + e.message) })
             }
         })
     }
 
     private fun openTool(tool: String?) {
-        if ("点歌台" == tool) showSongs("全部")
-        else if ("语种点歌" == tool) showLanguages()
-        else if ("字数点歌" == tool) showWordCounts()
-        else if ("歌星分类" == tool) showSingers()
-        else if ("下载管理" == tool) showDownloads()
-        else if ("U盘加歌" == tool) showUdisk()
-        else if ("用户影片" == tool) showLocalMovies()
-        else if ("灯光迪斯科" == tool) showDisco()
-        else if ("手机点歌" == tool) showMobileRemoteDialog()
-        else if ("录音评分" == tool) showScoreDialog()
+        if (KtvRaw.get(R.string.ui_a_0371) == tool) showSongs(KtvRaw.get(R.string.ui_a_0069))
+        else if (KtvRaw.get(R.string.ui_a_0150) == tool) showLanguages()
+        else if (KtvRaw.get(R.string.ui_a_0152) == tool) showWordCounts()
+        else if (KtvRaw.get(R.string.ui_a_0372) == tool) showSingers()
+        else if (KtvRaw.get(R.string.ui_a_0161) == tool) showDownloads()
+        else if (KtvRaw.get(R.string.ui_a_0373) == tool) showUdisk()
+        else if (KtvRaw.get(R.string.ui_a_0374) == tool) showLocalMovies()
+        else if (KtvRaw.get(R.string.ui_a_0174) == tool) showDisco()
+        else if (KtvRaw.get(R.string.ui_a_0171) == tool) showMobileRemoteDialog()
+        else if (KtvRaw.get(R.string.ui_a_0375) == tool) showScoreDialog()
     }
 
     private fun sendTableBroadcast(text: String?) {
         if (!tableBroadcastEnabled) {
-            toast("包房广播已关闭")
+            toast(getString(R.string.ui_a_0495))
             return
         }
         var value: String? = if (text == null) "" else text.trim { it <= ' ' }
         if (value!!.isEmpty()) value = tableBroadcastText
-        if (value == null || value.trim { it <= ' ' }.isEmpty()) value = "欢迎光临"
+        if (value == null || value.trim { it <= ' ' }.isEmpty()) value = KtvRaw.get(R.string.ui_a_0090)
         tableBroadcastText = value
         marqueeEnabled = true
         marqueeText = value
@@ -4612,8 +4661,8 @@ class MainActivity : AppCompatActivity() {
         store.broadcastHistory.add(0, stamp + "  " + value)
         while (store.broadcastHistory.size > 100) store.broadcastHistory.removeAt(store.broadcastHistory.size - 1)
         saveState()
-        status!!.setText("包房广播：" + value + "（" + tableBroadcastSeconds + "秒）")
-        toast("广播已发送")
+        status!!.setText(getString(R.string.ui_a_0496) + value + "（" + tableBroadcastSeconds + getString(R.string.ui_a_0497))
+        toast(getString(R.string.ui_a_0498))
     }
 
     private fun applyScreenBrightness() {
@@ -4632,12 +4681,12 @@ class MainActivity : AppCompatActivity() {
             }
         }
         saveState()
-        toast("已清理：" + (before - orderQueue.size) + " 首")
+        toast(getString(R.string.ui_a_0499) + (before - orderQueue.size) + getString(R.string.ui_p_064))
     }
 
     private fun toggleRecording() {
         if (!recordEnabled) {
-            toast("录音功能已关闭")
+            toast(getString(R.string.ui_a_0500))
             return
         }
         if (recorder == null) startRecording()
@@ -4668,13 +4717,13 @@ class MainActivity : AppCompatActivity() {
             recorder!!.setOutputFile(currentRecording!!.getAbsolutePath())
             recorder!!.prepare()
             recorder!!.start()
-            toast("开始录音")
-            status!!.setText("正在录音：" + currentRecording!!.getName())
-            if ("首页" == currentPage) showHome()
+            toast(getString(R.string.ui_a_0463))
+            status!!.setText(getString(R.string.ui_a_0501) + currentRecording!!.getName())
+            if (KtvRaw.get(R.string.ui_a_0108) == currentPage) showHome()
         } catch (e: Exception) {
             // 录音启动失败: 释放 recorder 并恢复麦克风输入占用。
             if (recorder != null) stopRecording(false) else micActivator.resume()
-            toast("录音启动失败：" + e.message)
+            toast(getString(R.string.ui_a_0502) + e.message)
         }
     }
 
@@ -4691,10 +4740,10 @@ class MainActivity : AppCompatActivity() {
         recorder = null
         // 录音结束 → 恢复麦克风输入占用(演唱声音输出通道)。
         micActivator.resume()
-        if (notify && currentRecording != null) toast("录音已保存：" + currentRecording!!.getName())
+        if (notify && currentRecording != null) toast(getString(R.string.ui_a_0503) + currentRecording!!.getName())
         currentRecording = null
-        if ("录音" == currentPage) showRecordings()
-        else if ("首页" == currentPage) showHome()
+        if (KtvRaw.get(R.string.ui_a_0192) == currentPage) showRecordings()
+        else if (KtvRaw.get(R.string.ui_a_0108) == currentPage) showHome()
     }
 
     private fun recordScore(song: Song?) {
@@ -4702,13 +4751,13 @@ class MainActivity : AppCompatActivity() {
         val value = 60 + abs((stableId(song) + System.currentTimeMillis() / 60000L).hashCode() % 40)
         store.lastScore = value
         store.lastScoreSong = song.displayTitle()
-        store.scoreHistory.add(0, value.toString() + " 分    " + song.displayTitle())
+        store.scoreHistory.add(0, value.toString() + getString(R.string.ui_a_0504) + song.displayTitle())
         while (store.scoreHistory.size > 100) store.scoreHistory.removeAt(store.scoreHistory.size - 1)
     }
 
     private fun scoreSummary(): String {
-        if (store.lastScore <= 0 || store.lastScoreSong == null || store.lastScoreSong.isEmpty()) return "暂无评分"
-        return store.lastScore.toString() + " 分  " + store.lastScoreSong
+        if (store.lastScore <= 0 || store.lastScoreSong == null || store.lastScoreSong.isEmpty()) return KtvRaw.get(R.string.ui_a_0505)
+        return store.lastScore.toString() + getString(R.string.ui_a_0506) + store.lastScoreSong
     }
 
     private fun recordDir(): File {
@@ -4777,7 +4826,7 @@ class MainActivity : AppCompatActivity() {
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION)
             startActivity(intent)
         } catch (e: Exception) {
-            toast("无法打开安装器：" + e.message)
+            toast(getString(R.string.ui_a_0507) + e.message)
         }
     }
 
@@ -4804,15 +4853,15 @@ class MainActivity : AppCompatActivity() {
             clearLyrics()
             player!!.setOnPreparedListener(OnPreparedListener { mp: MediaPlayer? ->
                 player!!.start()
-                status!!.setText("正在播放影片：" + file.getName())
+                status!!.setText(getString(R.string.ui_a_0508) + file.getName())
             })
             player!!.setOnCompletionListener(OnCompletionListener { mp: MediaPlayer? ->
-                status!!.setText("影片播放完成：" + file.getName())
+                status!!.setText(getString(R.string.ui_a_0509) + file.getName())
                 if (autoNext && !orderQueue!!.isEmpty()) play(orderQueue.get(0))
             })
             player!!.setVideoURI(Uri.fromFile(file))
         } catch (e: Exception) {
-            toast("影片播放失败：" + e.message)
+            toast(getString(R.string.ui_a_0510) + e.message)
         }
     }
 
@@ -4834,10 +4883,10 @@ class MainActivity : AppCompatActivity() {
                 library.catalogFile(),
                 File(dir, "catalog-" + stamp + ".json")
             )
-            toast("配置已备份")
+            toast(getString(R.string.ui_a_0511))
             showBackupTools()
         } catch (e: Exception) {
-            toast("备份失败：" + e.message)
+            toast(getString(R.string.ui_a_0512) + e.message)
         }
     }
 
@@ -4845,7 +4894,7 @@ class MainActivity : AppCompatActivity() {
         val dir = backupDir()
         val files = dir.listFiles()
         if (files == null) {
-            toast("没有备份文件")
+            toast(getString(R.string.ui_a_0513))
             return
         }
         var newestState: File? = null
@@ -4861,14 +4910,14 @@ class MainActivity : AppCompatActivity() {
         val state = newestState
         val catalog = newestCatalog
         if (state == null && catalog == null) {
-            toast("没有可恢复的备份")
+            toast(getString(R.string.ui_a_0514))
             return
         }
         AlertDialog.Builder(this)
-            .setTitle("从备份恢复")
-            .setMessage("将恢复最近的 state/catalog 备份，应用内状态会重新加载。")
+            .setTitle(getString(R.string.ui_a_0394))
+            .setMessage(getString(R.string.ui_a_0515))
             .setPositiveButton(
-                "恢复",
+                getString(R.string.ui_a_0516),
                 DialogInterface.OnClickListener { d: DialogInterface?, w: Int ->
                     try {
                         if (state != null) copyFile(state, store.stateFile())
@@ -4877,14 +4926,14 @@ class MainActivity : AppCompatActivity() {
                         loadStateFromStore()
                         applyScreenBrightness()
                         refreshLibrary(Runnable {
-                            toast("恢复完成")
+                            toast(getString(R.string.ui_a_0517))
                             showHome()
                         })
                     } catch (e: Exception) {
-                        toast("恢复失败：" + e.message)
+                        toast(getString(R.string.ui_a_0518) + e.message)
                     }
                 })
-            .setNegativeButton("取消", null)
+            .setNegativeButton(getString(R.string.ui_cancel), null)
             .create().showForTv()
     }
 
@@ -4931,7 +4980,7 @@ class MainActivity : AppCompatActivity() {
         Collections.sort<String?>(
             names,
             Comparator { obj: String?, str: String? -> obj!!.compareTo(str!!, ignoreCase = true) })
-        if ("热门歌手" == group) {
+        if (KtvRaw.get(R.string.ui_a_0213) == group) {
             Collections.sort<String?>(
                 names,
                 Comparator { a: String?, b: String? ->
@@ -4945,7 +4994,7 @@ class MainActivity : AppCompatActivity() {
         adapter.notifyDataSetChanged()
         visibleSongs.clear()
         renderSongs()
-        header!!.setText("歌星  " + group + "  " + names.size)
+        header!!.setText(getString(R.string.ui_p_066) + group + "  " + names.size)
     }
 
     private fun singerPlayCount(singer: String?): Int {
@@ -4957,11 +5006,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun singerMatchesGroup(song: Song, group: String?): Boolean {
-        if ("全部歌手" == group) return true
+        if (KtvRaw.get(R.string.ui_a_0210) == group) return true
         val text = (((if (song.singer == null) "" else song.singer) + " "
                 + (if (song.category == null) "" else song.category) + " "
                 + (if (song.language == null) "" else song.language))).lowercase()
-        if ("热门歌手" == group) return song.playCount > 0 || !song.remote
+        if (KtvRaw.get(R.string.ui_a_0213) == group) return song.playCount > 0 || !song.remote
         if ("大陆/内地" == group) return text.contains("大陆") || text.contains("内地") || text.contains(
             "国语"
         )
@@ -4977,20 +5026,20 @@ class MainActivity : AppCompatActivity() {
         if ("组合/乐队" == group) return text.contains("组合") || text.contains("乐队") || text.contains(
             "band"
         ) || text.contains("group")
-        return !singerMatchesGroup(song, "大陆/内地") && !singerMatchesGroup(
+        return !singerMatchesGroup(song, KtvRaw.get(R.string.ui_a_0214)) && !singerMatchesGroup(
             song,
-            "港台"
-        ) && !singerMatchesGroup(song, "日韩") && !singerMatchesGroup(
+            KtvRaw.get(R.string.ui_a_0077)
+        ) && !singerMatchesGroup(song, KtvRaw.get(R.string.ui_a_0078)) && !singerMatchesGroup(
             song,
-            "欧美"
-        ) && !singerMatchesGroup(song, "组合/乐队")
+            KtvRaw.get(R.string.ui_a_0079)
+        ) && !singerMatchesGroup(song, KtvRaw.get(R.string.ui_a_0215))
     }
 
     private fun filterLanguage(language: String?) {
         visibleSongs.clear()
         for (song in library.allSongs()) {
-            val value = song.language?.takeIf(String::isNotEmpty) ?: "其他"
-            if (isVisibleSong(song) && ("全部" == language || value == language)) visibleSongs.add(
+            val value = song.language?.takeIf(String::isNotEmpty) ?: KtvRaw.get(R.string.ui_a_0080)
+            if (isVisibleSong(song) && (KtvRaw.get(R.string.ui_a_0069) == language || value == language)) visibleSongs.add(
                 song
             )
         }
@@ -5002,7 +5051,7 @@ class MainActivity : AppCompatActivity() {
         visibleSongs.clear()
         for (song in library.allSongs()) {
             val count = songWordCount(song.title)
-            if (isVisibleSong(song) && ("全部" == group || wordGroupMatches(
+            if (isVisibleSong(song) && (KtvRaw.get(R.string.ui_a_0069) == group || wordGroupMatches(
                     group,
                     count
                 ))
@@ -5013,12 +5062,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun wordGroupMatches(group: String?, count: Int): Boolean {
-        if ("一字" == group) return count == 1
-        if ("二字" == group) return count == 2
-        if ("三字" == group) return count == 3
-        if ("四字" == group) return count == 4
-        if ("五字" == group) return count == 5
-        return "六字以上" == group && count >= 6
+        if (KtvRaw.get(R.string.ui_a_0222) == group) return count == 1
+        if (KtvRaw.get(R.string.ui_a_0223) == group) return count == 2
+        if (KtvRaw.get(R.string.ui_a_0224) == group) return count == 3
+        if (KtvRaw.get(R.string.ui_a_0225) == group) return count == 4
+        if (KtvRaw.get(R.string.ui_a_0226) == group) return count == 5
+        return KtvRaw.get(R.string.ui_a_0227) == group && count >= 6
     }
 
     private fun songWordCount(title: String?): Int {
@@ -5032,7 +5081,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun singerName(song: Song): String {
-        return song.singer?.takeIf(String::isNotEmpty) ?: "未知歌手"
+        return song.singer?.takeIf(String::isNotEmpty) ?: KtvRaw.get(R.string.ui_a_0532)
     }
 
     private fun isVisibleSong(song: Song): Boolean {
@@ -5053,10 +5102,10 @@ class MainActivity : AppCompatActivity() {
         val ql = q.lowercase()
         visibleSongs.clear()
         for (song in library.allSongs()) {
-            val categoryOk = "全部" == category
+            val categoryOk = KtvRaw.get(R.string.ui_a_0069) == category
                     || (song.category != null && song.category == category)
-                    || ("本地" == category && !song.remote)
-                    || ("网络" == category && song.remote)
+                    || (KtvRaw.get(R.string.ui_a_0198) == category && !song.remote)
+                    || (KtvRaw.get(R.string.ui_a_0199) == category && song.remote)
             val text =
                 (song.title + " " + song.singer + " " + song.category + " " + song.language + " " + song.pinyin).lowercase()
             if (isVisibleSong(song) && categoryOk && (ql.isEmpty() || text.contains(ql))) visibleSongs.add(
@@ -5065,7 +5114,7 @@ class MainActivity : AppCompatActivity() {
         }
         Collections.sort(visibleSongs, compareBy { it.title!!.lowercase() })
         renderSongs()
-        if (pageInfo != null) pageInfo!!.setText("本地 " + visibleSongs.size + " 首")
+        if (pageInfo != null) pageInfo!!.setText(getString(R.string.ui_p_067) + visibleSongs.size + getString(R.string.ui_p_064))
     }
 
     /**
@@ -5117,6 +5166,52 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+    /**
+     * 语言切换专用的一次性续播状态。只保存在内存，不落库，避免影响普通冷启动；
+     * 时间戳用于丢弃超时的残留状态（例如切换后进程异常未完成的场景）。
+     */
+    private object LanguageSwitchPlayback {
+        private const val MAX_AGE_MS = 60_000L
+
+        data class Pending(
+            val stableId: String,
+            val positionMs: Int,
+            val shouldPlay: Boolean,
+            val savedAt: Long,
+        )
+
+        @Volatile
+        private var pending: Pending? = null
+
+        fun capture(song: Song?, positionMs: Int, shouldPlay: Boolean) {
+            pending = song?.let {
+                Pending(
+                    stableId = KtvStore.stableId(it),
+                    positionMs = maxOf(0, positionMs),
+                    shouldPlay = shouldPlay,
+                    savedAt = System.currentTimeMillis(),
+                )
+            }
+            pending?.let {
+                Log.i(TAG, "LANG-RESUME capture id=${it.stableId} pos=${it.positionMs} play=${it.shouldPlay}")
+            }
+        }
+
+        fun consume(song: Song?): Pending? {
+            val value = pending ?: return null
+            pending = null
+            if (song == null) return null
+            if (System.currentTimeMillis() - value.savedAt > MAX_AGE_MS) return null
+            if (KtvStore.stableId(song) != value.stableId) return null
+            Log.i(TAG, "LANG-RESUME restore id=${value.stableId} pos=${value.positionMs} play=${value.shouldPlay}")
+            return value
+        }
+
+        fun clear() {
+            pending = null
+        }
+    }
+
     fun resumeMainPlaybackAt(positionMs: Int) {
         try {
             if (player != null && currentSong != null) {
@@ -5154,12 +5249,12 @@ class MainActivity : AppCompatActivity() {
         val mainUrl = if (song.downloadUrl == null || song.downloadUrl!!.trim { it <= ' ' }
                 .isEmpty()) song.videoUrl else song.downloadUrl
         if (mainUrl == null || mainUrl.trim { it <= ' ' }.isEmpty()) {
-            toast("该条目没有下载地址")
+            toast(getString(R.string.ui_p_023))
             return
         }
         val task = DownloadTask(song)
         downloads.add(task)
-        busy(true, "正在下载：" + song.title)
+        busy(true, getString(R.string.ui_p_024) + song.title)
         io.execute(Runnable {
             val target = library.targetFor(song)
             try {
@@ -5183,7 +5278,7 @@ class MainActivity : AppCompatActivity() {
                 )
                 if (hasUrl(song.lyricUrl)) downloadToFile(song.lyricUrl, lyricFile, task, 95, 99)
                 if (task.cancelled) throw InterruptedException("cancelled")
-                task.state = "完成"
+                task.state = KtvRaw.get(R.string.ui_a_0110)
                 task.progress = 100
                 val local = local(target.getAbsolutePath(), target.getName())
                 local.originalPath =
@@ -5195,21 +5290,21 @@ class MainActivity : AppCompatActivity() {
                     orderQueue!!.add(local)
                     saveState()
                     refreshLibrary(null)
-                    busy(false, "下载完成并已加入已点：" + local.title)
+                    busy(false, getString(R.string.ui_p_025) + local.title)
                     if (currentTabIndex == 6) loadDownloadedList()
                 })
             } catch (e: InterruptedException) {
-                task.state = "已取消"
+                task.state = KtvRaw.get(R.string.ui_a_0245)
                 target.delete()
                 cleanupSidecars(target)
                 main.post(Runnable {
-                    busy(false, "下载已取消：" + song.title)
+                    busy(false, getString(R.string.ui_p_026) + song.title)
                     if (currentTabIndex == 6) loadDownloadedList()
                 })
             } catch (e: Exception) {
                 task.state = "失败：" + e.message
                 main.post(Runnable {
-                    busy(false, "下载失败：" + e.message)
+                    busy(false, getString(R.string.ui_p_027) + e.message)
                     if (currentTabIndex == 6) loadDownloadedList()
                 })
             }
@@ -5231,7 +5326,7 @@ class MainActivity : AppCompatActivity() {
         check(!(code < 200 || code >= 300)) { "HTTP " + code }
         val total = conn.getContentLength()
         var done = 0
-        task.state = "下载中"
+        task.state = KtvRaw.get(R.string.ui_a_0084)
         try {
             BufferedInputStream(conn.getInputStream()).use { `in` ->
                 FileOutputStream(target).use { out ->
@@ -5289,9 +5384,9 @@ class MainActivity : AppCompatActivity() {
 
     private fun cancelAllDownloads() {
         for (task in downloads) {
-            if ("完成" != task.state) {
+            if (KtvRaw.get(R.string.ui_a_0110) != task.state) {
                 task.cancelled = true
-                task.state = "正在取消"
+                task.state = KtvRaw.get(R.string.ui_a_0247)
             }
         }
         showDownloads()
@@ -5311,7 +5406,7 @@ class MainActivity : AppCompatActivity() {
         return file.isFile && file.length() >= SongFileValidator.MIN_VALID_FILE_SIZE
     }
 
-    private fun play(song: Song?) {
+    private fun play(song: Song?, startPositionMs: Int = 0, playAfterPrepare: Boolean = true) {
         if (player == null) player = videoBackground
         if (song == null) return
         try {
@@ -5324,9 +5419,15 @@ class MainActivity : AppCompatActivity() {
             randomLocalRequestSerial++
             playbackGeneration++
             songRetryCount = 0 // 重置重试计数
-            playWhenPrepared = true
+            playWhenPrepared = playAfterPrepare
             hidePlaybackNoticeNow()
+            // 切歌/点歌的统一入口：先彻底停掉旧主播放器，再释放副音轨。
+            // 偶发的"两首歌同时响"是旧音源(主播放器或副音轨)在切歌时没停干净残留下来，
+            // 这里在起点强制清一次，保证切歌后只有新歌在播。IJK 的 stop 在未 prepared 时
+            // 可能抛异常，用 runCatching 兜住；playLocalFile 后续会重新 prepare + start。
+            runCatching { player?.stopPlayback() }
             releaseVocalPlayer()
+            currentMediaPlayer = null
             currentSong = song
             loadLyrics(song)
             persistRuntimeState()
@@ -5336,11 +5437,11 @@ class MainActivity : AppCompatActivity() {
                 playerController!!.setVocalMode(originalVocal)
             }
 
-            updateBottomBar(song, true)
+            updateBottomBar(song, playAfterPrepare)
             scheduleAutoFullscreen()
 
             if (hasPlayableLocalFile(song)) {
-                playLocalFile(song)
+                playLocalFile(song, startPositionMs)
             } else {
                 playbackPreparing = true
                 // 统一使用支持断点续传和下载地址重试的下载管理器。
@@ -5348,12 +5449,12 @@ class MainActivity : AppCompatActivity() {
                     showDownloadProgressFor(song)
                     return
                 }
-                toast("加载中: " + song.title + "...")
+                toast(getString(R.string.ui_p_029) + song.title + "...")
                 showDownloadProgressFor(song)
                 startDownloadAndPlay(song)
             }
         } catch (e: Exception) {
-            toast("播放失败：" + e.message)
+            toast(getString(R.string.ui_a_0536) + e.message)
         }
     }
 
@@ -5372,7 +5473,7 @@ class MainActivity : AppCompatActivity() {
                 Log.w(TAG, "Invalid local file: ${song.path}, ${inspection.reason}")
                 if (f.exists()) runCatching { f.delete() }
                 song.path = null
-                toast("本地文件丢失，重新下载...")
+                toast(getString(R.string.ui_p_030))
                 startDownloadAndPlay(song)
                 return
             }
@@ -5390,7 +5491,7 @@ class MainActivity : AppCompatActivity() {
         } catch (e: Exception) {
             playbackPreparing = false
             Log.e(TAG, "playLocalFile error: " + e.message, e)
-            toast("播放失败")
+            toast(getString(R.string.ui_a_0543))
         }
     }
 
@@ -5413,7 +5514,7 @@ class MainActivity : AppCompatActivity() {
                     )
                     main.post(Runnable {
                         hideDownloadProgress()
-                        toast("无法获取播放地址")
+                        toast(getString(R.string.ui_p_031))
                     })
                     return@Runnable
                 }
@@ -5474,7 +5575,7 @@ class MainActivity : AppCompatActivity() {
                     if (currentSong != null && currentSong!!.equals(song)) {
                         playLocalFile(song)
                     }
-                    toast(song.title + " 就绪")
+                    toast(song.title + getString(R.string.ui_p_032))
                 })
             } catch (e: Exception) {
                 Log.e(TAG, "download error: " + e.message)
@@ -5482,7 +5583,7 @@ class MainActivity : AppCompatActivity() {
                 MiliLog.error("DL-ERR id=${song?.let(::extractTid)} title=${song?.title} ${e.message}")
                 main.post(Runnable {
                     hideDownloadProgress()
-                    toast("下载失败: " + e.message)
+                    toast(getString(R.string.ui_p_028) + e.message)
                 })
             }
         })
@@ -5512,7 +5613,7 @@ class MainActivity : AppCompatActivity() {
                 MiliLog.error("DL-FAIL id=${extractTid(s)} title=${s.title} $error")
                 main.post(Runnable {
                     hideDownloadProgress()
-                    toast("下载失败: " + error)
+                    toast(getString(R.string.ui_p_028) + error)
                 })
             }
         })
@@ -5520,14 +5621,14 @@ class MainActivity : AppCompatActivity() {
 
     private fun showDownloadProgressFor(song: Song) {
         if (downloadProgressContainer != null) downloadProgressContainer!!.setVisibility(View.VISIBLE)
-        if (textDownloadStatus != null) textDownloadStatus!!.setText("下载中: " + song.title)
+        if (textDownloadStatus != null) textDownloadStatus!!.setText(getString(R.string.ui_p_033) + song.title)
         if (textDownloadSpeed != null) textDownloadSpeed!!.setText("")
         if (downloadProgressBar != null) downloadProgressBar!!.setProgress(0)
     }
 
     private fun updateDownloadProgress(song: Song?, progress: Int) {
         if (downloadProgressContainer != null) downloadProgressContainer!!.setVisibility(View.VISIBLE)
-        if (textDownloadStatus != null) textDownloadStatus!!.setText("下载: " + (if (song != null) song.title else "") + " " + progress + "%")
+        if (textDownloadStatus != null) textDownloadStatus!!.setText(getString(R.string.ui_p_034) + (if (song != null) song.title else "") + " " + progress + "%")
         if (textDownloadSpeed != null) textDownloadSpeed!!.setText(progress.toString() + "%")
         if (downloadProgressBar != null) downloadProgressBar!!.setProgress(progress)
     }
@@ -5575,7 +5676,7 @@ class MainActivity : AppCompatActivity() {
                 songRetryCount++
                 val retry = songRetryCount
                 main.postDelayed(Runnable {
-                    toast("播放重试 " + retry + "/2")
+                    toast(getString(R.string.ui_p_035) + retry + "/2")
                     playLocalFile(song)
                 }, 700L * retry)
             } else {
@@ -5602,19 +5703,19 @@ class MainActivity : AppCompatActivity() {
      * 更新底部控制栏显示
      */
     private fun updateBottomBar(song: Song?, playing: Boolean) {
-        if (playing && playbackModeNotice?.text?.contains("暂停") == true) hidePlaybackNoticeNow()
-        if (playerSongTitle != null) playerSongTitle!!.setText(if (song != null) song.title else "未播放")
+        if (playing && playbackModeNotice?.text?.contains(getString(R.string.ui_a_0309)) == true) hidePlaybackNoticeNow()
+        if (playerSongTitle != null) playerSongTitle!!.setText(if (song != null) song.title else getString(R.string.ui_a_0549))
         if (playerSongSinger != null) playerSongSinger!!.setText(if (song != null) (if (song.singer != null) song.singer else "") else "")
         if (textVocalMode != null) textVocalMode.setText(vocalActionText())
-        if (textPlayPause != null) textPlayPause.setText(if (playing) "暂停" else "播放")
-        if (btnTopPause != null) btnTopPause!!.setText(if (playing) "暂停" else "播放")
+        if (textPlayPause != null) textPlayPause.setText(if (playing) getString(R.string.ui_a_0309) else getString(R.string.ui_a_0310))
+        if (btnTopPause != null) btnTopPause!!.setText(if (playing) getString(R.string.ui_a_0309) else getString(R.string.ui_a_0310))
         if (btnTopVocal != null) btnTopVocal!!.setText(vocalActionText())
         setTopControlIcon(btnTopPause, if (playing) R.drawable.ott_ic_ctrl_pause else R.drawable.ott_ic_ctrl_play)
         setTopControlIcon(
             btnTopVocal,
             vocalActionIcon(),
         )
-        fullScreenPauseText?.text = if (playing) "暂停" else "播放"
+        fullScreenPauseText?.text = if (playing) getString(R.string.ui_a_0309) else getString(R.string.ui_a_0310)
         fullScreenPauseIcon?.setImageResource(if (playing) R.drawable.ott_ic_ctrl_pause else R.drawable.ott_ic_ctrl_play)
         fullScreenVocalText?.text = vocalActionText()
         fullScreenVocalIcon?.setImageResource(vocalActionIcon())
@@ -5632,34 +5733,34 @@ class MainActivity : AppCompatActivity() {
      */
     private fun downloadFromCdn(song: Song) {
         if (song.filename == null || song.filename!!.isEmpty()) {
-            toast("无法下载:缺少文件名")
+            toast(getString(R.string.ui_p_036))
             return
         }
         val cdnBase = "https://pub.mcdn.cherryonline.cn/"
         val url = cdnBase + "cloud-song/" + song.filename
         val task = DownloadTask(song)
         downloads.add(task)
-        busy(true, "正在从云端下载:" + song.title)
+        busy(true, getString(R.string.ui_p_037) + song.title)
         io.execute(Runnable {
             val target =
                 File(MuseDatabase.VIDEO_ROOT + "/" + MuseDatabase.CLOUD_SONG_DIR, song.filename)
             try {
                 File(target.getParent()).mkdirs()
                 downloadToFile(url, target, task, 0, 100)
-                task.state = "完成"
+                task.state = KtvRaw.get(R.string.ui_a_0110)
                 task.progress = 100
                 song.path = target.getAbsolutePath()
                 main.post(Runnable {
-                    busy(false, "下载完成")
+                    busy(false, getString(R.string.ui_a_0137))
                     if (currentTabIndex == 6) loadDownloadedList()
                     if (currentSong?.equals(song) == true && playbackPreparing) {
                         switchToLocalPlayback(song)
                     }
                 })
             } catch (e: Exception) {
-                task.state = "失败:" + e.message
+                task.state = KtvRaw.get(R.string.ui_a_0554) + e.message
                 main.post(Runnable {
-                    busy(false, "下载失败:" + e.message)
+                    busy(false, getString(R.string.ui_a_0544) + e.message)
                     if (currentTabIndex == 6) loadDownloadedList()
                 })
             }
@@ -5693,7 +5794,7 @@ class MainActivity : AppCompatActivity() {
                 main.post(Runnable {
                     val task = downloads.firstOrNull { stableId(it.song) == stableId(song) }
                         ?: DownloadTask(song).also { downloads.add(it) }
-                    task.state = "下载中"
+                    task.state = KtvRaw.get(R.string.ui_a_0084)
                     task.progress = 0
                     refreshSongAdapter()
                     if (currentTabIndex == 6) loadDownloadedList()
@@ -5760,14 +5861,14 @@ class MainActivity : AppCompatActivity() {
                     if (currentSong != null && currentSong!!.equals(song)) playbackPreparing = false
                     for (task in downloads) {
                         if (task.song === song || task.song.id != null && task.song.id == song.id) {
-                            task.state = "失败:" + error
+                            task.state = KtvRaw.get(R.string.ui_a_0554) + error
                             break
                         }
                     }
                     refreshSongAdapter()
                     if (currentTabIndex == 6) loadDownloadedList()
                     if (currentSong?.equals(song) == true) hideDownloadProgress()
-                    if (wasPendingQueue) toast("下载失败，未加入已点：${song.title}")
+                    if (wasPendingQueue) toast(getString(R.string.ui_p_083, song.title))
                 })
             }
         })
@@ -5866,7 +5967,7 @@ class MainActivity : AppCompatActivity() {
             currentSong = null
             clearLyrics()
             updateBottomBar(null, false)
-            if (status != null) status!!.setText("播放完成，请点歌")
+            if (status != null) status!!.setText(getString(R.string.ui_a_0556))
             return
         }
         // 移除当前歌曲进已唱列表。按稳定 ID 匹配,避免对象实例不同导致移不掉而重复播放同一首。
@@ -5904,7 +6005,7 @@ class MainActivity : AppCompatActivity() {
             currentSong = null
             clearLyrics()
             updateBottomBar(null, false)
-            if (status != null) status!!.setText("播放完成" + (if (orderQueue.isEmpty()) "" else "，点击播放继续"))
+            if (status != null) status!!.setText(getString(R.string.ui_a_0557) + (if (orderQueue.isEmpty()) "" else getString(R.string.ui_a_0558)))
         }
     }
 
@@ -5935,9 +6036,9 @@ class MainActivity : AppCompatActivity() {
         clearLyrics()
         updateBottomBar(null, false)
         status?.text = when {
-            startup -> "正在随机播放本地歌曲..."
-            skipped -> "切歌：正在播放下一首公放歌曲..."
-            else -> "已点播放完成，正在随机本地歌曲..."
+            startup -> getString(R.string.ui_p_random_start)
+            skipped -> getString(R.string.ui_p_random_skip)
+            else -> getString(R.string.ui_a_0559)
         }
         persistRuntimeState()
 
@@ -5967,7 +6068,7 @@ class MainActivity : AppCompatActivity() {
                 if (selected != null) {
                     lastRandomLocalSongId = stableId(selected)
                     RandomPlayQueue.markStarted(selected)
-                    status?.text = "随机播放：${selected.title}"
+                    status?.text = getString(R.string.ui_p_084, selected.title)
                     MiliLog.info(
                         "RANDOM-PLAY title=${selected.title} cycle=${RandomPlayQueue.cycle} " +
                             "remaining=${RandomPlayQueue.remaining} played=${RandomPlayQueue.playedInCycle}",
@@ -5983,7 +6084,7 @@ class MainActivity : AppCompatActivity() {
                     playbackPreparing = false
                     playWhenPrepared = false
                     updateBottomBar(null, false)
-                    status?.text = "播放完成，本地暂无可播放歌曲"
+                    status?.text = getString(R.string.ui_a_0561)
                     persistRuntimeState()
                 }
             }
@@ -5996,7 +6097,7 @@ class MainActivity : AppCompatActivity() {
         playWhenPrepared = targetPlaying
         if (playbackPreparing) {
             updateBottomBar(currentSong, targetPlaying)
-            if (targetPlaying) hidePlaybackNoticeNow() else showPlaybackModeNotice("暂停", true)
+            if (targetPlaying) hidePlaybackNoticeNow() else showPlaybackModeNotice(R.string.ui_a_0628, true)
             scheduleAutoFullscreen()
             persistRuntimeState()
             return
@@ -6004,12 +6105,12 @@ class MainActivity : AppCompatActivity() {
         if (!targetPlaying) {
             player!!.pause()
             pauseVocalIfReady()
-            if (textPlayPause != null) textPlayPause.setText("播放")
-            showPlaybackModeNotice("暂停", true)
+            if (textPlayPause != null) textPlayPause.setText(getString(R.string.ui_a_0310))
+            showPlaybackModeNotice(R.string.ui_a_0628, true)
         } else {
             player!!.start()
             startVocalIfReady()
-            if (textPlayPause != null) textPlayPause.setText("暂停")
+            if (textPlayPause != null) textPlayPause.setText(getString(R.string.ui_a_0309))
             hidePlaybackNoticeNow()
         }
         updateBottomBar(currentSong, targetPlaying)
@@ -6048,30 +6149,30 @@ class MainActivity : AppCompatActivity() {
             currentSong,
             player?.currentPosition ?: 0
         )
-        val embedded = !external && "自动" == vocalChannelMode &&
+        val embedded = !external && KtvRaw.get(R.string.ui_a_0086) == vocalChannelMode &&
             prepareEmbeddedDualTrackVocal(currentSong, player?.currentPosition ?: 0)
         var trackSelected = false
         var channelApplied = false
-        if (!external && !embedded && "自动" == vocalChannelMode) {
+        if (!external && !embedded && KtvRaw.get(R.string.ui_a_0086) == vocalChannelMode) {
             trackSelected = applySelectedAudioTrack()
             if (!trackSelected && currentSong != null && currentSong!!.accomp > 0) {
                 channelApplied = applyChannelByAccomp()
             }
         }
         val alternateTrackActive = embedded && originalVocal != embeddedMainTrackOriginal
-        val volume = if (external || alternateTrackActive || "静音练唱" == singMode) {
+        val volume = if (external || alternateTrackActive || KtvRaw.get(R.string.ui_a_0262) == singMode) {
             0f
         } else {
             max(0f, min(1f, musicVolume / 100f))
         }
         try {
             when {
-                external || "静音练唱" == singMode -> videoPlayer.setPlaybackVolume(0f, 0f)
+                external || KtvRaw.get(R.string.ui_a_0262) == singMode -> videoPlayer.setPlaybackVolume(0f, 0f)
                 embedded -> videoPlayer.setPlaybackVolume(volume, volume)
                 trackSelected -> videoPlayer.selectAudioChannel(IjkMediaPlayer.AUDIO_CHANNEL_STEREO, volume)
                 "自动" != vocalChannelMode -> {
                     videoPlayer.selectAudioChannel(selectedChannelForMode(), volume)
-                    status?.text = "声道模式：$vocalChannelMode / ${if (originalVocal) "原唱" else "伴唱"}"
+                    status?.text = getString(R.string.ui_p_085, vocalChannelMode, if (originalVocal) getString(R.string.ui_a_0305) else getString(R.string.ui_a_0306))
                 }
                 channelApplied -> Unit
                 else -> videoPlayer.selectAudioChannel(IjkMediaPlayer.AUDIO_CHANNEL_STEREO, volume)
@@ -6114,7 +6215,7 @@ class MainActivity : AppCompatActivity() {
                 if (originalVocal) IjkMediaPlayer.AUDIO_CHANNEL_LEFT else IjkMediaPlayer.AUDIO_CHANNEL_RIGHT
             }
             videoPlayer.selectAudioChannel(channel, volume)
-            status!!.setText((if (originalVocal) "原唱" else "伴唱") + "(声道" + currentSong!!.accomp + ")")
+            status!!.setText((if (originalVocal) getString(R.string.ui_a_0305) else getString(R.string.ui_a_0306)) + getString(R.string.ui_a_0562) + currentSong!!.accomp + ")")
             return true
         } catch (e: Exception) {
             return false
@@ -6123,7 +6224,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun applySelectedAudioTrack(): Boolean {
         val selected = player?.selectAudioTrack(originalVocal) == true
-        if (selected) status?.text = if (originalVocal) "已选择原唱音轨" else "已选择伴唱音轨"
+        if (selected) status?.text = if (originalVocal) getString(R.string.ui_a_0563) else getString(R.string.ui_a_0564)
         return selected
     }
 
@@ -6134,10 +6235,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun channelVolumes(volume: Float): FloatArray {
-        if ("左伴右原" == vocalChannelMode) {
+        if (KtvRaw.get(R.string.ui_a_0273) == vocalChannelMode) {
             return if (originalVocal) floatArrayOf(0f, volume) else floatArrayOf(volume, 0f)
         }
-        if ("右伴左原" == vocalChannelMode) {
+        if (KtvRaw.get(R.string.ui_a_0274) == vocalChannelMode) {
             return if (originalVocal) floatArrayOf(volume, 0f) else floatArrayOf(0f, volume)
         }
         return floatArrayOf(volume, volume)
@@ -6199,7 +6300,7 @@ class MainActivity : AppCompatActivity() {
             return true
         } catch (e: Exception) {
             releaseVocalPlayer()
-            toast("外置原伴唱加载失败：" + e.message)
+            toast(getString(R.string.ui_a_0566) + e.message)
             return false
         }
     }
@@ -6292,7 +6393,7 @@ class MainActivity : AppCompatActivity() {
     private fun applyVocalVolume() {
         if (vocalPlayer == null && embeddedVocalEngine == null) return
         val alternateTrackActive = embeddedDualTrackMode && originalVocal != embeddedMainTrackOriginal
-        val volume = if ("静音练唱" == singMode || embeddedDualTrackMode && !alternateTrackActive) {
+        val volume = if (KtvRaw.get(R.string.ui_a_0262) == singMode || embeddedDualTrackMode && !alternateTrackActive) {
             0f
         } else {
             max(0f, min(1f, musicVolume / 100f))
@@ -6355,13 +6456,13 @@ class MainActivity : AppCompatActivity() {
     private fun loadLyrics(song: Song?) {
         lyricLines.clear()
         if (song == null || !hasUrl(song.lyricPath)) {
-            showLyricText("暂无歌词", "")
+            showLyricText(getString(R.string.ui_no_lyrics), "")
             return
         }
         val lyricPath = song.lyricPath.orEmpty()
         val file = File(lyricPath)
         if (!file.exists() || !file.getName().lowercase().endsWith(".lrc")) {
-            showLyricText("歌词文件：" + file.getName(), "暂仅同步 LRC 歌词")
+            showLyricText(getString(R.string.ui_a_0567) + file.getName(), getString(R.string.ui_a_0568))
             return
         }
         try {
@@ -6372,7 +6473,7 @@ class MainActivity : AppCompatActivity() {
                 updateLyricView()
             }
         } catch (e: Exception) {
-            showLyricText("歌词读取失败", e.message)
+            showLyricText(getString(R.string.ui_a_0569), e.message)
         }
     }
 
@@ -6426,7 +6527,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun clearLyrics() {
         lyricLines.clear()
-        showLyricText("暂无歌词", "")
+        showLyricText(getString(R.string.ui_no_lyrics), "")
     }
 
     private fun showLyricText(current: String?, next: String?) {
@@ -6496,26 +6597,26 @@ class MainActivity : AppCompatActivity() {
             }, LinearLayout.LayoutParams(-1, -2))
             setOnClickListener { dialog.dismiss(); block() }
         }
-        actions.addView(action(R.drawable.ott_ic_top, "置顶") {
+        actions.addView(action(R.drawable.ott_ic_top, KtvRaw.get(R.string.ui_a_0231)) {
             if (!orderQueue!!.contains(song)) addToQueue(song)
             moveQueuedSongToNext(song)
-            toast("已置顶：${song.title}")
+            toast(getString(R.string.ui_p_086, song.title))
         }, LinearLayout.LayoutParams(0, -2, 1f))
         actions.addView(action(
             if (isFavorite) R.drawable.ott_ic_favorite_cancel else R.drawable.ott_ic_favorite,
-            if (isFavorite) "取消收藏" else "收藏",
+            if (isFavorite) KtvRaw.get(R.string.ui_a_0571) else getString(R.string.ui_a_0572),
             if (isFavorite) Color.rgb(233, 30, 99) else null,
         ) {
             val added = store.toggleFavorite(song)
             saveState()
-            toast(if (added) "已收藏" else "已取消收藏")
+            toast(if (added) getString(R.string.ui_a_0573) else getString(R.string.ui_a_0574))
             if (browseMode == "favorites") {
                 visibleSongs.removeAll { stableId(it) == stableId(song) }
                 renderSongList()
             }
         }, LinearLayout.LayoutParams(0, -2, 1f))
         if (hasLocalFile) {
-            actions.addView(action(R.drawable.ott_ic_delete, "删除文件") {
+            actions.addView(action(R.drawable.ott_ic_delete, getString(R.string.ui_p_087)) {
                 confirmDeleteLocalFile(song)
             }, LinearLayout.LayoutParams(0, -2, 1f))
         }
@@ -6546,46 +6647,46 @@ class MainActivity : AppCompatActivity() {
 
     private fun confirmDeleteLocalFile(song: Song) {
         AlertDialog.Builder(this)
-            .setTitle("删除本地文件")
-            .setMessage("确定删除 ${song.title} 的本地文件吗？歌曲仍保留在曲库中。")
-            .setNegativeButton("取消", null)
-            .setPositiveButton("确定") { _, _ -> deleteDownloadedSong(song) }
+            .setTitle(getString(R.string.ui_a_0576))
+            .setMessage(getString(R.string.ui_p_088, song.title))
+            .setNegativeButton(getString(R.string.ui_cancel), null)
+            .setPositiveButton(getString(R.string.ui_ok)) { _, _ -> deleteDownloadedSong(song) }
             .create().showForTv()
     }
 
     private fun showSongInfo(song: Song) {
-        val message = ("歌名：" + song.title
-                + "\n歌手：" + song.singer
-                + "\n分类：" + song.category
-                + "\n语种：" + song.language
-                + "\n拼音：" + song.pinyin
-                + "\n原唱资源：" + resourceState(song.originalUrl, song.originalPath)
-                + "\n伴唱资源：" + resourceState(song.accompanyUrl, song.accompanyPath)
-                + "\n歌词资源：" + resourceState(song.lyricUrl, song.lyricPath)
-                + "\n来源：" + (if (song.remote) "网络曲库" else song.path))
-        AlertDialog.Builder(this).setTitle("歌曲信息").setMessage(message)
-            .setPositiveButton("确定", null).create().showForTv(DialogInterface.BUTTON_POSITIVE)
+        val message = (KtvRaw.get(R.string.ui_a_0586) + song.title
+                + KtvRaw.get(R.string.ui_a_0587) + song.singer
+                + KtvRaw.get(R.string.ui_a_0588) + song.category
+                + KtvRaw.get(R.string.ui_a_0589) + song.language
+                + KtvRaw.get(R.string.ui_a_0590) + song.pinyin
+                + KtvRaw.get(R.string.ui_a_0591) + resourceState(song.originalUrl, song.originalPath)
+                + KtvRaw.get(R.string.ui_a_0592) + resourceState(song.accompanyUrl, song.accompanyPath)
+                + KtvRaw.get(R.string.ui_a_0593) + resourceState(song.lyricUrl, song.lyricPath)
+                + KtvRaw.get(R.string.ui_a_0594) + (if (song.remote) KtvRaw.get(R.string.ui_a_0595) else song.path))
+        AlertDialog.Builder(this).setTitle(getString(R.string.ui_a_0596)).setMessage(message)
+            .setPositiveButton(getString(R.string.ui_ok), null).create().showForTv(DialogInterface.BUTTON_POSITIVE)
     }
 
     private fun resourceState(remoteUrl: String?, localPath: String?): String {
-        if (hasUrl(localPath)) return "本地已下载"
-        if (hasUrl(remoteUrl)) return "网络可下载"
-        return "无"
+        if (hasUrl(localPath)) return KtvRaw.get(R.string.ui_a_0597)
+        if (hasUrl(remoteUrl)) return KtvRaw.get(R.string.ui_a_0598)
+        return KtvRaw.get(R.string.ui_a_0329)
     }
 
     private fun confirmRemoveSong(song: Song) {
-        val title = if (song.remote) "从网络曲库移除" else "删除本地文件"
+        val title = if (song.remote) getString(R.string.ui_a_0599) else getString(R.string.ui_a_0576)
         val message = if (song.remote)
-            "该操作会在本机隐藏这首网络曲库歌曲。"
+            KtvRaw.get(R.string.ui_a_0600)
         else
-            "该操作会删除本地文件，并从已点、收藏和歌单中移除。"
+            KtvRaw.get(R.string.ui_a_0601)
         AlertDialog.Builder(this)
             .setTitle(title)
             .setMessage(message + "\n\n" + song.displayTitle())
             .setPositiveButton(
-                "确定",
+                getString(R.string.ui_ok),
                 DialogInterface.OnClickListener { d: DialogInterface?, w: Int -> removeSong(song) })
-            .setNegativeButton("取消", null)
+            .setNegativeButton(getString(R.string.ui_cancel), null)
             .create().showForTv()
     }
 
@@ -6594,7 +6695,7 @@ class MainActivity : AppCompatActivity() {
         if (!song.remote && song.path != null && !song.path!!.isEmpty()) {
             val file = File(song.path.orEmpty())
             if (file.exists() && !file.delete()) {
-                toast("文件删除失败")
+                toast(getString(R.string.ui_a_0602))
                 return
             }
         }
@@ -6605,10 +6706,10 @@ class MainActivity : AppCompatActivity() {
         removeSongFromList(sangHistory, id)
         saveState()
         refreshLibrary(Runnable {
-            toast("已移除：" + song.title)
-            if ("收藏" == currentPage) showFavorites()
-            else if ("已点" == currentPage) showQueue()
-            else showSongs("全部")
+            toast(getString(R.string.ui_a_0603) + song.title)
+            if (KtvRaw.get(R.string.ui_a_0572) == currentPage) showFavorites()
+            else if (KtvRaw.get(R.string.ui_a_0229) == currentPage) showQueue()
+            else showSongs(KtvRaw.get(R.string.ui_a_0069))
         })
     }
 
@@ -6621,12 +6722,12 @@ class MainActivity : AppCompatActivity() {
     private fun showCreatePlaylistDialog() {
         val input = EditText(this)
         input.setSingleLine(true)
-        input.setHint("歌单名称")
+        input.setHint(getString(R.string.ui_a_0604))
         AlertDialog.Builder(this)
-            .setTitle("新建歌单")
+            .setTitle(getString(R.string.ui_a_0605))
             .setView(input)
             .setPositiveButton(
-                "创建",
+                getString(R.string.ui_a_0606),
                 DialogInterface.OnClickListener { d: DialogInterface?, w: Int ->
                     val name = input.getText().toString().trim { it <= ' ' }
                     if (!name.isEmpty() && !store.playlists.contains(name)) {
@@ -6635,7 +6736,7 @@ class MainActivity : AppCompatActivity() {
                     }
                     showPlaylists()
                 })
-            .setNegativeButton("取消", null)
+            .setNegativeButton(getString(R.string.ui_cancel), null)
             .create().showForTv()
     }
 
@@ -6645,19 +6746,19 @@ class MainActivity : AppCompatActivity() {
             showCatalogDialog()
             return
         }
-        busy(true, "正在同步网络曲库...")
+        busy(true, getString(R.string.ui_a_0607))
         io.execute(Runnable {
             try {
                 val array = CatalogClient().fetch(url)
                 library.saveRemote(array)
                 library.scanLocal()
                 main.post(Runnable {
-                    busy(false, "网络曲库已同步：" + array.length() + " 首")
+                    busy(false, getString(R.string.ui_a_0608) + array.length() + getString(R.string.ui_p_064))
                     if (currentTabIndex == 6) loadDownloadedList()
-                    else showSongs("网络")
+                    else showSongs(KtvRaw.get(R.string.ui_a_0199))
                 })
             } catch (e: Exception) {
-                main.post(Runnable { busy(false, "网络曲库同步失败：" + e.message) })
+                main.post(Runnable { busy(false, getString(R.string.ui_a_0609) + e.message) })
             }
         })
     }
@@ -6665,14 +6766,14 @@ class MainActivity : AppCompatActivity() {
     private fun refreshLibrary(after: Runnable?) {
         // 曲库变化后远程搜索结果缓存立即失效，避免还搜到已隐藏/已删除的歌。
         remoteSearchCache.clear()
-        busy(true, "正在扫描曲库...")
+        busy(true, getString(R.string.ui_a_0611))
         io.execute(Runnable {
             val locals = library.scanLocal().size
             library.loadCachedRemote()
             main.post(Runnable {
                 busy(
                     false,
-                    "曲库已更新：本地 " + locals + " 首，总计 " + library.allSongs().size + " 首"
+                    getString(R.string.ui_p_lib_updated, locals, library.allSongs().size)
                 )
                 if (after != null) after.run()
             })
@@ -6683,20 +6784,20 @@ class MainActivity : AppCompatActivity() {
         val input = EditText(this)
         input.setSingleLine(true)
         input.setText(prefs()!!.getString(KEY_CATALOG_URL, ""))
-        input.setHint("http://你的服务器/catalog.json")
+        input.setHint(getString(R.string.ui_a_0615))
         AlertDialog.Builder(this)
-            .setTitle("网络曲库源")
-            .setMessage("JSON: [{\"title\":\"歌名\",\"singer\":\"歌手\",\"category\":\"分类\",\"url\":\"http://.../song.mp4\"}]")
+            .setTitle(getString(R.string.ui_a_0616))
+            .setMessage(getString(R.string.ui_a_0617))
             .setView(input)
             .setPositiveButton(
-                "保存并同步",
+                getString(R.string.ui_a_0618),
                 DialogInterface.OnClickListener { d: DialogInterface?, w: Int ->
                     prefs()!!.edit()
                         .putString(KEY_CATALOG_URL, input.getText().toString().trim { it <= ' ' })
                         .apply()
                     fetchCatalog()
                 })
-            .setNegativeButton("取消", null)
+            .setNegativeButton(getString(R.string.ui_cancel), null)
             .create().showForTv()
     }
 
@@ -6717,22 +6818,22 @@ class MainActivity : AppCompatActivity() {
             "I", "J", "K", "L", "M", "N", "O", "P",
             "Q", "R", "S", "T", "U", "V", "W", "X",
             "Y", "Z", "0", "1", "2", "3", "4", "5",
-            "6", "7", "8", "9", "删", "清", "空格", "搜索"
+            "6", "7", "8", "9", KtvRaw.get(R.string.ui_a_0619), KtvRaw.get(R.string.ui_a_0620), KtvRaw.get(R.string.ui_a_0621), KtvRaw.get(R.string.ui_a_0203)
         )
-        val dialog = AlertDialog.Builder(this).setTitle("拼音搜索").setView(box).create()
+        val dialog = AlertDialog.Builder(this).setTitle(getString(R.string.ui_a_0154)).setView(box).create()
         for (key in keys) {
             val keyView = button(key, View.OnClickListener { v: View? ->
                 val value = (v as TextView).getText().toString()
                 var text = preview.getText().toString()
-                if ("删" == value) {
+                if (KtvRaw.get(R.string.ui_a_0619) == value) {
                     text = if (text.length > 0) text.substring(0, text.length - 1) else ""
-                } else if ("清" == value) {
+                } else if (KtvRaw.get(R.string.ui_a_0620) == value) {
                     text = ""
-                } else if ("空格" == value) {
+                } else if (KtvRaw.get(R.string.ui_a_0621) == value) {
                     text += " "
-                } else if ("搜索" == value) {
+                } else if (KtvRaw.get(R.string.ui_a_0203) == value) {
                     search!!.setText(text)
-                    filterSongs("全部", text)
+                    filterSongs(KtvRaw.get(R.string.ui_a_0069), text)
                     dialog.dismiss()
                     return@OnClickListener
                 } else {
@@ -6743,7 +6844,7 @@ class MainActivity : AppCompatActivity() {
             })
             keyView.setGravity(Gravity.CENTER)
             val lp = GridLayout.LayoutParams()
-            lp.width = dp(if ("空格" == key || "搜索" == key) 126 else 72)
+            lp.width = dp(if (KtvRaw.get(R.string.ui_a_0621) == key || KtvRaw.get(R.string.ui_a_0203) == key) 126 else 72)
             lp.height = dp(58)
             lp.setMargins(dp(5), dp(5), dp(5), dp(5))
             grid.addView(keyView, lp)
@@ -6771,12 +6872,12 @@ class MainActivity : AppCompatActivity() {
                     song.singer,
                     song.category,
                     song.language,
-                    if (song.remote) "  下载" else "  点歌"
+                    if (song.remote) getString(R.string.ui_a_0622) else getString(R.string.ui_a_0623)
                 )
             )
         }
         songAdapter!!.notifyDataSetChanged()
-        header!!.setText(currentPage + "  " + visibleSongs.size)
+        header!!.setText(pageDisplayName(currentPage) + "  " + visibleSongs.size)
     }
 
     private fun renderQueue() {
@@ -6835,10 +6936,37 @@ class MainActivity : AppCompatActivity() {
         grid.addView(tile, lp)
     }
 
-    private fun setPage(page: String) {
+    /** 由页面内部键（固定中文）取回当前语言的显示名。 */
+    private fun pageDisplayName(page: String): String {
+        val key = when (page) {
+            KtvRaw.get(R.string.ui_a_0108) -> R.string.ui_a_0108
+            KtvRaw.get(R.string.ui_a_0196) -> R.string.ui_a_0196
+            KtvRaw.get(R.string.ui_a_0206) -> R.string.ui_a_0206
+            KtvRaw.get(R.string.ui_a_0219) -> R.string.ui_a_0219
+            KtvRaw.get(R.string.ui_a_0220) -> R.string.ui_a_0220
+            KtvRaw.get(R.string.ui_a_0228) -> R.string.ui_a_0228
+            KtvRaw.get(R.string.ui_a_0229) -> R.string.ui_a_0229
+            KtvRaw.get(R.string.ui_a_0234) -> R.string.ui_a_0234
+            KtvRaw.get(R.string.ui_a_0236) -> R.string.ui_a_0236
+            KtvRaw.get(R.string.ui_a_0248) -> R.string.ui_a_0248
+            KtvRaw.get(R.string.ui_a_0368) -> R.string.ui_a_0368
+            KtvRaw.get(R.string.ui_a_0379) -> R.string.ui_a_0379
+            KtvRaw.get(R.string.ui_a_0392) -> R.string.ui_a_0392
+            KtvRaw.get(R.string.ui_a_0399) -> R.string.ui_a_0399
+            KtvRaw.get(R.string.ui_a_0192) -> R.string.ui_a_0192
+            KtvRaw.get(R.string.ui_a_0474) -> R.string.ui_a_0474
+            KtvRaw.get(R.string.ui_a_0175) -> R.string.ui_a_0175
+            KtvRaw.get(R.string.ui_a_0572) -> R.string.ui_a_0572
+            KtvRaw.get(R.string.ui_a_0779) -> R.string.ui_a_0779
+            else -> return page
+        }
+        return getString(key)
+    }
+
+    private fun setPage(page: String, display: String = page) {
         currentPage = page
-        if (header != null) header!!.setText(page)
-        if (listTitle != null) listTitle!!.setText(page)
+        if (header != null) header!!.setText(display)
+        if (listTitle != null) listTitle!!.setText(display)
     }
 
     private fun panel(): LinearLayout {
@@ -6951,6 +7079,9 @@ class MainActivity : AppCompatActivity() {
 
     /** 顶栏搜索按钮  */
     private var btnTopSearch: TextView? = null
+
+    /** 顶栏语言切换按钮(中/英)  */
+    private var btnTopLanguage: TextView? = null
 
     /** 顶栏已点按钮(整条)  */
     private var btnTopOrder: LinearLayout? = null
@@ -7215,6 +7346,8 @@ class MainActivity : AppCompatActivity() {
         contentFrame = findViewById<FrameLayout?>(R.id.content_frame)
         browsePagination = findViewById<View?>(R.id.browse_pagination)
         btnTopSearch = findViewById<TextView?>(R.id.btn_top_search)
+        btnTopLanguage = findViewById<TextView?>(R.id.btn_top_language)
+        refreshLanguageButtonText()
         btnTopOrder = findViewById<LinearLayout?>(R.id.btn_top_order)
         textTopOrderLabel = findViewById<TextView?>(R.id.text_top_order_label)
         textTopOrderBadge = findViewById<TextView?>(R.id.text_top_order_badge)
@@ -7224,7 +7357,7 @@ class MainActivity : AppCompatActivity() {
         btnTopReplay = findViewById<TextView?>(R.id.btn_top_replay)
         btnTopTone = findViewById<TextView?>(R.id.btn_top_tone)
         btnTopVocal?.text = vocalActionText()
-        btnTopPause?.text = if (playWhenPrepared) "暂停" else "播放"
+        btnTopPause?.text = if (playWhenPrepared) getString(R.string.ui_a_0309) else getString(R.string.ui_a_0310)
         setTopControlIcon(textTopOrderLabel, R.drawable.ott_ic_ctrl_orderlist)
         setTopControlIcon(btnTopVocal, vocalActionIcon())
         setTopControlIcon(btnTopNext, R.drawable.ott_ic_ctrl_switch_song)
@@ -7286,6 +7419,10 @@ class MainActivity : AppCompatActivity() {
 
         // 设置顶栏按钮事件
         if (btnTopSearch != null) btnTopSearch!!.setOnClickListener(View.OnClickListener { v: View? -> showQuickSearchPage() })
+        // 语言切换：先记录当前歌曲进度，AppCompat 重建 Activity 后从原位置恢复。
+        btnTopLanguage?.setOnClickListener(View.OnClickListener { v: View? ->
+            switchLanguageKeepingPlayback(!KtvApplication.isEnglish())
+        })
         if (btnTopOrder != null) btnTopOrder!!.setOnClickListener(View.OnClickListener { v: View? -> showOrderListPage() })
         if (btnTopVocal != null) btnTopVocal!!.setOnClickListener(View.OnClickListener { v: View? -> toggleOriginalVocal() })
         if (btnTopNext != null) btnTopNext!!.setOnClickListener(View.OnClickListener { v: View? -> playNext() })
@@ -7418,7 +7555,7 @@ class MainActivity : AppCompatActivity() {
         if (btnPrevPage != null) btnPrevPage!!.setOnClickListener(View.OnClickListener { v: View? -> prevPage() })
         if (btnNextPage != null) btnNextPage!!.setOnClickListener(View.OnClickListener { v: View? -> nextPage() })
         listOfNotNull(
-            btnTopSearch, btnTopOrder, btnTopVocal, btnTopNext, btnTopPause, btnTopReplay, btnTopTone,
+            btnTopSearch, btnTopLanguage, btnTopOrder, btnTopVocal, btnTopNext, btnTopPause, btnTopReplay, btnTopTone,
             btnBottomGuess, btnBottomMobileOrder, btnBottomSettings, btnBottomExit, btnBack, btnPrevPage, btnNextPage,
             homeCardRank, homeCardSong, homeCardSinger, homeCardLocal, homeCardRegular,
             homeCardFavorite, homeCardCategory,
@@ -7452,7 +7589,7 @@ class MainActivity : AppCompatActivity() {
                 } else if (currentTabIndex == 4) {
                     // 已点列表点击只调整为下一首，切歌只能由明确的“切歌”操作触发。
                     if (currentSong != null && currentSong!!.equals(song)) {
-                        toast("正在播放: " + song.title)
+                        toast(getString(R.string.ui_p_038) + song.title)
                     } else {
                         moveQueuedSongToNext(song)
                     }
@@ -7479,13 +7616,13 @@ class MainActivity : AppCompatActivity() {
             val song = visibleSongs.get(position)
             if (currentTabIndex == 4) {
                 if (currentSong != null && currentSong!!.equals(song)) {
-                    toast("正在播放的歌曲不能删除")
+                    toast(getString(R.string.ui_a_0581))
                     return@OnItemLongClickListener true
                 }
                 orderQueue!!.remove(song)
                 saveState()
                 loadOrderedList()
-                toast("已删除: " + song.title)
+                toast(getString(R.string.ui_p_039) + song.title)
             } else {
                 showSongActions(song)
             }
@@ -7500,7 +7637,7 @@ class MainActivity : AppCompatActivity() {
         if (!restoringFocusRoute) focusReturnStack.clear()
         browseRequestVersion++
         main.removeCallbacks(keyboardSearchRunnable)
-        currentPage = "首页"
+        currentPage = KtvRaw.get(R.string.ui_a_0108)
         currentTabIndex = -1
         currentCategories.clear()
         currentCategoryIndex = -1
@@ -7538,7 +7675,7 @@ class MainActivity : AppCompatActivity() {
      * 切换到子页面外壳(左视频+键盘 / 右内容)
      * @param breadcrumb 面包屑显示文字(主页 / xxx)
      */
-    private fun showSubPageShell(breadcrumb: String) {
+    private fun showSubPageShell(breadcrumb: String, displayBreadcrumb: String = breadcrumb) {
         rememberReturnPointIfNeeded(breadcrumb)
         browseRequestVersion++
         visibleSongs.clear()
@@ -7571,13 +7708,23 @@ class MainActivity : AppCompatActivity() {
         val shell = findViewById<View?>(R.id.main_layout)
         if (shell != null) shell.setVisibility(View.VISIBLE)
         if (breadcrumbCurrent != null) {
-            breadcrumbCurrent!!.text = breadcrumb.removePrefix("主页").ifEmpty { " / 首页" }
+            breadcrumbCurrent!!.text = displayBreadcrumb.removePrefix(getString(R.string.ui_a_0626)).ifEmpty { getString(R.string.ui_p_044) }
         }
         if (keyboardArea != null) keyboardArea!!.setVisibility(View.VISIBLE)
         rankCategoryGrid?.visibility = View.GONE
         if (tabContainer != null) tabContainer!!.setVisibility(View.VISIBLE)
         if (paginationBar != null) paginationBar!!.setVisibility(View.GONE)
         browsePagination?.visibility = View.VISIBLE
+        // 进入新子页面时先把分页显示归位为第 1/1 页: browseTotalPages 是全局共享状态,
+        // 上面的 browseRequestVersion++ 会让上一页的异步加载回调失效, 若不在此重置,
+        // 分页栏会短暂(或在加载被拦截时一直)沿用上一页残留的大总页数(如只有1页却显示"1/50页")。
+        // 加载完成后各 load 函数/ applyBrowsePage 会再刷新成真实页数; browsePage 不在此重置,
+        // 以便返回父页面时能恢复原先浏览的页码。
+        browseTotalPages = 1
+        // 当前页码固定显示 1: 此处是进入页面的入口, 各 load 函数随后才会设置 browsePage
+        // (部分页面如收藏/已点/下载甚至不分页)。若读 browsePage 会拿到上一页残留值(如残留2→显示"3/1")。
+        // 需要分页的页面加载完成后会用真实 browsePage 通过 updatePageInfo() 刷新。
+        textPageInfo?.setText(String.format(getString(R.string.ui_a_0765), 1, 1))
         if (songList != null) {
             songList!!.setBackgroundResource(R.drawable.bg_song_list)
             songList!!.setDivider(ColorDrawable(Color.argb(34, 255, 255, 255)))
@@ -7718,14 +7865,10 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun showPlaybackModeNotice(mode: String, persistent: Boolean = false) {
+    private fun showPlaybackModeNotice(modeResId: Int, persistent: Boolean = false) {
         val notice = playbackModeNotice ?: return
         main.removeCallbacks(hidePlaybackModeNotice)
-        notice.text = when (mode) {
-            "暂停" -> "Ⅱ\n暂停"
-            "原唱" -> "♟\n原唱"
-            else -> "♛\n伴唱"
-        }
+        notice.text = getString(modeResId)
         notice.background = GradientDrawable(
             GradientDrawable.Orientation.TL_BR,
             intArrayOf(Color.rgb(151, 126, 255), Color.rgb(74, 39, 220))
@@ -7786,29 +7929,29 @@ class MainActivity : AppCompatActivity() {
         if (homePlayerTitle?.text?.toString() != combined) homePlayerTitle?.text = combined
         val singer = currentSong?.singer.orEmpty()
         if (homePlayerSinger?.text?.toString() != singer) homePlayerSinger?.setText(singer)
-        val title = currentSong?.title ?: "未播放"
+        val title = currentSong?.title ?: getString(R.string.ui_a_0549)
         if (playerSongTitle?.text?.toString() != title) playerSongTitle?.setText(title)
         if (playerSongSinger?.text?.toString() != singer) playerSongSinger?.setText(singer)
-        val tip = "当前: " + nowNext.current + "  下首: " + nowNext.next
+        val tip = getString(R.string.ui_p_now_next_tip, nowNext.current, nowNext.next)
         if (textCurrentSongTip?.text?.toString() != tip) textCurrentSongTip?.setText(tip)
     }
 
     /** 「当前播放 / 下一首」文本对(下一首按当前曲目在队列中的位置取其后一首)。 */
     private data class NowNextText(val current: String, val next: String) {
-        fun combined(): String = "当前：$current    下一首：$next"
+        fun combined(): String = KtvRaw.display(R.string.ui_now_next, current, next)
     }
 
     private fun nowNextText(): NowNextText {
         val current = currentSong?.let { song ->
             song.title.orEmpty() + song.singer?.takeIf { it.isNotBlank() }?.let { " - $it" }.orEmpty()
-        } ?: "未播放"
+        } ?: getString(R.string.ui_a_0549)
         val currentIndex = currentSong?.let { orderQueue?.indexOf(it) } ?: -1
         val next = when {
             currentIndex >= 0 -> orderQueue?.getOrNull(currentIndex + 1)
             currentSong == null -> orderQueue?.firstOrNull()
             else -> orderQueue?.firstOrNull { currentSong?.equals(it) != true }
         }?.let { song -> song.title.orEmpty() + song.singer?.takeIf { it.isNotBlank() }?.let { " - $it" }.orEmpty() }
-            ?: "无"
+            ?: getString(R.string.ui_a_0329)
         return NowNextText(current, next)
     }
 
@@ -7819,13 +7962,13 @@ class MainActivity : AppCompatActivity() {
         searchScope = "song"
         activeSearchQuery = ""
         setSearchText("")
-        showSubPageShell("主页 / 歌名")
+        showSubPageShell(KtvRaw.get(R.string.ui_a_0631), getString(R.string.ui_a_0631))
         currentTabIndex = 0
         setupTabs()
         currentCategories.clear()
-        currentCategories.add("全部")
+        currentCategories.add(KtvRaw.get(R.string.ui_a_0069))
         currentCategoryIndex = 0
-        searchLanguage = "全部"
+        searchLanguage = KtvRaw.get(R.string.ui_a_0069)
         updateCategories()
         performSearch()
         io.execute {
@@ -7833,7 +7976,7 @@ class MainActivity : AppCompatActivity() {
             main.post {
                 if (currentTabIndex != 0 || searchScope != "song") return@post
                 currentCategories.clear()
-                currentCategories.add("全部")
+                currentCategories.add(KtvRaw.get(R.string.ui_a_0069))
                 currentCategories.addAll(languages)
                 currentCategoryIndex = currentCategories.indexOf(searchLanguage).coerceAtLeast(0)
                 updateCategories()
@@ -7845,7 +7988,7 @@ class MainActivity : AppCompatActivity() {
         searchScope = "quick"
         activeSearchQuery = ""
         setSearchText("")
-        showSubPageShell("主页 / 快搜")
+        showSubPageShell(KtvRaw.get(R.string.ui_a_0632), getString(R.string.ui_a_0632))
         currentTabIndex = 8
         setupTabs()
         currentCategories.clear()
@@ -7858,7 +8001,7 @@ class MainActivity : AppCompatActivity() {
 
     /** 顶栏已点按钮  */
     private fun showOrderListPage() {
-        showSubPageShell("主页 / 已点")
+        showSubPageShell(KtvRaw.get(R.string.ui_a_0633), getString(R.string.ui_a_0633))
         currentTabIndex = 4
         setupTabs()
         loadOrderedList()
@@ -7870,16 +8013,16 @@ class MainActivity : AppCompatActivity() {
         activeSearchQuery = ""
         setSearchText("")
         currentTabIndex = 10
-        showSubPageShell("主页 / 本地")
+        showSubPageShell(KtvRaw.get(R.string.ui_a_0634), getString(R.string.ui_a_0634))
         setupTabs()
         keyboardArea?.visibility = View.VISIBLE
         browseMode = "local"
-        browseParam = "全部"
+        browseParam = KtvRaw.get(R.string.ui_a_0069)
         browsePage = 0
         currentCategories.clear()
-        currentCategories.add("全部")
+        currentCategories.add(KtvRaw.get(R.string.ui_a_0069))
         currentCategoryIndex = 0
-        searchLanguage = "全部"
+        searchLanguage = KtvRaw.get(R.string.ui_a_0069)
         updateCategories()
         loadLocalCatalogPage()
         io.execute {
@@ -7887,7 +8030,7 @@ class MainActivity : AppCompatActivity() {
             main.post {
                 if (currentTabIndex != 10 || searchScope != "local") return@post
                 currentCategories.clear()
-                currentCategories.add("全部")
+                currentCategories.add(KtvRaw.get(R.string.ui_a_0069))
                 currentCategories.addAll(languages)
                 currentCategoryIndex = currentCategories.indexOf(searchLanguage).coerceAtLeast(0)
                 updateCategories()
@@ -7945,7 +8088,7 @@ class MainActivity : AppCompatActivity() {
             .toList()
         selected.addAll(immediateRecommendations)
         populateRecommendationGrid(grid, immediateRecommendations, historySnapshot)
-        confirm.text = "一键点歌(${immediateRecommendations.size}首)"
+        confirm.text = getString(R.string.ui_p_089, immediateRecommendations.size)
         confirm.isEnabled = immediateRecommendations.isNotEmpty()
         confirm.alpha = if (immediateRecommendations.isEmpty()) 0.55f else 1f
         io.execute {
@@ -7960,7 +8103,7 @@ class MainActivity : AppCompatActivity() {
                 selected.clear()
                 selected.addAll(quickRecommendations)
                 populateRecommendationGrid(grid, quickRecommendations, historySnapshot)
-                confirm.text = "一键点歌(${quickRecommendations.size}首)"
+                confirm.text = getString(R.string.ui_p_090, quickRecommendations.size)
                 confirm.isEnabled = quickRecommendations.isNotEmpty()
                 confirm.alpha = if (quickRecommendations.isEmpty()) 0.55f else 1f
             }
@@ -7975,7 +8118,7 @@ class MainActivity : AppCompatActivity() {
                 selected.clear()
                 selected.addAll(recommendations)
                 populateRecommendationGrid(grid, recommendations, historySnapshot)
-                confirm.text = "一键点歌(${recommendations.size}首)"
+                confirm.text = getString(R.string.ui_p_091, recommendations.size)
                 confirm.isEnabled = recommendations.isNotEmpty()
                 confirm.alpha = if (recommendations.isEmpty()) 0.55f else 1f
             }
@@ -8010,12 +8153,12 @@ class MainActivity : AppCompatActivity() {
                 }, FrameLayout.LayoutParams(-1, -1))
                 val historyCount = history.count { stableId(it) == stableId(song) }
                 val recommendationLabel = when {
-                    historyCount > 0 -> "您共唱过${historyCount}次"
-                    index == 3 -> "飙升榜TOP1"
-                    index == 5 -> "新歌榜TOP5"
-                    index == 7 -> "抖音榜TOP1"
-                    index >= 8 -> "人气热歌"
-                    else -> "热门TOP${index + 1}"
+                    historyCount > 0 -> getString(R.string.ui_p_sung_times, historyCount)
+                    index == 3 -> getString(R.string.ui_a_0640)
+                    index == 5 -> getString(R.string.ui_a_0641)
+                    index == 7 -> getString(R.string.ui_a_0642)
+                    index >= 8 -> getString(R.string.ui_a_0643)
+                    else -> getString(R.string.ui_p_hot_top, index + 1)
                 }
                 addView(label(
                     recommendationLabel,
@@ -8028,7 +8171,7 @@ class MainActivity : AppCompatActivity() {
                 }, FrameLayout.LayoutParams(dp(104), -1, Gravity.END))
                 setOnClickListener {
                     addToQueue(song)
-                    toast("已点歌：${song.title}")
+                    toast(getString(R.string.ui_p_092, song.title))
                 }
             }
             installPressFeedback(item)
@@ -8050,7 +8193,7 @@ class MainActivity : AppCompatActivity() {
         val tabs: Array<out String?>
         val targets: IntArray
         if (currentTabIndex >= 4 && currentTabIndex <= 6) {
-            tabs = arrayOf<String>("已点", "已唱", "下载")
+            tabs = arrayOf<String>(getString(R.string.ui_a_0229), getString(R.string.ui_a_0234), getString(R.string.ui_a_0236))
             targets = intArrayOf(4, 5, 6)
         } else if (currentTabIndex == 1 || currentTabIndex == 2 || currentTabIndex == 3 ||
             currentTabIndex == 7 || currentTabIndex == 8 || currentTabIndex == 9
@@ -8058,7 +8201,7 @@ class MainActivity : AppCompatActivity() {
             tabContainer!!.setVisibility(View.GONE)
             return
         } else {
-            tabs = arrayOf<String>("全网", "本地")
+            tabs = arrayOf<String>(getString(R.string.ui_a_0646), getString(R.string.ui_a_0198))
             targets = intArrayOf(0, 10)
         }
         tabContainer!!.setVisibility(View.VISIBLE)
@@ -8069,7 +8212,7 @@ class MainActivity : AppCompatActivity() {
             tab.minWidth = 0
             tab.setPadding(0, 0, 0, 0)
             tab.gravity = Gravity.CENTER
-            tab.setAccessibleFocus("focus:tab:$label", "分类，$label")
+            tab.setAccessibleFocus("focus:tab:$label", getString(R.string.ui_a_0647, label))
             tab.isFocusable = true
             tab.isClickable = true
             updateTabStyle(tab, index == currentTabIndex)
@@ -8204,7 +8347,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun clearHomeTopFocusNavigation() {
         listOfNotNull(
-            btnTopSearch, btnTopOrder, btnTopVocal, btnTopNext, btnTopPause, btnTopReplay, btnTopTone,
+            btnTopSearch, btnTopLanguage, btnTopOrder, btnTopVocal, btnTopNext, btnTopPause, btnTopReplay, btnTopTone,
         ).forEach { it.nextFocusDownId = View.NO_ID }
     }
 
@@ -8405,11 +8548,11 @@ class MainActivity : AppCompatActivity() {
         activeSearchQuery = ""
         setSearchText("")
         currentTabIndex = 9
-        showSubPageShell("主页 / 排行榜")
+        showSubPageShell(KtvRaw.get(R.string.ui_a_0648), getString(R.string.ui_a_0648))
         setupTabs()
         if (keyboardArea != null) keyboardArea!!.setVisibility(View.GONE)
         rankCategoryGrid?.visibility = View.VISIBLE
-        listTitle!!.setText("排行榜")
+        listTitle!!.setText(getString(R.string.ui_a_0649))
         browseMode = "rank"
         browseParam = ""
         browsePage = 0
@@ -8419,7 +8562,7 @@ class MainActivity : AppCompatActivity() {
         updateCategories()
         if (!library.muse.isAvailable()) {
             catalogRefreshPending = true
-            busy(true, "曲库加载中...")
+            busy(true, getString(R.string.ui_a_0650))
             return
         }
         io.execute {
@@ -8442,7 +8585,8 @@ class MainActivity : AppCompatActivity() {
                     playlists.indexOfFirst { it[2] == "2" || it[1] == "热歌榜" }
                 }.takeIf { it >= 0 } ?: 0
                 browseParam = rankPlaylistIds.getOrNull(currentCategoryIndex).orEmpty()
-                listTitle!!.text = currentCategories.getOrNull(currentCategoryIndex) ?: "排行榜"
+                val rankTitle = currentCategories.getOrNull(currentCategoryIndex)
+        listTitle!!.text = if (rankTitle.isNullOrEmpty()) getString(R.string.ui_a_0649) else displayCategory(rankTitle)
                 updateRankCategoryGrid()
                 subCategoryScroll?.visibility = View.GONE
                 loadBrowsePage()
@@ -8450,7 +8594,11 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /** 按榜单名挑专属主题图, 未命中回退默认奖杯。 */
+    /**
+     * 按榜单名挑专属主题图, 未命中回退默认奖杯。
+     * 以下是曲库返回的固定中文分类键，仅用于图标匹配，不直接显示。
+     * 界面显示统一走 displayCategory() / KtvRaw.displayPlaylistName()。
+     */
     private fun rankIconRes(title: String): Int = when {
         title.contains("劲歌") || title.contains("热舞") || title.contains("舞") -> R.drawable.img_rank_dance
         title.contains("新歌") -> R.drawable.img_rank_new
@@ -8483,7 +8631,7 @@ class MainActivity : AppCompatActivity() {
         val labelSp = if (iconSize >= dp(42)) 14f else 12f
         currentCategories.take(9).forEachIndexed { index, title ->
             val tile = TextView(this).apply {
-                text = title
+                text = displayCategory(title)
                 textSize = labelSp
                 setTextColor(Color.WHITE)
                 gravity = Gravity.CENTER
@@ -8503,7 +8651,7 @@ class MainActivity : AppCompatActivity() {
                     browseMode = "rank"
                     browseParam = rankPlaylistIds.getOrNull(index).orEmpty()
                     browsePage = 0
-                    listTitle?.text = title
+                    listTitle?.text = displayCategory(title)
                     updateRankCategoryGrid()
                     loadBrowsePage()
                 }
@@ -8534,7 +8682,7 @@ class MainActivity : AppCompatActivity() {
         activeSearchQuery = ""
         setSearchText("")
         currentTabIndex = 2
-        showSubPageShell("主页 / 分类")
+        showSubPageShell(KtvRaw.get(R.string.ui_a_0652), getString(R.string.ui_a_0652))
         setupTabs()
         currentCategories.clear()
         currentCategoryIndex = -1
@@ -8550,7 +8698,7 @@ class MainActivity : AppCompatActivity() {
         activeSearchQuery = categoryParentQuery
         setSearchText(categoryParentQuery)
         currentTabIndex = 2
-        showSubPageShell("主页 / 分类")
+        showSubPageShell(KtvRaw.get(R.string.ui_a_0652), getString(R.string.ui_a_0652))
         setupTabs()
         currentCategories.clear()
         currentCategoryIndex = -1
@@ -8568,8 +8716,8 @@ class MainActivity : AppCompatActivity() {
     private fun openHomeBannerTarget(index: Int) {
         when (index % homeBanners.size) {
             0 -> loadHotSongs("新歌榜")
-            1 -> loadTagGroupPage("戏曲")
-            else -> showKeywordPlaylistPage("广场舞")
+            1 -> loadTagGroupPage(KtvRaw.get(R.string.ui_a_0728))
+            else -> showKeywordPlaylistPage(KtvRaw.get(R.string.ui_a_0729))
         }
     }
 
@@ -8580,14 +8728,17 @@ class MainActivity : AppCompatActivity() {
     private fun showKeywordPlaylistPage(keyword: String) {
         if (!library.muse.isAvailable()) {
             catalogRefreshPending = true
-            busy(true, "曲库加载中...")
+            busy(true, getString(R.string.ui_a_0650))
             return
         }
         searchScope = "none"
         activeSearchQuery = ""
         setSearchText("")
         currentTabIndex = 2
-        showSubPageShell("主页 / $keyword")
+        showSubPageShell(
+            getString(R.string.ui_header_home) + " / $keyword",
+            getString(R.string.ui_header_home) + " / " + displayCategory(keyword)
+        )
         setupTabs()
         currentCategories.clear()
         currentCategoryIndex = -1
@@ -8625,7 +8776,7 @@ class MainActivity : AppCompatActivity() {
     private fun loadTagGroupPage(groupName: String) {
         if (!library.muse.isAvailable()) {
             catalogRefreshPending = true
-            busy(true, "曲库加载中...")
+            busy(true, getString(R.string.ui_a_0650))
             return
         }
         if (library.muse.tagGroupPlaylistCount(groupName) <= 0) {
@@ -8636,7 +8787,10 @@ class MainActivity : AppCompatActivity() {
         activeSearchQuery = ""
         setSearchText("")
         currentTabIndex = 2
-        showSubPageShell("主页 / $groupName")
+        showSubPageShell(
+            getString(R.string.ui_header_home) + " / $groupName",
+            getString(R.string.ui_header_home) + " / " + displayCategory(groupName)
+        )
         setupTabs()
         currentCategories.clear()
         currentCategoryIndex = -1
@@ -8676,7 +8830,10 @@ class MainActivity : AppCompatActivity() {
         activeSearchQuery = ""
         setSearchText("")
         currentTabIndex = 9
-        showSubPageShell("主页 / $keyword")
+        showSubPageShell(
+            getString(R.string.ui_header_home) + " / $keyword",
+            getString(R.string.ui_header_home) + " / " + displayCategory(keyword)
+        )
         setupTabs()
         currentCategories.clear()
         currentCategoryIndex = -1
@@ -8687,7 +8844,7 @@ class MainActivity : AppCompatActivity() {
         browseMode = "search"
         browseParam = keyword
         browsePage = 0
-        searchLanguage = "全部"
+        searchLanguage = KtvRaw.get(R.string.ui_a_0069)
         listTitle?.text = keyword
         loadBrowsePage()
     }
@@ -8699,7 +8856,7 @@ class MainActivity : AppCompatActivity() {
     private fun openCategoryPlaylistByKeyword(keyword: String) {
         if (!library.muse.isAvailable()) {
             catalogRefreshPending = true
-            busy(true, "曲库加载中...")
+            busy(true, getString(R.string.ui_a_0650))
             return
         }
         io.execute {
@@ -8744,7 +8901,11 @@ class MainActivity : AppCompatActivity() {
         categoryParentPage = browsePage
         categoryParentQuery = activeSearchQuery
         clearSearchForFilterChange()
-        showSubPageShell("主页 / 分类 / ${playlist.getOrNull(1).orEmpty()}")
+        val playlistName = playlist.getOrNull(1).orEmpty()
+        showSubPageShell(
+            KtvRaw.get(R.string.ui_a_0653, playlistName),
+            getString(R.string.ui_a_0653, KtvRaw.displayPlaylistName(playlistName))
+        )
         currentTabIndex = 2
         setupTabs()
         searchScope = "playlist_songs"
@@ -8811,9 +8972,9 @@ class MainActivity : AppCompatActivity() {
      */
     private fun loadLanguages() {
         currentTabIndex = 2
-        showSubPageShell("主页 / 语种")
+        showSubPageShell(KtvRaw.get(R.string.ui_a_0654), getString(R.string.ui_a_0654))
         setupTabs()
-        listTitle!!.setText("语种点歌")
+        listTitle!!.setText(getString(R.string.ui_a_0150))
         if (library.muse.isAvailable()) {
             currentCategories.clear()
             currentCategories.addAll(library.muse.languages())
@@ -8833,16 +8994,16 @@ class MainActivity : AppCompatActivity() {
      */
     private fun loadWordCounts() {
         currentTabIndex = 3
-        showSubPageShell("主页 / 字数")
+        showSubPageShell(KtvRaw.get(R.string.ui_a_0655), getString(R.string.ui_a_0655))
         setupTabs()
-        listTitle!!.setText("字数点歌")
+        listTitle!!.setText(getString(R.string.ui_a_0152))
         currentCategories.clear()
-        currentCategories.add("2字")
-        currentCategories.add("3字")
-        currentCategories.add("4字")
-        currentCategories.add("5字")
-        currentCategories.add("6字")
-        currentCategories.add("7字以上")
+        currentCategories.add(KtvRaw.get(R.string.ui_a_0656))
+        currentCategories.add(KtvRaw.get(R.string.ui_a_0657))
+        currentCategories.add(KtvRaw.get(R.string.ui_a_0658))
+        currentCategories.add(KtvRaw.get(R.string.ui_a_0659))
+        currentCategories.add(KtvRaw.get(R.string.ui_a_0660))
+        currentCategories.add(KtvRaw.get(R.string.ui_a_0661))
         currentCategoryIndex = 0
         updateCategories()
         browseMode = "wordcount"
@@ -8859,21 +9020,21 @@ class MainActivity : AppCompatActivity() {
         activeSearchQuery = ""
         setSearchText("")
         currentTabIndex = 1
-        showSubPageShell("主页 / 歌星")
+        showSubPageShell(KtvRaw.get(R.string.ui_a_0662), getString(R.string.ui_a_0662))
         setupTabs()
-        listTitle!!.setText("歌星点歌")
+        listTitle!!.setText(getString(R.string.ui_a_0148))
         currentCategories.clear()
-        currentCategories.add("全部")
-        currentCategories.add("大陆男")
-        currentCategories.add("大陆女")
-        currentCategories.add("港台男")
-        currentCategories.add("港台女")
-        currentCategories.add("中国组合")
-        currentCategories.add("外国组合")
+        currentCategories.add(KtvRaw.get(R.string.ui_a_0069))
+        currentCategories.add(KtvRaw.get(R.string.ui_a_0663))
+        currentCategories.add(KtvRaw.get(R.string.ui_a_0664))
+        currentCategories.add(KtvRaw.get(R.string.ui_a_0665))
+        currentCategories.add(KtvRaw.get(R.string.ui_a_0666))
+        currentCategories.add(KtvRaw.get(R.string.ui_a_0667))
+        currentCategories.add(KtvRaw.get(R.string.ui_a_0668))
         currentCategoryIndex = 0
         updateCategories()
         browsePage = 0
-        loadSingerList("全部")
+        loadSingerList(KtvRaw.get(R.string.ui_a_0069))
     }
 
     private fun loadSingerList(type: String?, query: String = activeSearchQuery) {
@@ -8881,7 +9042,7 @@ class MainActivity : AppCompatActivity() {
         browseParam = type
         if (!library.muse.isAvailable()) {
             catalogRefreshPending = true
-            busy(true, "曲库加载中...")
+            busy(true, getString(R.string.ui_a_0650))
             return
         }
         val requestVersion = ++browseRequestVersion
@@ -8935,7 +9096,7 @@ class MainActivity : AppCompatActivity() {
         searchContextId = singerId.orEmpty()
         activeSearchQuery = ""
         setSearchText("")
-        showSubPageShell("主页 / 歌星 / " + singerName)
+        showSubPageShell(KtvRaw.get(R.string.ui_a_0669) + singerName, getString(R.string.ui_a_0669) + singerName)
         currentTabIndex = 1
         setupTabs()
         browseMode = "singer_id"
@@ -8952,13 +9113,13 @@ class MainActivity : AppCompatActivity() {
      * 加载歌单
      */
     private fun loadPlaylists() {
-        showSubPageShell("主页 / 歌单")
-        listTitle!!.setText("我的歌单")
+        showSubPageShell(KtvRaw.get(R.string.ui_a_0670), getString(R.string.ui_a_0670))
+        listTitle!!.setText(getString(R.string.ui_a_0157))
         currentCategories.clear()
         // 获取歌单列表(从数据库 playlists 表)
         val playlistData: MutableList<Array<String?>> = library.muse.playlists(0, 100)
         if (playlistData.isEmpty()) {
-            currentCategories.add("暂无歌单")
+            currentCategories.add(KtvRaw.get(R.string.ui_a_0671))
         } else {
             for (p in playlistData) {
                 currentCategories.add(p[1].orEmpty()) // p[1] 是歌单名称
@@ -8979,10 +9140,10 @@ class MainActivity : AppCompatActivity() {
      */
     private fun loadOrderedList() {
         currentTabIndex = 4
-        showSubPageShell("主页 / 已点")
+        showSubPageShell(KtvRaw.get(R.string.ui_a_0633), getString(R.string.ui_a_0633))
         setupTabs()
         if (keyboardArea != null) keyboardArea!!.setVisibility(View.GONE)
-        listTitle!!.setText("已点歌曲 (" + orderQueue!!.size + ")")
+        listTitle!!.setText(getString(R.string.ui_a_0672) + orderQueue!!.size + ")")
         currentCategories.clear()
         currentCategoryIndex = 0
         browseMode = "ordered"
@@ -9001,9 +9162,9 @@ class MainActivity : AppCompatActivity() {
      */
     private fun loadDownloadedList() {
         currentTabIndex = 6
-        showSubPageShell("主页 / 下载")
+        showSubPageShell(KtvRaw.get(R.string.ui_a_0673), getString(R.string.ui_a_0673))
         setupTabs()
-        listTitle!!.setText("下载管理")
+        listTitle!!.setText(getString(R.string.ui_a_0161))
         currentCategories.clear()
         currentCategoryIndex = 0
         browseMode = "downloads"
@@ -9015,7 +9176,7 @@ class MainActivity : AppCompatActivity() {
             visibleSongs.add(task.song)
         }
         if (visibleSongs.isEmpty()) {
-            toast("暂无下载任务")
+            toast(getString(R.string.ui_a_0674))
         }
         updateCategories()
         renderSongList()
@@ -9065,10 +9226,10 @@ class MainActivity : AppCompatActivity() {
      */
     private fun loadSangHistory() {
         currentTabIndex = 5
-        showSubPageShell("主页 / 已唱")
+        showSubPageShell(KtvRaw.get(R.string.ui_a_0675), getString(R.string.ui_a_0675))
         setupTabs()
         if (keyboardArea != null) keyboardArea!!.setVisibility(View.GONE)
-        listTitle!!.setText("已唱历史 (" + sangHistory.size + ")")
+        listTitle!!.setText(getString(R.string.ui_a_0676) + sangHistory.size + ")")
         currentCategories.clear()
         currentCategoryIndex = 0
         browseMode = "sang"
@@ -9085,9 +9246,9 @@ class MainActivity : AppCompatActivity() {
      */
     private fun loadFavorites() {
         currentTabIndex = 7
-        showSubPageShell("主页 / 收藏")
+        showSubPageShell(KtvRaw.get(R.string.ui_a_0677), getString(R.string.ui_a_0677))
         setupTabs()
-        listTitle!!.setText("我的收藏")
+        listTitle!!.setText(getString(R.string.ui_a_0094))
         currentCategories.clear()
         currentCategoryIndex = 0
         browseMode = "favorites"
@@ -9096,7 +9257,7 @@ class MainActivity : AppCompatActivity() {
         visibleSongs.clear()
         if (!library.muse.isAvailable()) {
             catalogRefreshPending = true
-            busy(true, "曲库加载中...")
+            busy(true, getString(R.string.ui_a_0650))
             return
         }
         // 从数据库查询收藏歌曲
@@ -9112,7 +9273,7 @@ class MainActivity : AppCompatActivity() {
                 visibleSongs.addAll(result)
                 updateCategories()
                 renderSongList()
-                if (visibleSongs.isEmpty()) toast("暂无收藏，长按歌曲可收藏")
+                if (visibleSongs.isEmpty()) toast(getString(R.string.ui_a_0678))
             })
         })
     }
@@ -9122,7 +9283,7 @@ class MainActivity : AppCompatActivity() {
      */
     private fun showSettingsPage(requestInitialFocus: Boolean = true) {
         currentTabIndex = 8
-        showSubPageShell("主页 / 设置")
+        showSubPageShell(getString(R.string.ui_header_home) + " / " + getString(R.string.ui_set_action_settings))
         browseMode = "settings"
         visibleSongs.clear()
         currentCategories.clear()
@@ -9134,16 +9295,16 @@ class MainActivity : AppCompatActivity() {
         browsePagination?.visibility = View.GONE
 
         val entries = listOf(
-            SettingsEntry(R.drawable.ott_ic_data_setting, "数据设置", "数据库、歌曲下载、歌曲文件相关设置") { showSettingsSection(1) },
-            SettingsEntry(R.drawable.ott_ic_play, "播放设置", "播放器、视频窗口相关设置") { showSettingsSection(2) },
-            SettingsEntry(R.drawable.ott_ic_sound, "声音设置") { showSoundSettingsDialog() },
+            SettingsEntry(R.drawable.ott_ic_data_setting, getString(R.string.ui_sec_data), getString(R.string.ui_set_data_sub)) { showSettingsSection(1) },
+            SettingsEntry(R.drawable.ott_ic_play, getString(R.string.ui_sec_playback), getString(R.string.ui_set_playback_sub)) { showSettingsSection(2) },
+            SettingsEntry(R.drawable.ott_ic_sound, getString(R.string.ui_a_0740)) { showSoundSettingsDialog() },
             SettingsEntry(
                 R.drawable.ott_ic_data_upgrade,
-                "应用更新",
-                "当前版本 ${BuildConfig.VERSION_NAME}，更新来源：Gitea Release",
-                "检查更新",
+                getString(R.string.ui_a_0134),
+                getString(R.string.ui_p_101, BuildConfig.VERSION_NAME),
+                getString(R.string.ui_set_action_update),
             ) { checkAppUpdate(true) },
-            SettingsEntry(R.drawable.ott_ic_about_us, "关于", actionText = "查看") { showAboutDialog() },
+            SettingsEntry(R.drawable.ott_ic_about_us, getString(R.string.ui_a_0297), actionText = getString(R.string.ui_set_action_view)) { showAboutDialog() },
         )
         activeSettingsEntries = entries
         songList!!.setDivider(ColorDrawable(Color.TRANSPARENT))
@@ -9160,9 +9321,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showSettingsSection(section: Int, requestInitialFocus: Boolean = true) {
-        val names = arrayOf("网络设置", "数据设置", "播放设置", "声音设置", "界面设置")
+        val names = arrayOf(getString(R.string.ui_a_0177), getString(R.string.ui_sec_data), getString(R.string.ui_sec_playback), getString(R.string.ui_a_0740), getString(R.string.ui_sec_display))
         currentTabIndex = 8
-        showSubPageShell("主页 / 设置 / ${names[section]}")
+        showSubPageShell(getString(R.string.ui_header_home) + " / " + getString(R.string.ui_set_action_settings) + " / ${names[section]}")
         browseMode = "settings_section"
         currentCategories.clear()
         updateCategories()
@@ -9171,38 +9332,38 @@ class MainActivity : AppCompatActivity() {
         browsePagination?.visibility = View.GONE
         val entries = when (section) {
             0 -> listOf(
-                SettingsEntry(R.drawable.ott_ic_wifi_setting, "无线网络") {
+                SettingsEntry(R.drawable.ott_ic_wifi_setting, getString(R.string.ui_a_0681)) {
                     runCatching { startActivity(Intent(android.provider.Settings.ACTION_WIFI_SETTINGS)) }
                 },
             )
             1 -> listOf(
                 SettingsEntry(
                     R.drawable.ott_ic_data_upgrade,
-                    "曲库",
-                    "统计中…",
-                    "更新",
+                    getString(R.string.ui_sec_library),
+                    getString(R.string.ui_p_counting),
+                    getString(R.string.ui_update),
                 ) {
                     // 手动强制检查更新(绕过 30 天时效; 仅当服务器版本更新时才下载)
                     forceDatabaseSync()
                 },
-                SettingsEntry(R.drawable.ott_ic_data_setting, "U盘加歌", "扫描U盘内按规定命名的歌曲文件，并添加到曲库中", "立即加歌") { toast("未检测到U盘") },
-                SettingsEntry(R.drawable.ott_ic_setting_storage_space, "预留存储空间", "当前 ${String.format(Locale.ROOT, "%.1f", reserveStorageGb)} GB") { showReserveStorageDialog() },
-                SettingsEntry(R.drawable.ott_ic_data_reset, "自动删歌", "当剩余存储空间低于预留空间时，自动删除最久未使用的歌曲", action = {
+                SettingsEntry(R.drawable.ott_ic_data_setting, getString(R.string.ui_p_045), getString(R.string.ui_p_046), getString(R.string.ui_a_0683)) { toast(getString(R.string.ui_p_047)) },
+                SettingsEntry(R.drawable.ott_ic_setting_storage_space, getString(R.string.ui_sec_reserve), getString(R.string.ui_p_102, String.format(Locale.ROOT, "%.1f", reserveStorageGb))) { showReserveStorageDialog() },
+                SettingsEntry(R.drawable.ott_ic_data_reset, getString(R.string.ui_sec_auto_delete), getString(R.string.ui_sec_auto_delete_sub), action = {
                     autoDeleteSongs = !autoDeleteSongs
                     saveState()
                     if (autoDeleteSongs) enforceStorageReserve(showResult = true)
                 }, checked = autoDeleteSongs),
-                SettingsEntry(R.drawable.ott_ic_data_upgrade, "重置数据库", "删除本地数据库并重新下载", "重置") { confirmResetDatabase() },
-                SettingsEntry(R.drawable.ott_ic_setting_storage_space, "硬盘读写权限") { toast(storageStatusText()) },
+                SettingsEntry(R.drawable.ott_ic_data_upgrade, getString(R.string.ui_p_056), getString(R.string.ui_p_103), getString(R.string.ui_sec_action_reset)) { confirmResetDatabase() },
+                SettingsEntry(R.drawable.ott_ic_setting_storage_space, getString(R.string.ui_sec_permission)) { toast(storageStatusText()) },
             )
             2 -> listOf(
-                SettingsEntry(R.drawable.ott_ic_download_setting, "开机清空下载列表", "开机时删除本地已下载歌曲并清理数据库状态", action = { clearDownloadsOnBoot = !clearDownloadsOnBoot; saveState() }, checked = clearDownloadsOnBoot),
-                SettingsEntry(R.drawable.ott_ic_tv_display_mode, "自动全屏", "设置多久未操作后自动进入全屏", "设置间隔") { showAutoFullscreenDialog() },
-                SettingsEntry(R.drawable.ott_ic_play, "音画同步") { showAudioSyncDialog() },
-                SettingsEntry(R.drawable.ott_ic_marquee_setting, "歌曲片头字幕", action = { songTitleSubtitleEnabled = !songTitleSubtitleEnabled; saveState() }, checked = songTitleSubtitleEnabled),
+                SettingsEntry(R.drawable.ott_ic_download_setting, getString(R.string.ui_play_clear_downloads), getString(R.string.ui_play_clear_downloads_sub), action = { clearDownloadsOnBoot = !clearDownloadsOnBoot; saveState() }, checked = clearDownloadsOnBoot),
+                SettingsEntry(R.drawable.ott_ic_tv_display_mode, getString(R.string.ui_play_autofull), getString(R.string.ui_play_autofull_sub), getString(R.string.ui_a_0724)) { showAutoFullscreenDialog() },
+                SettingsEntry(R.drawable.ott_ic_play, getString(R.string.ui_a_0725)) { showAudioSyncDialog() },
+                SettingsEntry(R.drawable.ott_ic_marquee_setting, getString(R.string.ui_play_subtitle), action = { songTitleSubtitleEnabled = !songTitleSubtitleEnabled; saveState() }, checked = songTitleSubtitleEnabled),
             )
             3 -> listOf(
-                SettingsEntry(R.drawable.ott_ic_sound, "声音设置") { showSoundSettingsDialog() },
+                SettingsEntry(R.drawable.ott_ic_sound, getString(R.string.ui_a_0740)) { showSoundSettingsDialog() },
             )
             else -> emptyList()
         }
@@ -9229,8 +9390,8 @@ class MainActivity : AppCompatActivity() {
             main.post {
                 if (activeSettingsAdapter === adapter) {
                     adapter.updateSubtitle(
-                        "曲库",
-                        "数据库 $count 首  本地已下载 $downloaded 首  ·  ${DatabaseBootstrapper.SYNC_TTL_DAYS} 天同步: $syncText",
+                        getString(R.string.ui_sec_library),
+                        getString(R.string.ui_p_104, count, downloaded, DatabaseBootstrapper.SYNC_TTL_DAYS, syncText),
                     )
                 }
             }
@@ -9242,13 +9403,13 @@ class MainActivity : AppCompatActivity() {
      * 仅在服务器版本更新(或本地库不可用)时才下载, 避免无谓的大文件传输。
      */
     private fun forceDatabaseSync() {
-        showDatabaseLoading(true, "正在检查曲库更新...", null)
+        showDatabaseLoading(true, getString(R.string.ui_p_048), null)
         io.execute {
             val remoteVersion = DatabaseBootstrapper.fetchRemoteVersion()
             if (remoteVersion == null) {
                 main.post {
                     showDatabaseLoading(false, "", null)
-                    toast("检查失败：无法连接曲库服务器")
+                    toast(getString(R.string.ui_p_049))
                     showSettingsSection(1, false)
                 }
                 return@execute
@@ -9258,7 +9419,7 @@ class MainActivity : AppCompatActivity() {
                 DatabaseBootstrapper.markSynced()
                 main.post {
                     showDatabaseLoading(false, "", null)
-                    toast("曲库已是最新版本")
+                    toast(getString(R.string.ui_p_050))
                     showSettingsSection(1, false)
                 }
                 return@execute
@@ -9269,10 +9430,10 @@ class MainActivity : AppCompatActivity() {
             main.post {
                 if (ok) {
                     showDatabaseLoading(false, "", null)
-                    toast("曲库同步完成")
+                    toast(getString(R.string.ui_p_051))
                     showSettingsSection(1, false)
                 } else {
-                    showDatabaseLoadingFailure("曲库同步失败：${result.exceptionOrNull()?.message.orEmpty()}")
+                    showDatabaseLoadingFailure(getString(R.string.ui_p_093, result.exceptionOrNull()?.message.orEmpty()))
                 }
             }
         }
@@ -9283,11 +9444,11 @@ class MainActivity : AppCompatActivity() {
         return manager?.activeNetworkInfo?.isConnected == true
     }
 
-    private fun networkStatusText(): String = if (isNetworkConnected()) "已连接" else "未连接"
+    private fun networkStatusText(): String = if (isNetworkConnected()) KtvRaw.get(R.string.ui_a_0358) else KtvRaw.get(R.string.ui_a_0359)
 
     private fun storageStatusText(): String {
         val root = Environment.getExternalStorageDirectory()
-        return "可用 ${formatSize(root.usableSpace)} / 总计 ${formatSize(root.totalSpace)}"
+        return getString(R.string.ui_p_105, formatSize(root.usableSpace), formatSize(root.totalSpace))
     }
 
     private fun downloadedSongDirectory(): File =
@@ -9424,8 +9585,8 @@ class MainActivity : AppCompatActivity() {
             val enough = !isBelowReservedStorage()
             if (showResult) main.post {
                 toast(
-                    if (enough) "已清理 $deleted 首歌曲，预留空间已恢复"
-                    else "已清理 $deleted 首歌曲，受保护歌曲不会被删除，空间仍不足",
+                    if (enough) getString(R.string.ui_a_0701, deleted)
+                    else getString(R.string.ui_a_0702, deleted),
                 )
                 if (browseMode == "settings_section") showSettingsSection(1, false)
             }
@@ -9458,15 +9619,15 @@ class MainActivity : AppCompatActivity() {
 
     private fun confirmResetDatabase() {
         AlertDialog.Builder(this)
-            .setTitle("重置数据库")
-            .setMessage("将删除本地曲库数据库，然后重新从官方曲库同步下载。不会保留备份，是否继续？")
-            .setNegativeButton("取消", null)
-            .setPositiveButton("确认") { _, _ -> resetDatabaseFromMuse() }
+            .setTitle(getString(R.string.ui_p_056))
+            .setMessage(getString(R.string.ui_p_057))
+            .setNegativeButton(getString(R.string.ui_cancel), null)
+            .setPositiveButton(getString(R.string.ui_a_0706)) { _, _ -> resetDatabaseFromMuse() }
             .create().showForTv()
     }
 
     private fun resetDatabaseFromMuse() {
-        showDatabaseLoading(true, "正在重置数据库...", null)
+        showDatabaseLoading(true, getString(R.string.ui_p_058), null)
         io.execute {
             library.muse.close()
             MuseDatabase.defaultDbFile().delete()
@@ -9475,10 +9636,10 @@ class MainActivity : AppCompatActivity() {
             main.post {
                 if (opened) {
                     showDatabaseLoading(false, "", null)
-                    toast("数据库重置完成")
+                    toast(getString(R.string.ui_p_059))
                     showSettingsSection(1, false)
                 } else {
-                    showDatabaseLoadingFailure("数据库重置失败：${result.exceptionOrNull()?.message.orEmpty()}")
+                    showDatabaseLoadingFailure(getString(R.string.ui_p_094, result.exceptionOrNull()?.message.orEmpty()))
                 }
             }
         }
@@ -9531,7 +9692,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 addView(databaseLoadingProgress, LinearLayout.LayoutParams(dp(620), dp(10)))
                 databaseRetryButton = TextView(this@MainActivity).apply {
-                    text = "重试"
+                    text = getString(R.string.ui_a_0713)
                     textSize = 19f
                     gravity = Gravity.CENTER
                     setTextColor(Color.rgb(45, 20, 65))
@@ -9580,7 +9741,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showDatabaseLoadingFailure(message: String) {
-        showDatabaseLoading(true, "$message\n请检查网络或空间后重试", null)
+        showDatabaseLoading(true, getString(R.string.ui_db_fail_hint, message), null)
         databaseRetryButton?.apply {
             visibility = View.VISIBLE
             setOnClickListener {
@@ -9650,7 +9811,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showScreenDialog() {
-        val items = arrayOf<String>("16 : 9", "4 : 3", "全屏")
+        val items = arrayOf<String>("16 : 9", "4 : 3", getString(R.string.ui_a_0717))
         val selected = when (screenMode) {
             "16 : 9" -> 0
             "4 : 3" -> 1
@@ -9659,10 +9820,10 @@ class MainActivity : AppCompatActivity() {
         var pending = selected
         val choices = dialogSingleChoiceGroup(items, selected) { pending = it }
         AlertDialog.Builder(this)
-            .setTitle("视频比例")
+            .setTitle(getString(R.string.ui_a_0718))
             .setView(choices)
-            .setNegativeButton("关闭", null)
-            .setPositiveButton("确认") { _, _ ->
+            .setNegativeButton(getString(R.string.ui_close), null)
+            .setPositiveButton(getString(R.string.ui_a_0706)) { _, _ ->
                 screenMode = items[pending]
                 saveState()
                 applyScreenMode()
@@ -9670,15 +9831,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showAutoFullscreenDialog() {
-        val items = arrayOf("30秒", "45秒", "1分钟", "2分钟", "关闭（不推荐）")
+        val items = arrayOf(getString(R.string.ui_a_0719), getString(R.string.ui_a_0720), getString(R.string.ui_a_0721), getString(R.string.ui_a_0722), getString(R.string.ui_a_0723))
         val seconds = intArrayOf(30, 45, 60, 120, 0)
         val selected = seconds.indexOf(autoFullscreenSeconds).let { if (it >= 0) it else 4 }
         var pending = selected
         val choices = dialogSingleChoiceGroup(items, selected) { pending = it }
-        AlertDialog.Builder(this).setTitle("设置间隔")
+        AlertDialog.Builder(this).setTitle(getString(R.string.ui_play_action_set))
             .setView(choices)
-            .setNegativeButton("关闭", null)
-            .setPositiveButton("确认") { _, _ ->
+            .setNegativeButton(getString(R.string.ui_close), null)
+            .setPositiveButton(getString(R.string.ui_a_0706)) { _, _ ->
                 autoFullscreenSeconds = seconds[pending]
                 saveState()
                 scheduleAutoFullscreen()
@@ -9695,9 +9856,9 @@ class MainActivity : AppCompatActivity() {
             "${String.format(Locale.ROOT, if (value < 1) "%.1f" else "%.0f", value)} GB"
         }.toTypedArray()
         var selected = values.indices.minByOrNull { kotlin.math.abs(values[it] - reserveStorageGb) } ?: 0
-        AlertDialog.Builder(this).setTitle("预留存储空间")
+        AlertDialog.Builder(this).setTitle(getString(R.string.ui_sec_reserve))
             .setSingleChoiceItems(labels, selected) { _, which -> selected = which }
-            .setNegativeButton("取消", null).setPositiveButton("保存") { _, _ ->
+            .setNegativeButton(getString(R.string.ui_cancel), null).setPositiveButton(getString(R.string.ui_a_0471)) { _, _ ->
                 reserveStorageGb = values[selected]
                 saveState()
                 if (autoDeleteSongs) enforceStorageReserve(showResult = true)
@@ -9709,7 +9870,7 @@ class MainActivity : AppCompatActivity() {
         var pendingDelay = audioDelayMs
         val seek = SeekBar(this).apply { max = 40; progress = (pendingDelay / 50 + 20).coerceIn(0, 40) }
         val value = TextView(this).apply { gravity = Gravity.CENTER; textSize = 18f }
-        fun update() { value.text = "声音${if (pendingDelay >= 0) "提前" else "延后"} ${kotlin.math.abs(pendingDelay) / 1000f} 秒" }
+        fun update() { value.text = getString(R.string.ui_p_097, if (pendingDelay >= 0) getString(R.string.ui_p_095) else getString(R.string.ui_p_096), kotlin.math.abs(pendingDelay) / 1000f) }
         update()
         seek.setOnSeekBarChangeListener(object : OnSeekBarChangeListener {
             override fun onProgressChanged(bar: SeekBar?, progress: Int, fromUser: Boolean) { pendingDelay = (progress - 20) * 50; update() }
@@ -9717,19 +9878,19 @@ class MainActivity : AppCompatActivity() {
             override fun onStopTrackingTouch(bar: SeekBar?) = Unit
         })
         val box = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(32), dp(8), dp(32), dp(16)); addView(value); addView(seek) }
-        AlertDialog.Builder(this).setTitle("音画同步").setView(box).setMessage("重唱或切歌后生效")
-            .setNegativeButton("关闭", null)
-            .setPositiveButton("确认") { _, _ -> audioDelayMs = pendingDelay; saveState() }
+        AlertDialog.Builder(this).setTitle(getString(R.string.ui_play_avsync)).setView(box).setMessage(getString(R.string.ui_a_0726))
+            .setNegativeButton(getString(R.string.ui_close), null)
+            .setPositiveButton(getString(R.string.ui_a_0706)) { _, _ -> audioDelayMs = pendingDelay; saveState() }
             .create().showForTv()
     }
 
     private fun showBannerConfigDialog() {
-        val labels = arrayOf("新歌", "戏曲", "广场舞")
+        val labels = arrayOf(getString(R.string.ui_a_0727), getString(R.string.ui_a_0728), getString(R.string.ui_a_0729))
         val pending = booleanArrayOf(true, true, true)
         val choices = dialogMultiChoiceGroup(labels, pending)
-        AlertDialog.Builder(this).setTitle("轮播图配置")
+        AlertDialog.Builder(this).setTitle(getString(R.string.ui_a_0730))
             .setView(choices)
-            .setNegativeButton("关闭", null).setPositiveButton("确认", null)
+            .setNegativeButton(getString(R.string.ui_close), null).setPositiveButton(getString(R.string.ui_a_0706), null)
             .create().showForTv()
     }
 
@@ -9737,6 +9898,18 @@ class MainActivity : AppCompatActivity() {
         var pendingOrderedSongOriginal = orderedSongOriginal
         var pendingOrderedVolumeMode = orderedVolumeMode
         var pendingOrderedVocalMode = orderedVocalMode
+        var pendingSingMode = singMode
+        // 演唱模式：显示文案跟随语言，内部写入固定中文键（与曲库/状态值一致）。
+        // 这里把它补回"声音设置"弹窗——旧版 showSingModeDialog() 已成死代码，
+        // 导致用户一旦被残留成"静音练唱"就无处改回。
+        val singModeLabels = arrayOf(
+            getString(R.string.ui_a_0088), getString(R.string.ui_a_0260),
+            getString(R.string.ui_a_0261), getString(R.string.ui_a_0262),
+        )
+        val singModeValues = arrayOf(
+            KtvRaw.get(R.string.ui_a_0088), KtvRaw.get(R.string.ui_a_0260),
+            KtvRaw.get(R.string.ui_a_0261), KtvRaw.get(R.string.ui_a_0262),
+        )
         fun title(text: String) = TextView(this).apply {
             this.text = text; textSize = 16f; setTextColor(Color.WHITE); setPadding(0, dp(4), 0, 0)
         }
@@ -9763,15 +9936,15 @@ class MainActivity : AppCompatActivity() {
         // 避免同一功能出现两套入口（音量滑杆 + 均衡器开关/预设/频段都在「调音」里）。
         val left = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            addView(title("切到点播歌曲时音量："))
-            addView(choices(arrayOf("跟随上首音量", "跟随上首点播歌曲音量"), pendingOrderedVolumeMode) { pendingOrderedVolumeMode = it })
+            addView(title(getString(R.string.ui_a_0732)))
+            addView(choices(arrayOf(getString(R.string.ui_a_0733), getString(R.string.ui_a_0734)), pendingOrderedVolumeMode) { pendingOrderedVolumeMode = it })
         }
         val right = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            addView(title("点播歌曲原伴唱"))
-            addView(choices(arrayOf("原唱", "伴唱"), if (pendingOrderedSongOriginal) 0 else 1, true) { pendingOrderedSongOriginal = it == 0 })
-            addView(title("切到点播歌曲时原伴唱："))
-            addView(choices(arrayOf("跟随上首原伴唱", "跟随上首点播原伴唱", "固定点播原伴唱"), pendingOrderedVocalMode) { pendingOrderedVocalMode = it })
+            addView(title(getString(R.string.ui_a_0735)))
+            addView(choices(arrayOf(getString(R.string.ui_a_0305), getString(R.string.ui_a_0306)), if (pendingOrderedSongOriginal) 0 else 1, true) { pendingOrderedSongOriginal = it == 0 })
+            addView(title(getString(R.string.ui_a_0736)))
+            addView(choices(arrayOf(getString(R.string.ui_a_0737), getString(R.string.ui_a_0738), getString(R.string.ui_a_0739)), pendingOrderedVocalMode) { pendingOrderedVocalMode = it })
         }
         val content = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL; setPadding(dp(28), dp(4), dp(28), dp(12))
@@ -9780,16 +9953,21 @@ class MainActivity : AppCompatActivity() {
         }
         val body = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            addView(content, LinearLayout.LayoutParams(-1, -2))
+            addView(title(getString(R.string.ui_a_0259)))
+            addView(
+                choices(singModeLabels, singModeValues.indexOf(pendingSingMode).coerceAtLeast(0)) { pendingSingMode = singModeValues[it] }
+            )
+            addView(content, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(10) })
         }
         val scroll = android.widget.ScrollView(this).apply { addView(body) }
-        val dialog = AlertDialog.Builder(this).setTitle("声音设置")
+        val dialog = AlertDialog.Builder(this).setTitle(getString(R.string.ui_set_sound))
             .setView(scroll)
-            .setNegativeButton("关闭", null)
-            .setPositiveButton("确认") { _, _ ->
+            .setNegativeButton(getString(R.string.ui_close), null)
+            .setPositiveButton(getString(R.string.ui_a_0706)) { _, _ ->
                 orderedSongOriginal = pendingOrderedSongOriginal
                 orderedVolumeMode = pendingOrderedVolumeMode
                 orderedVocalMode = pendingOrderedVocalMode
+                if (pendingSingMode != singMode) setSingMode(pendingSingMode)
                 applyPlaybackMode()
                 saveState()
             }.create()
@@ -9806,39 +9984,41 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showSingModeDialog() {
-        val items = arrayOf<String>("普通演唱", "评分演唱", "静音练唱")
+        val labels = arrayOf(getString(R.string.ui_a_0088), getString(R.string.ui_a_0261), getString(R.string.ui_a_0262))
+        val values = arrayOf(KtvRaw.get(R.string.ui_a_0088), KtvRaw.get(R.string.ui_a_0261), KtvRaw.get(R.string.ui_a_0262))
         AlertDialog.Builder(this)
-            .setTitle("演唱模式 (当前: " + singMode + ")")
-            .setItems(items, DialogInterface.OnClickListener { d: DialogInterface?, w: Int ->
-                singMode = items[w]
-                if ("评分演唱" == singMode) scoreEnabled = true
-                else if ("静音练唱" == singMode) {
+            .setTitle(getString(R.string.ui_p_060) + singMode + ")")
+            .setItems(labels, DialogInterface.OnClickListener { d: DialogInterface?, w: Int ->
+                singMode = values[w]
+                if (KtvRaw.get(R.string.ui_a_0261) == singMode) scoreEnabled = true
+                else if (KtvRaw.get(R.string.ui_a_0262) == singMode) {
                     scoreEnabled = false
                     musicVolume = 0
                 }
                 saveState()
                 applyPlaybackMode()
-                toast("演唱模式: " + singMode)
+                toast(getString(R.string.ui_p_061) + singMode)
             }).create().showForTv()
     }
 
     private fun showVocalChannelDialog() {
-        val items = arrayOf("自动", "左伴右原", "右伴左原", "全声道")
+        val labels = arrayOf(getString(R.string.ui_a_0086), getString(R.string.ui_a_0273), getString(R.string.ui_a_0274), getString(R.string.ui_a_0275))
+        val values = arrayOf(KtvRaw.get(R.string.ui_a_0086), KtvRaw.get(R.string.ui_a_0273), KtvRaw.get(R.string.ui_a_0274), KtvRaw.get(R.string.ui_a_0275))
         AlertDialog.Builder(this)
-            .setTitle("声道模式 (当前: $vocalChannelMode)")
-            .setItems(items) { _, which ->
-                setVocalChannelMode(items[which])
+            .setTitle(getString(R.string.ui_a_0743, vocalChannelMode))
+            .setItems(labels) { _, which ->
+                setVocalChannelMode(values[which])
                 showSettingsSection(3)
             }
             .create().showForTv()
     }
 
     private fun showMarqueeDialog() {
-        val status = if (marqueeEnabled) "已开启: " + marqueeText else "已关闭"
+        val status = if (marqueeEnabled) getString(R.string.ui_a_0744) + marqueeText else getString(R.string.ui_a_0456)
         AlertDialog.Builder(this)
-            .setTitle("跑马灯设置 - " + status)
+            .setTitle(getString(R.string.ui_p_062) + status)
             .setItems(
-                arrayOf<String>("开启", "关闭", "编辑文字"),
+                arrayOf<String>(getString(R.string.ui_a_0473), getString(R.string.ui_a_0037), getString(R.string.ui_a_0746)),
                 DialogInterface.OnClickListener { d: DialogInterface?, w: Int ->
                     if (w == 0) {
                         marqueeEnabled = true
@@ -9849,24 +10029,24 @@ class MainActivity : AppCompatActivity() {
                     } else {
                         val input = EditText(this)
                         input.setText(marqueeText)
-                        input.setHint("输入跑马灯文字")
+                        input.setHint(getString(R.string.ui_a_0747))
                         AlertDialog.Builder(this)
-                            .setTitle("编辑跑马灯文字")
+                            .setTitle(getString(R.string.ui_a_0748))
                             .setView(input)
                             .setPositiveButton(
-                                "确定",
+                                getString(R.string.ui_ok),
                                 DialogInterface.OnClickListener { dd: DialogInterface?, ww: Int ->
                                     marqueeText = input.getText().toString()
                                     marqueeEnabled = true
                                     saveState()
-                                }).setNegativeButton("取消", null).create().showForTv()
+                                }).setNegativeButton(getString(R.string.ui_cancel), null).create().showForTv()
                     }
-                    toast("跑马灯: " + (if (marqueeEnabled) marqueeText else "已关闭"))
+                    toast(getString(R.string.ui_p_063) + (if (marqueeEnabled) marqueeText else getString(R.string.ui_a_0456)))
                 }).create().showForTv()
     }
 
     private fun showNetworkDlg() {
-        var ip = "未知"
+        var ip = KtvRaw.get(R.string.ui_a_0361)
         try {
             val en = NetworkInterface.getNetworkInterfaces()
             while (en.hasMoreElements()) {
@@ -9882,21 +10062,21 @@ class MainActivity : AppCompatActivity() {
         } catch (ignored: Exception) {
         }
         AlertDialog.Builder(this)
-            .setTitle("网络设置")
-            .setMessage("IP: " + ip + "\n手机遥控端口: 8765\n扫码连接手机点歌")
-            .setPositiveButton("确定", null).create().showForTv(DialogInterface.BUTTON_POSITIVE)
+            .setTitle(getString(R.string.ui_sec_network))
+            .setMessage("IP: " + ip + getString(R.string.ui_a_0750))
+            .setPositiveButton(getString(R.string.ui_ok), null).create().showForTv(DialogInterface.BUTTON_POSITIVE)
     }
 
     private fun showAboutDialog() {
         AlertDialog.Builder(this)
-            .setTitle("关于麦动")
+            .setTitle(getString(R.string.ui_a_0751))
             .setMessage(
-                "框架来源：杨家三郎/麦动KTV\n" +
-                    "由 DSH 重构数据库源\n" +
-                    "此软件免费开源，请勿付费获取\n" +
-                    "版本：" + BuildConfig.VERSION_NAME
+                getString(R.string.ui_p_106) +
+                    getString(R.string.ui_p_107) +
+                    KtvRaw.get(R.string.ui_a_0753) +
+                    KtvRaw.get(R.string.ui_a_0754) + BuildConfig.VERSION_NAME
             )
-            .setPositiveButton("确定", null).create().showForTv(DialogInterface.BUTTON_POSITIVE)
+            .setPositiveButton(getString(R.string.ui_ok), null).create().showForTv(DialogInterface.BUTTON_POSITIVE)
     }
 
     private fun applyScreenMode() {
@@ -9906,6 +10086,87 @@ class MainActivity : AppCompatActivity() {
             } catch (ignored: Exception) {
             }
         }
+    }
+
+    /**
+     * 把曲库/内部返回的中文类别键转成「跟随当前界面语言」的显示文案。
+     * 内部比较仍使用固定中文键（KtvRaw.get），只有显示层用本方法，
+     * 与 ori 版一致，切语言后不影响筛选/分组判断。
+     */
+    private fun displayCategory(value: String?): String {
+        val raw = value ?: return ""
+        if (raw.isEmpty()) return raw
+        if (raw.contains(',')) {
+            return raw.split(',').joinToString(", ") { displayCategory(it.trim()) }
+        }
+        val quick = KtvRaw.displayName(raw)
+        if (quick != raw) return quick
+        val resId = when (raw) {
+            KtvRaw.get(R.string.ui_a_0069) -> R.string.ui_a_0069
+            KtvRaw.get(R.string.ui_a_0072) -> R.string.ui_a_0072
+            KtvRaw.get(R.string.ui_a_0073) -> R.string.ui_a_0073
+            KtvRaw.get(R.string.ui_a_0074) -> R.string.ui_a_0074
+            KtvRaw.get(R.string.ui_a_0075) -> R.string.ui_a_0075
+            KtvRaw.get(R.string.ui_a_0077) -> R.string.ui_a_0077
+            KtvRaw.get(R.string.ui_a_0078) -> R.string.ui_a_0078
+            KtvRaw.get(R.string.ui_a_0079) -> R.string.ui_a_0079
+            KtvRaw.get(R.string.ui_a_0080) -> R.string.ui_a_0080
+            KtvRaw.get(R.string.ui_a_0198) -> R.string.ui_a_0198
+            KtvRaw.get(R.string.ui_a_0199) -> R.string.ui_a_0199
+            KtvRaw.get(R.string.ui_a_0200) -> R.string.ui_a_0200
+            KtvRaw.get(R.string.ui_a_0210) -> R.string.ui_a_0210
+            KtvRaw.get(R.string.ui_a_0211) -> R.string.ui_a_0211
+            KtvRaw.get(R.string.ui_a_0212) -> R.string.ui_a_0212
+            KtvRaw.get(R.string.ui_a_0213) -> R.string.ui_a_0213
+            KtvRaw.get(R.string.ui_a_0214) -> R.string.ui_a_0214
+            KtvRaw.get(R.string.ui_a_0215) -> R.string.ui_a_0215
+            KtvRaw.get(R.string.ui_a_0656) -> R.string.ui_a_0656
+            KtvRaw.get(R.string.ui_a_0657) -> R.string.ui_a_0657
+            KtvRaw.get(R.string.ui_a_0658) -> R.string.ui_a_0658
+            KtvRaw.get(R.string.ui_a_0659) -> R.string.ui_a_0659
+            KtvRaw.get(R.string.ui_a_0660) -> R.string.ui_a_0660
+            KtvRaw.get(R.string.ui_a_0661) -> R.string.ui_a_0661
+            KtvRaw.get(R.string.ui_a_0663) -> R.string.ui_a_0663
+            KtvRaw.get(R.string.ui_a_0664) -> R.string.ui_a_0664
+            KtvRaw.get(R.string.ui_a_0665) -> R.string.ui_a_0665
+            KtvRaw.get(R.string.ui_a_0666) -> R.string.ui_a_0666
+            KtvRaw.get(R.string.ui_a_0667) -> R.string.ui_a_0667
+            KtvRaw.get(R.string.ui_a_0668) -> R.string.ui_a_0668
+            KtvRaw.get(R.string.lang_show_other) -> R.string.lang_show_other
+            KtvRaw.get(R.string.lang_show_russian) -> R.string.lang_show_russian
+            KtvRaw.get(R.string.lang_show_hindi) -> R.string.lang_show_hindi
+            KtvRaw.get(R.string.lang_show_taiwanese) -> R.string.lang_show_taiwanese
+            KtvRaw.get(R.string.lang_show_hani) -> R.string.lang_show_hani
+            KtvRaw.get(R.string.lang_show_mandarin) -> R.string.lang_show_mandarin
+            KtvRaw.get(R.string.lang_show_dialect) -> R.string.lang_show_dialect
+            KtvRaw.get(R.string.lang_show_cosmic) -> R.string.lang_show_cosmic
+            KtvRaw.get(R.string.lang_show_hakka) -> R.string.lang_show_hakka
+            KtvRaw.get(R.string.lang_show_hakka2) -> R.string.lang_show_hakka2
+            KtvRaw.get(R.string.lang_show_yi) -> R.string.lang_show_yi
+            KtvRaw.get(R.string.lang_show_italian) -> R.string.lang_show_italian
+            KtvRaw.get(R.string.lang_show_japanese) -> R.string.lang_show_japanese
+            KtvRaw.get(R.string.lang_show_thai) -> R.string.lang_show_thai
+            KtvRaw.get(R.string.lang_show_hainanese) -> R.string.lang_show_hainanese
+            KtvRaw.get(R.string.lang_show_teochew) -> R.string.lang_show_teochew
+            KtvRaw.get(R.string.lang_show_aini) -> R.string.lang_show_aini
+            KtvRaw.get(R.string.lang_show_qidong) -> R.string.lang_show_qidong
+            KtvRaw.get(R.string.lang_show_fuding) -> R.string.lang_show_fuding
+            KtvRaw.get(R.string.lang_show_cantonese) -> R.string.lang_show_cantonese
+            KtvRaw.get(R.string.lang_show_uyghur) -> R.string.lang_show_uyghur
+            KtvRaw.get(R.string.lang_show_hmong) -> R.string.lang_show_hmong
+            KtvRaw.get(R.string.lang_show_english) -> R.string.lang_show_english
+            KtvRaw.get(R.string.lang_show_mongolian) -> R.string.lang_show_mongolian
+            KtvRaw.get(R.string.lang_show_tibetan) -> R.string.lang_show_tibetan
+            KtvRaw.get(R.string.lang_show_spanish) -> R.string.lang_show_spanish
+            KtvRaw.get(R.string.lang_show_minnan) -> R.string.lang_show_minnan
+            KtvRaw.get(R.string.lang_show_korean) -> R.string.lang_show_korean
+            KtvRaw.get(R.string.lang_show_khmer) -> R.string.lang_show_khmer
+            else -> 0
+        }
+        if (resId != 0) return getString(resId)
+        // 分类名若带后缀/前缀(如"甜蜜幸福精选")或含可翻译片段，走片段替换兜底，
+        // 保证中英混合的曲库分类名在英文态不残留中文。没有命中任何片段时原样返回。
+        return KtvRaw.displayPlaylistName(raw)
     }
 
     /**
@@ -9919,11 +10180,11 @@ class MainActivity : AppCompatActivity() {
         for (i in currentCategories.indices) {
             val index = i
             val cat = TextView(this)
-            cat.setText(currentCategories.get(i))
+            cat.setText(displayCategory(currentCategories.get(i)))
             cat.setTextSize(16f)
             cat.setPadding(dp(12), 0, dp(12), 0)
             cat.gravity = Gravity.CENTER
-            cat.setAccessibleFocus("focus:category:${currentCategories[i]}", "分类，${currentCategories[i]}")
+            cat.setAccessibleFocus("focus:category:${currentCategories[i]}", getString(R.string.ui_a_0647, displayCategory(currentCategories[i])))
             cat.setFocusable(true)
             cat.setClickable(true)
             // 设置选中状态
@@ -9941,10 +10202,10 @@ class MainActivity : AppCompatActivity() {
                 val category = currentCategories.get(index)
                 clearSearchForFilterChange()
                 when (currentTabIndex) {
-                    0 -> if ("全部" == category) {
+                    0 -> if (KtvRaw.get(R.string.ui_a_0069) == category) {
                         browseMode = "hot"
                         browseParam = ""
-                        searchLanguage = "全部"
+                        searchLanguage = KtvRaw.get(R.string.ui_a_0069)
                     } else {
                         browseMode = "language"
                         browseParam = category
@@ -9975,7 +10236,7 @@ class MainActivity : AppCompatActivity() {
                     9 -> {
                         browseMode = "rank"
                         browseParam = rankPlaylistIds.getOrNull(index).orEmpty()
-                        listTitle!!.text = category
+                        listTitle!!.text = displayCategory(category)
                     }
 
                     10 -> {
@@ -10003,9 +10264,9 @@ class MainActivity : AppCompatActivity() {
         when (category) {
             "2字" -> return "2"
             "3字" -> return "3"
-            "4字" -> return "4"
-            "5字" -> return "5"
-            "6字" -> return "6"
+            KtvRaw.get(R.string.ui_a_0658) -> return "4"
+            KtvRaw.get(R.string.ui_a_0659) -> return "5"
+            KtvRaw.get(R.string.ui_a_0660) -> return "6"
             else -> return "7" // 7字以上
         }
     }
@@ -10020,7 +10281,7 @@ class MainActivity : AppCompatActivity() {
         when (searchScope) {
             "quick" -> loadQuickSearchPage(query)
             "singer" -> {
-                val category = currentCategories.getOrNull(currentCategoryIndex) ?: "全部"
+                val category = currentCategories.getOrNull(currentCategoryIndex) ?: KtvRaw.get(R.string.ui_a_0069)
                 loadSingerList(category, query)
             }
             "playlist" -> loadCategoryPlaylistPage(query)
@@ -10036,15 +10297,15 @@ class MainActivity : AppCompatActivity() {
                 loadBrowsePage()
             }
             else -> {
-                searchLanguage = currentCategories.getOrNull(currentCategoryIndex) ?: "全部"
+                searchLanguage = currentCategories.getOrNull(currentCategoryIndex) ?: KtvRaw.get(R.string.ui_a_0069)
                 if (query.isEmpty()) {
                     browseMode = if (searchLanguage == "全部") "hot" else "language"
                     browseParam = if (searchLanguage == "全部") "" else searchLanguage
-                    listTitle?.text = if (searchLanguage == "全部") "热门歌曲" else searchLanguage
+                    listTitle?.text = if (searchLanguage == "全部") getString(R.string.ui_a_0756) else searchLanguage
                 } else {
                     browseMode = "search"
                     browseParam = query
-                    listTitle?.text = "搜索结果: $query"
+                    listTitle?.text = getString(R.string.ui_a_0757, query)
                 }
                 loadBrowsePage()
             }
@@ -10057,7 +10318,7 @@ class MainActivity : AppCompatActivity() {
     private fun loadBrowsePage() {
         if (!library.muse.isAvailable()) {
             catalogRefreshPending = true
-            busy(true, "曲库加载中...")
+            busy(true, getString(R.string.ui_a_0650))
             return
         }
         catalogRefreshPending = false
@@ -10233,7 +10494,7 @@ class MainActivity : AppCompatActivity() {
         catalogRefreshPending = false
         synchronized(browsePageCache) { browsePageCache.clear() }
         synchronized(browseCountCache) { browseCountCache.clear() }
-        busy(false, "曲库加载完成")
+        busy(false, getString(R.string.ui_a_0758))
         when {
             browseMode == "singer_list" -> loadSingerList(browseParam)
             browseMode == "category_list" -> loadCategoryPlaylistPage(activeSearchQuery)
@@ -10274,7 +10535,7 @@ class MainActivity : AppCompatActivity() {
         }
         if (visibleSongs.isEmpty()) {
             modernSongAdapter = null
-            list.adapter = tvAdapter().apply { add("暂无歌曲") }
+            list.adapter = tvAdapter().apply { add(getString(R.string.ui_a_0759)) }
             return
         }
         list.dividerHeight = 0
@@ -10366,7 +10627,7 @@ class MainActivity : AppCompatActivity() {
         var rendered = false
         when (browseMode) {
             "ordered" -> {
-                if (currentSong?.equals(song) == true) toast("正在播放: ${song.title}")
+                if (currentSong?.equals(song) == true) toast(getString(R.string.ui_p_098, song.title))
                 else moveQueuedSongToNext(song)
                 rendered = true
             }
@@ -10390,7 +10651,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun deleteQueuedSong(song: Song) {
         if (currentSong?.equals(song) == true) {
-            toast("正在播放的歌曲不能删除")
+            toast(getString(R.string.ui_a_0581))
             return
         }
         orderQueue!!.remove(song)
@@ -10403,7 +10664,7 @@ class MainActivity : AppCompatActivity() {
         val task = downloads.lastOrNull { stableId(it.song) == stableId(song) }
         if (isDownloading(song)) {
             SongOkDownloadManager.cancelDownload(song)
-            task?.state = "已暂停"
+            task?.state = KtvRaw.get(R.string.ui_a_0534)
             stateIo.execute { stateDatabase.updateDownload(song, "paused", task?.progress ?: 0) }
             renderSongList()
         } else {
@@ -10413,7 +10674,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun deleteDownloadedSong(song: Song) {
         if (currentSong?.equals(song) == true) {
-            toast("正在播放的歌曲不能删除")
+            toast(getString(R.string.ui_a_0581))
             return
         }
         SongOkDownloadManager.cancelDownload(song)
@@ -10431,10 +10692,10 @@ class MainActivity : AppCompatActivity() {
                 main.post {
                     downloads.removeAll { stableId(it.song) == stableId(song) }
                     if (browseMode == "downloads") loadDownloadedList() else reloadCurrentBrowsePage()
-                    toast("已删除本地文件")
+                    toast(getString(R.string.ui_p_042))
                 }
             } else {
-                main.post { toast("文件删除失败，请检查存储权限") }
+                main.post { toast(getString(R.string.ui_p_043)) }
             }
         }
     }
@@ -10443,7 +10704,7 @@ class MainActivity : AppCompatActivity() {
      * 更新分页信息
      */
     private fun updatePageInfo() {
-        textPageInfo!!.setText(String.format("第%d/%d页", browsePage + 1, max(1, browseTotalPages)))
+        textPageInfo!!.setText(String.format(getString(R.string.ui_a_0765), browsePage + 1, max(1, browseTotalPages)))
     }
 
     /**
@@ -10483,10 +10744,10 @@ class MainActivity : AppCompatActivity() {
      */
     private fun showQueueDialog() {
         val builder = AlertDialog.Builder(this)
-        builder.setTitle("已点列表 (" + orderQueue!!.size + ")")
+        builder.setTitle(getString(R.string.ui_a_0766) + orderQueue!!.size + ")")
         if (orderQueue.isEmpty()) {
-            builder.setMessage("暂无已点歌曲")
-            builder.setPositiveButton("确定", null)
+            builder.setMessage(getString(R.string.ui_a_0767))
+            builder.setPositiveButton(getString(R.string.ui_ok), null)
         } else {
             val items: Array<String> = Array(orderQueue.size) { "" }
             for (i in orderQueue.indices) {
@@ -10499,14 +10760,14 @@ class MainActivity : AppCompatActivity() {
                 DialogInterface.OnClickListener { dialog: DialogInterface?, which: Int ->
                     val selected = orderQueue.get(which)
                     if (currentSong != null && currentSong!!.equals(selected)) {
-                        toast("正在播放: " + selected.title)
+                        toast(getString(R.string.ui_p_038) + selected.title)
                     } else {
                         // 只设为下一首，不打断当前歌曲。
                         moveQueuedSongToNext(selected)
                     }
                 })
             builder.setNegativeButton(
-                "删除选中",
+                getString(R.string.ui_a_0768),
                 DialogInterface.OnClickListener { dialog: DialogInterface?, which: Int ->
                     // 显示删除对话框
                     val delItems: Array<String> = Array(orderQueue.size) { "" }
@@ -10514,7 +10775,7 @@ class MainActivity : AppCompatActivity() {
                         delItems[i] = orderQueue.get(i).title + " - " + orderQueue.get(i).singer
                     }
                     AlertDialog.Builder(this)
-                        .setTitle("选择要删除的歌曲")
+                        .setTitle(getString(R.string.ui_a_0769))
                         .setItems(
                             delItems,
                             DialogInterface.OnClickListener { d: DialogInterface?, w: Int ->
@@ -10525,18 +10786,18 @@ class MainActivity : AppCompatActivity() {
                                 updateOrderBadge()
                                 saveState()
                                 if (currentTabIndex == 4) loadOrderedList()
-                                toast("已删除: " + removed.title)
+                                toast(getString(R.string.ui_p_039) + removed.title)
                             })
                         .create().showForTv()
                 })
             builder.setNeutralButton(
-                "清空全部",
+                KtvRaw.get(R.string.ui_a_0770),
                 DialogInterface.OnClickListener { dialog: DialogInterface?, which: Int ->
                     AlertDialog.Builder(this)
-                        .setTitle("确认清空")
-                        .setMessage("确定要清空全部" + orderQueue.size + "首已点歌曲吗?")
+                        .setTitle(getString(R.string.ui_a_0771))
+                        .setMessage(getString(R.string.ui_a_0772) + orderQueue.size + getString(R.string.ui_a_0773))
                         .setPositiveButton(
-                            "确定",
+                            getString(R.string.ui_ok),
                             DialogInterface.OnClickListener { d: DialogInterface?, w: Int ->
                                 orderQueue.clear()
                                 if (player != null) player!!.stopPlayback()
@@ -10550,9 +10811,9 @@ class MainActivity : AppCompatActivity() {
                                 updateOrderBadge()
                                 saveState()
                                 if (currentTabIndex == 4) loadOrderedList()
-                                toast("已清空列表")
+                                toast(getString(R.string.ui_a_0774))
                             })
-                        .setNegativeButton("取消", null)
+                        .setNegativeButton(getString(R.string.ui_cancel), null)
                         .create().showForTv()
                 })
         }
@@ -10573,15 +10834,15 @@ class MainActivity : AppCompatActivity() {
      */
     private fun addToQueue(song: Song) {
         if (orderQueue!!.contains(song)) {
-            toast("已在列表中: " + song.title)
+            toast(getString(R.string.ui_p_040) + song.title)
             return
         }
         if (!isSongReadyForQueue(song)) {
             val id = stableId(song)
             val newlyPending = pendingQueueSongIds.add(id)
             toast(
-                if (newlyPending) "正在下载，完成后自动加入已点：${song.title}"
-                else "歌曲正在下载，尚未进入已点：${song.title}",
+                if (newlyPending) getString(R.string.ui_p_099, song.title)
+                else getString(R.string.ui_p_100, song.title),
             )
             if (!isDownloading(song)) downloadSong(song)
             return
@@ -10603,7 +10864,7 @@ class MainActivity : AppCompatActivity() {
         saveState()
         updateOrderBadge()
         if (currentPage == "已点" || currentPage == "首页") renderQueue()
-        toast("已点: " + song.title + (if (song.singer != null) " - " + song.singer else ""))
+        toast(getString(R.string.ui_p_041) + song.title + (if (song.singer != null) " - " + song.singer else ""))
         if (wasQueueEmpty) play(song)
     }
 
@@ -10713,7 +10974,10 @@ class MainActivity : AppCompatActivity() {
         loopOne = store.loopOne
         autoNext = store.autoNext
         originalVocal = store.originalVocal
-        vocalChannelMode = store.vocalChannelMode
+        // 第二道防线：状态里的演唱模式/声道模式必须是合法内部键，非法脏值(尤其"静音练唱")
+        // 会让播放器静音且旧界面无入口改回，这里统一回退默认，避免覆盖安装后永久无声。
+        vocalChannelMode = if (store.vocalChannelMode in KtvStore.VOCAL_CHANNEL_MODES)
+            store.vocalChannelMode else KtvStore.DEFAULT_VOCAL_CHANNEL_MODE
         musicVolume = store.musicVolume
         // 均衡器：先恢复保存值，再按本机真实频段数对齐(不同设备频段数/增益范围不同)。
         KtvEqualizer.restore(
@@ -10726,7 +10990,9 @@ class MainActivity : AppCompatActivity() {
         micVolume = store.micVolume
         tone = store.tone.coerceIn(-5, 5)
         atmosphere = store.atmosphere
-        singMode = store.singMode
+        // 同上：演唱模式脏值归一化，防止"静音练唱"残留导致永久无声。
+        singMode = if (store.singMode in KtvStore.SING_MODES)
+            store.singMode else KtvStore.DEFAULT_SING_MODE
         recordEnabled = store.recordEnabled
         scoreEnabled = store.scoreEnabled
         marqueeEnabled = store.marqueeEnabled
@@ -10837,7 +11103,7 @@ class MainActivity : AppCompatActivity() {
                 exitFullScreenPlayer()
                 return true
             }
-            if (currentTabIndex != -1 || "首页" != currentPage) {
+            if (currentTabIndex != -1 || KtvRaw.get(R.string.ui_a_0108) != currentPage) {
                 navigateBack()
                 return true
             }
@@ -10929,14 +11195,14 @@ class MainActivity : AppCompatActivity() {
                 browsePage = savedPage
                 savedCategory?.let { browseParam = it }
                 activeSearchQuery = savedQuery
-                loadSingerList(savedCategory ?: "全部", savedQuery)
+                loadSingerList(savedCategory ?: KtvRaw.get(R.string.ui_a_0069), savedQuery)
             })
             "category_list" -> ({
                 searchScope = "playlist"
                 activeSearchQuery = savedQuery
                 setSearchText(savedQuery)
                 currentTabIndex = 2
-                showSubPageShell("主页 / 分类")
+                showSubPageShell(KtvRaw.get(R.string.ui_a_0652), getString(R.string.ui_a_0652))
                 setupTabs()
                 currentCategories.clear()
                 currentCategoryIndex = -1
@@ -11061,11 +11327,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showFavorites() {
-        setPage("收藏")
+        setPage("收藏", getString(R.string.ui_a_0572))
         content!!.removeAllViews()
         val panel = panel()
         content!!.addView(panel, LinearLayout.LayoutParams(-1, -1))
-        panel.addView(sectionTitle("我的收藏"))
+        panel.addView(sectionTitle(getString(R.string.ui_a_0094)))
         songList = listView()
         songAdapter = tvAdapter()
         songList!!.setAdapter(songAdapter)
@@ -11087,11 +11353,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showPlaylists() {
-        setPage("歌单")
+        setPage("歌单", getString(R.string.ui_a_0779))
         content!!.removeAllViews()
         val left = panel()
         content!!.addView(left, LinearLayout.LayoutParams(dp(300), -1))
-        left.addView(sectionTitle("我的歌单"))
+        left.addView(sectionTitle(getString(R.string.ui_a_0157)))
         for (playlist in store.playlists) {
             left.addView(
                 button(
@@ -11101,15 +11367,15 @@ class MainActivity : AppCompatActivity() {
         }
         left.addView(
             button(
-                "新建歌单",
+                getString(R.string.ui_a_0605),
                 View.OnClickListener { v: View? -> showCreatePlaylistDialog() })
         )
         val right = panel()
         content!!.addView(right, LinearLayout.LayoutParams(0, -1, 1f))
-        right.addView(sectionTitle("歌单歌曲"))
+        right.addView(sectionTitle(getString(R.string.ui_a_0780)))
         right.addView(
             label(
-                "选择左侧歌单查看歌曲；在点歌、排行、歌星等页面长按歌曲可加入或移出歌单。",
+                getString(R.string.ui_a_0781),
                 20,
                 Color.LTGRAY
             )
@@ -11117,11 +11383,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showPlaylistSongs(playlist: String) {
-        setPage("歌单")
+        setPage("歌单", getString(R.string.ui_a_0779))
         content!!.removeAllViews()
         val left = panel()
         content!!.addView(left, LinearLayout.LayoutParams(dp(300), -1))
-        left.addView(sectionTitle("我的歌单"))
+        left.addView(sectionTitle(getString(R.string.ui_a_0157)))
         for (item in store.playlists) {
             left.addView(
                 button(
@@ -11131,7 +11397,7 @@ class MainActivity : AppCompatActivity() {
         }
         left.addView(
             button(
-                "新建歌单",
+                getString(R.string.ui_a_0605),
                 View.OnClickListener { v: View? -> showCreatePlaylistDialog() })
         )
 
@@ -11162,18 +11428,18 @@ class MainActivity : AppCompatActivity() {
         val items: Array<String> = Array(store.playlists.size) { "" }
         for (i in store.playlists.indices) {
             val playlist = store.playlists.get(i)
-            items[i] = (if (store.isInPlaylist(playlist, song)) "移出 " else "加入 ") + playlist
+            items[i] = (if (store.isInPlaylist(playlist, song)) getString(R.string.ui_a_0782) else getString(R.string.ui_a_0783)) + playlist
         }
         AlertDialog.Builder(this)
-            .setTitle("选择歌单")
+            .setTitle(getString(R.string.ui_a_0784))
             .setItems(
                 items,
                 DialogInterface.OnClickListener { dialog: DialogInterface?, which: Int ->
                     val playlist = store.playlists.get(which)
                     val added = store.togglePlaylistSong(playlist, song)
                     saveState()
-                    toast((if (added) "已加入：" else "已移出：") + playlist)
-                    if ("歌单" == currentPage) showPlaylistSongs(playlist)
+                    toast((if (added) getString(R.string.ui_a_0785) else getString(R.string.ui_a_0786)) + playlist)
+                    if (KtvRaw.get(R.string.ui_a_0779) == currentPage) showPlaylistSongs(playlist)
                 })
             .create().showForTv()
     }

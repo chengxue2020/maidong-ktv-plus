@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- plus 独有文案：显示文案随语言切换，内部键固定简体中文。 -->
+<resources>
+    <string name="ui_p_001" formatted="false">歌曲源临时受限</string>
+    <string name="ui_p_002" formatted="false">知道了</string>
+    <string name="ui_p_003" formatted="false">正在初始化曲库...</string>
+    <string name="ui_p_004" formatted="false">曲库更新失败，已使用本地曲库</string>
+    <string name="ui_p_005" formatted="false">已点 </string>
+    <string name="ui_p_006" formatted="false">加载了 </string>
+    <string name="ui_p_007" formatted="false"> 位歌手</string>
+    <string name="ui_p_008" formatted="false">麦克风音量由功放/混音器硬件调节</string>
+    <string name="ui_p_009" formatted="false">框架来源</string>
+    <string name="ui_p_010" formatted="false">杨家三郎/麦动KTV</string>
+    <string name="ui_p_011" formatted="false">内核</string>
+    <string name="ui_p_012" formatted="false">由 DSH 重构数据库源</string>
+    <string name="ui_p_013" formatted="false">● 网络未连接</string>
+    <string name="ui_p_014" formatted="false">网络未连接</string>
+    <string name="ui_p_015" formatted="false">网络已恢复</string>
+    <string name="ui_p_016" formatted="false">均衡器：开启</string>
+    <string name="ui_p_017" formatted="false">均衡器：关闭</string>
+    <string name="ui_p_018" formatted="false">均衡器已开启</string>
+    <string name="ui_p_019" formatted="false">均衡器已关闭</string>
+    <string name="ui_p_020" formatted="false">本机不支持全局混音</string>
+    <string name="ui_p_021" formatted="false">预设不存在</string>
+    <string name="ui_p_022" formatted="false">频段格式错误</string>
+    <string name="ui_p_023" formatted="false">该条目没有下载地址</string>
+    <string name="ui_p_024" formatted="false">正在下载：</string>
+    <string name="ui_p_025" formatted="false">下载完成并已加入已点：</string>
+    <string name="ui_p_026" formatted="false">下载已取消：</string>
+    <string name="ui_p_027" formatted="false">下载失败：</string>
+    <string name="ui_p_028" formatted="false">下载失败: </string>
+    <string name="ui_p_029" formatted="false">加载中: </string>
+    <string name="ui_p_030" formatted="false">本地文件丢失，重新下载...</string>
+    <string name="ui_p_031" formatted="false">无法获取播放地址</string>
+    <string name="ui_p_032" formatted="false"> 就绪</string>
+    <string name="ui_p_033" formatted="false">下载中: </string>
+    <string name="ui_p_034" formatted="false">下载: </string>
+    <string name="ui_p_035" formatted="false">播放重试 </string>
+    <string name="ui_p_036" formatted="false">无法下载:缺少文件名</string>
+    <string name="ui_p_037" formatted="false">正在从云端下载:</string>
+    <string name="ui_p_038" formatted="false">正在播放: </string>
+    <string name="ui_p_039" formatted="false">已删除: </string>
+    <string name="ui_p_040" formatted="false">已在列表中: </string>
+    <string name="ui_p_041" formatted="false">已点: </string>
+    <string name="ui_p_042" formatted="false">已删除本地文件</string>
+    <string name="ui_p_043" formatted="false">文件删除失败，请检查存储权限</string>
+    <string name="ui_p_044" formatted="false"> / 首页</string>
+    <string name="ui_p_045" formatted="false">U盘加歌</string>
+    <string name="ui_p_046" formatted="false">扫描U盘内按规定命名的歌曲文件，并添加到曲库中</string>
+    <string name="ui_p_047" formatted="false">未检测到U盘</string>
+    <string name="ui_p_048" formatted="false">正在检查曲库更新...</string>
+    <string name="ui_p_049" formatted="false">检查失败：无法连接曲库服务器</string>
+    <string name="ui_p_050" formatted="false">曲库已是最新版本</string>
+    <string name="ui_p_051" formatted="false">曲库同步完成</string>
+    <string name="ui_p_052" formatted="false">正在校验曲库文件</string>
+    <string name="ui_p_053" formatted="false">正在解压曲库 0MB</string>
+    <string name="ui_p_054" formatted="false">正在安装曲库</string>
+    <string name="ui_p_055" formatted="false">曲库就绪</string>
+    <string name="ui_p_056" formatted="false">重置数据库</string>
+    <string name="ui_p_057" formatted="false">将删除本地曲库数据库，然后重新从官方曲库同步下载。不会保留备份，是否继续？</string>
+    <string name="ui_p_058" formatted="false">正在重置数据库...</string>
+    <string name="ui_p_059" formatted="false">数据库重置完成</string>
+    <string name="ui_p_060" formatted="false">演唱模式 (当前: </string>
+    <string name="ui_p_061" formatted="false">演唱模式: </string>
+    <string name="ui_p_062" formatted="false">跑马灯设置 - </string>
+    <string name="ui_p_063" formatted="false">跑马灯: </string>
+    <string name="ui_p_064" formatted="false"> 首</string>
+    <string name="ui_p_065" formatted="false"> 秒</string>
+    <string name="ui_p_066" formatted="false">歌星  </string>
+    <string name="ui_p_067" formatted="false">本地 </string>
+    <string name="ui_p_068" formatted="false">自定义</string>
+    <string name="ui_p_069" formatted="false">群星</string>
+    <string name="ui_p_070" formatted="false">合唱</string>
+    <string name="ui_p_071" formatted="false">伴奏</string>
+    <string name="ui_p_072" formatted="false">常唱歌曲</string>
+    <string name="ui_p_073">当前已是最新版本 %1$s</string>
+    <string name="ui_p_074">发现新版本 %1$s</string>
+    <string name="ui_p_075">正在下载 %1$s…</string>
+    <string name="ui_p_076">正在下载 %1$s… %2$s%%</string>
+    <string name="ui_p_077">版本 %1$s 已下载，是否现在安装？</string>
+    <string name="ui_p_078">音量  %1$s%%</string>
+    <string name="ui_p_079">音量  %1$s%%</string>
+    <string name="ui_p_080">网络已恢复，正在重试 %1$s 首未完成的下载</string>
+    <string name="ui_p_081">网络已恢复，正在重试 %1$s 首未完成的下载</string>
+    <string name="ui_p_082">目录：%1$s 或 U盘/movies</string>
+    <string name="ui_p_083">下载失败，未加入已点：%1$s</string>
+    <string name="ui_p_084">随机播放：%1$s</string>
+    <string name="ui_p_085">声道模式：%1$s / %2$s</string>
+    <string name="ui_p_086">已置顶：%1$s</string>
+    <string name="ui_p_087">删除文件</string>
+    <string name="ui_p_088">确定删除 %1$s 的本地文件吗？歌曲仍保留在曲库中。</string>
+    <string name="ui_p_089">一键点歌(%1$s首)</string>
+    <string name="ui_p_090">一键点歌(%1$s首)</string>
+    <string name="ui_p_091">一键点歌(%1$s首)</string>
+    <string name="ui_p_092">已点歌：%1$s</string>
+    <string name="ui_p_093">曲库同步失败：%1$s</string>
+    <string name="ui_p_094">数据库重置失败：%1$s</string>
+    <string name="ui_p_095">提前</string>
+    <string name="ui_p_096">延后</string>
+    <string name="ui_p_097">声音%1$s %2$s 秒</string>
+    <string name="ui_p_098">正在播放: %1$s</string>
+    <string name="ui_p_099">正在下载，完成后自动加入已点：%1$s</string>
+    <string name="ui_p_100">歌曲正在下载，尚未进入已点：%1$s</string>
+    <string name="ui_p_101">当前版本 %1$s，更新来源：Gitea Release</string>
+    <string name="ui_p_102">当前 %1$s GB</string>
+    <string name="ui_p_103">删除本地数据库并重新下载</string>
+    <string name="ui_p_104">数据库 %1$s 首  本地已下载 %2$s 首  ·  %3$s 天同步: %4$s</string>
+    <string name="ui_p_105">可用 %1$s / 总计 %2$s</string>
+    <string name="ui_p_106">框架来源：杨家三郎/麦动KTV\n</string>
+    <string name="ui_p_107">由 DSH 重构数据库源\n</string>
+    <string name="ui_p_108">正在播放</string>
+    <string name="ui_p_109">正在下载百分之%1$s</string>
+    <string name="ui_p_110">已下载</string>
+    <string name="ui_p_111">未下载</string>
+    <string name="ui_p_112">未同步</string>
+    <string name="ui_p_113">已到期</string>
+    <string name="ui_p_114">%1$s 天后同步</string>
+    <string name="ui_p_115">正在解压曲库 %1$sMB</string>
+    <string name="ui_p_116">歌曲，%1$s，歌手，%2$s，%3$s，双击点歌，长按查看更多</string>
+    <string name="ui_p_bad_ip">检测到不可用 IP：%1$s</string>
+    <string name="ui_p_confirm">确 定</string>
+    <string name="ui_p_counting">统计中…</string>
+    <string name="ui_p_detected_ip">检测到 IP：%1$s</string>
+    <string name="ui_p_eq_preset">均衡器预设</string>
+    <string name="ui_p_eq_updated">均衡器已更新</string>
+    <string name="ui_p_hot_top">热门TOP%1$s</string>
+    <string name="ui_p_import_hint">请把歌曲放入 %1$s、%2$s、U盘/KTV 或 U盘/songs，支持 mp4/mkv/avi/mp3/flac/wav。</string>
+    <string name="ui_p_lib_updated">曲库已更新：本地 %1$s 首，总计 %2$s 首</string>
+    <string name="ui_p_mic_hw">由功放/混音器硬件调节</string>
+    <string name="ui_p_no_apk">暂无 APK，请放入 %1$s 或 U盘/apps</string>
+    <string name="ui_p_no_lan_ip">未检测到局域网 IP</string>
+    <string name="ui_p_now_next_tip">当前: %1$s  下首: %2$s</string>
+    <string name="ui_p_random_skip">切歌：正在播放下一首公放歌曲...</string>
+    <string name="ui_p_random_start">正在随机播放本地歌曲...</string>
+    <string name="ui_p_scan_tip">手机连接同一局域网\n后扫码点歌</string>
+    <string name="ui_p_song_a11y">歌曲，%1$s，歌手，%2$s，双击点歌，长按查看更多</string>
+    <string name="ui_p_sung_times">您共唱过%1$s次</string>
+    <string name="ui_p_sync_dl">正在下载曲库</string>
+    <string name="ui_p_sync_unzip">正在解压曲库</string>
+    <string name="ui_p_sync_verify">正在校验曲库</string>
+    <string name="ui_p_vol_eq">音量 / 均衡器</string>
+    <string name="ui_p_vol_eq2">音量与均衡器</string>
+    <string name="ui_p_vol_eq_status">音量 %1$s%% · 均衡器%2$s</string>
+    <string name="ui_p_risk_dialog">歌曲源在当前网络(公网 IP)下暂时无法获取新歌播放地址(风控/试用窗口)。\n\n解决办法：重启光猫/路由器重新拨号更换公网 IP，恢复后即可继续点歌。\n\n已缓存的歌曲不受影响，可正常播放。</string>
+    <string name="ui_p_db_dl_fail">曲库下载失败：%1$s（可用 %2$s）</string>
+    <string name="ui_p_db_write_denied">曲库写入被系统拒绝（探针 %1$s，可用 %2$s）\n原始错误：%3$s</string>
+    <string name="ui_p_dl_bad_file">下载文件异常，已自动清理</string>
+    <string name="ui_p_dl_decrypt_fail">歌曲解密失败，异常文件已删除</string>
+    <string name="ui_p_dl_finalize_fail">下载文件处理失败</string>
+    <string name="ui_p_dl_init_fail">下载初始化失败</string>
+    <string name="ui_p_dl_invalid">下载文件不是有效歌曲视频，未保存也未加入已点</string>
+    <string name="ui_p_dl_no_url">无法生成下载地址</string>
+    <string name="ui_p_dl_preview">服务器返回试听片段（%1$s秒），未保存也未加入已点</string>
+    <string name="ui_p_dl_refresh_fail">刷新下载地址失败</string>
+    <string name="ui_p_dl_rename_fail">下载文件落盘失败</string>
+    <string name="ui_p_dl_replace_fail">无法替换旧的歌曲文件</string>
+    <string name="ui_p_sync_backup_fail">无法备份旧曲库</string>
+    <string name="ui_p_sync_install_fail">无法安装下载的曲库</string>
+    <string name="ui_p_sync_login_fail">登录曲库服务失败</string>
+    <string name="ui_p_sync_md5_fail">曲库文件校验失败</string>
+    <string name="ui_p_sync_no_file">曲库同步失败或无可用文件</string>
+    <string name="ui_p_update_check_http">检查更新失败：HTTP %1$s</string>
+    <string name="ui_p_update_dl_http">下载失败：HTTP %1$s</string>
+    <string name="ui_p_search_hint">搜索  输入首字母搜索</string>
+    <string name="ui_preset_custom">自定义</string>
+    <string name="ui_p_cat_jinge">劲歌</string>
+    <string name="ui_p_cat_dance">舞</string>
+    <string name="ui_p_cat_hot">热歌</string>
+    <string name="ui_p_cat_rising">飙升</string>
+    <string name="ui_p_cat_douyin">抖音</string>
+    <string name="ui_p_cat_new_chart">新歌榜</string>
+    <string name="ui_p_cat_classmate">同学</string>
+    <string name="ui_p_cat_love_song">情歌</string>
+    <string name="ui_p_cat_romance">爱情</string>
+    <string name="ui_p_cat_love_short">恋</string>
+    <string name="ui_p_cat_longing">相思</string>
+    <string name="ui_p_cat_golden">金曲</string>
+    <string name="ui_p_cat_nostalgic_golden">怀旧金曲</string>
+    <string name="ui_p_cat_huangmei">黄梅</string>
+    <string name="ui_p_cat_pingju">评剧</string>
+    <string name="ui_p_cat_opera_type">剧种</string>
+    <string name="ui_p_cat_opera">剧</string>
+    <string name="ui_p_cat_mountain_song">山歌</string>
+    <string name="ui_p_cat_country">乡土</string>
+    <string name="ui_p_cat_cartoon">卡通</string>
+    <string name="ui_p_cat_animation">动画</string>
+    <string name="ui_p_cat_nursery">童谣</string>
+    <string name="ui_p_cat_film_tv">影视</string>
+    <string name="ui_p_cat_movie">电影</string>
+    <string name="ui_p_cat_tv_series">电视剧</string>
+    <string name="ui_p_cat_theme">主题曲</string>
+    <string name="ui_p_cat_insert">插曲</string>
+    <string name="ui_p_cat_rhythm">节奏</string>
+    <string name="ui_p_cat_campus">校园</string>
+    <string name="ui_p_cat_youth">青春</string>
+    <string name="ui_p_cat_graduation">毕业</string>
+    <string name="ui_p_cat_military">军旅</string>
+    <string name="ui_p_cat_patriotic">爱国</string>
+    <string name="ui_p_cat_mainstream">主旋律</string>
+    <string name="ui_p_cat_homesick">思乡</string>
+    <string name="ui_p_cat_family_love">亲情</string>
+    <string name="ui_p_cat_hometown">家乡</string>
+    <string name="ui_p_cat_mom">妈妈</string>
+    <string name="ui_p_cat_dad">父亲</string>
+    <string name="ui_p_cat_family">家庭</string>
+    <string name="ui_p_cat_global">全球</string>
+    <string name="ui_p_cat_singing">演唱</string>
+    <string name="ui_p_cat_karaoke">卡拉</string>
+    <string name="ui_p_cat_cover">翻唱</string>
+    <string name="ui_p_cat_edm">电音</string>
+    <string name="ui_p_cat_high_energy">劲爆</string>
+    <string name="ui_p_cat_jazz">爵士</string>
+    <string name="ui_p_cat_blues">蓝调</string>
+    <string name="ui_p_cat_blessing_song">祝福歌曲</string>
+    <string name="ui_p_cat_friendship_forever">友谊万岁</string>
+    <string name="ui_p_cat_love_duet">情歌对唱</string>
+    <string name="ui_p_cat_blessing">祝福</string>
+    <string name="ui_p_cat_friendship">友谊</string>
+    <string name="ui_p_cat_song">歌曲</string>
+    <string name="ui_p_cat_forever">万岁</string>
+    <string name="ui_p_cat_duet">对唱</string>
+    <string name="ui_p_cat_selection">精选</string>
+    <string name="ui_p_cat_opera_clip">戏曲片段</string>
+    <string name="ui_p_cat_disco">disco</string>
+    <string name="ui_p_cat_revolutionary_song">革命歌曲</string>
+    <string name="ui_p_cat_military_song">军旅歌曲</string>
+    <string name="ui_p_cat_praise_motherland">歌颂祖国</string>
+    <string name="ui_p_cat_folk_singing">民歌传唱</string>
+    <string name="ui_p_cat_clip">片段</string>
+    <string name="ui_p_cat_revolutionary">革命</string>
+    <string name="ui_p_cat_praise">歌颂</string>
+    <string name="ui_p_cat_motherland">祖国</string>
+    <string name="ui_p_cat_singing_heritage">传唱</string>
+    <string name="ui_p_cat_birthday">生日</string>
+    <string name="ui_p_cat_festive">喜庆</string>
+    <string name="ui_p_cat_congrats">恭喜</string>
+    <string name="ui_p_cat_newyear">贺岁</string>
+    <string name="ui_p_cat_friendship_alt">友情</string>
+    <string name="ui_p_cat_friends">朋友</string>
+    <string name="ui_p_cat_sweet">甜蜜</string>
+    <string name="ui_p_cat_lover">情人</string>
+    <string name="ui_p_cat_dj">DJ</string>
+    <string name="ui_p_cat_index">指数</string>
+    <string name="ui_p_rank_rising">飙升榜</string>
+    <string name="ui_p_rank_douyin">抖音排行榜</string>
+    <string name="ui_p_rank_mainland">内地榜</string>
+    <string name="ui_p_rank_hongkong">香港地区榜</string>
+    <string name="ui_p_rank_taiwan">台湾地区榜</string>
+    <string name="ui_p_rank_trend">流行指数榜</string>
+    <string name="ui_p_rank_dance">劲歌热舞</string>
+    <string name="ui_p_cat2_sweet_happiness">甜蜜幸福</string>
+    <string name="ui_p_cat2_joy_celebration">欢乐庆典</string>
+    <string name="ui_p_cat2_heartbreak">心碎伤感</string>
+    <string name="ui_p_cat2_lonely_ethereal">寂寞空灵</string>
+    <string name="ui_p_cat2_hd_songs">高清歌曲</string>
+    <string name="ui_p_cat2_grassland_songs">草原歌曲</string>
+    <string name="ui_p_cat2_men_ktv">男人KTV</string>
+    <string name="ui_p_cat2_women_club">女人靓歌坊</string>
+    <string name="ui_p_cat2_campus_folk">校园民谣</string>
+    <string name="ui_p_cat2_exotic">异国风情</string>
+    <string name="ui_p_cat2_instrumental">纯音乐</string>
+    <string name="ui_p_cat2_medley">串烧</string>
+    <string name="ui_p_cat2_dj_mix">打碟</string>
+    <string name="ui_p_cat2_vocal_coaching">音乐教唱</string>
+    <string name="ui_p_cat2_slow_dance">慢摇</string>
+    <string name="ui_p_cat2_ktv_must_sing">KTV麦霸必点歌曲</string>
+    <string name="ui_p_cat2_happiness">幸福</string>
+    <string name="ui_p_cat2_joy">欢乐</string>
+    <string name="ui_p_cat2_celebration">庆典</string>
+    <string name="ui_p_cat2_heartbroken">心碎</string>
+    <string name="ui_p_cat2_sad">伤感</string>
+    <string name="ui_p_cat2_lonely">寂寞</string>
+    <string name="ui_p_cat2_ethereal">空灵</string>
+    <string name="ui_p_cat2_hd">高清</string>
+    <string name="ui_p_cat2_grassland">草原</string>
+    <string name="ui_p_cat2_man">男人</string>
+    <string name="ui_p_cat2_woman">女人</string>
+    <string name="ui_p_cat2_beauty_club">靓歌坊</string>
+    <string name="ui_p_cat2_folk">民谣</string>
+    <string name="ui_p_cat2_exotic_seg">异国</string>
+    <string name="ui_p_cat2_charm">风情</string>
+    <string name="ui_p_cat2_medley_seg">串烧</string>
+    <string name="ui_p_cat2_dj_seg">打碟</string>
+    <string name="ui_p_cat2_teaching">教唱</string>
+    <string name="ui_p_cat2_slow_seg">慢摇</string>
+    <string name="ui_p_cat2_king">麦霸</string>
+    <string name="ui_p_cat2_must_sing">必点</string>
+</resources>
