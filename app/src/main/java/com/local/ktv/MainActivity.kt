@@ -4121,6 +4121,14 @@ class MainActivity : AppCompatActivity() {
                 method == "GET" && path == "/api/v1/state" -> remoteOk(remoteStateJson())
                 method == "GET" && path == "/api/v1/songs" -> remoteOk(remoteSearchJson(query))
                 method == "GET" && path == "/api/v1/hot" -> remoteOk(remoteHotJson(query))
+                // ori 手机点歌页依赖的扩展端点（全套界面移植所需）。
+                method == "GET" && path == "/api/v1/singers" -> remoteOk(remoteSingersJson(query))
+                method == "GET" && path == "/api/v1/singer-songs" -> remoteOk(remoteSingerSongsJson(query))
+                method == "GET" && path == "/api/v1/song-catalog" -> remoteOk(remoteSongCatalogJson(query))
+                method == "GET" && path == "/api/v1/catalog-languages" -> remoteOk(remoteCatalogLanguagesJson())
+                method == "GET" && path == "/api/v1/downloads" -> remoteOk(remoteDownloadsJson(query))
+                method == "GET" && path == "/api/v1/download-tasks" -> remoteOk(remoteDownloadTasksJson())
+                method == "GET" && path == "/api/v1/rank" -> remoteOk(remoteRankJson(query))
                 method == "GET" && path == "/api/v1/queue" -> remoteOk(remoteQueueJson())
                 method == "POST" && path == "/api/v1/queue" -> remoteOrder(JSONObject(body))
                 method == "POST" && path == "/api/v1/player/actions" -> remotePlayerAction(JSONObject(body))
@@ -4276,6 +4284,167 @@ class MainActivity : AppCompatActivity() {
         while (remoteSongCache.size > 500) remoteSongCache.remove(remoteSongCache.keys.first())
         return JSONObject().put("songs", array).put("page", page).put("pageSize", pageSize)
             .put("hasPrevious", page > 1).put("hasMore", hasMore)
+    }
+
+    // ===== ori 手机点歌页扩展端点（全套界面移植）=====
+
+    /** 把一页 Song 打包成手机端列表响应，并登记到点歌反查缓存。 */
+    private fun remoteSongPageJson(
+        songs: List<Song>, page: Int, pageSize: Int, hasMore: Boolean
+    ): JSONObject {
+        val array = JSONArray()
+        songs.forEach { song ->
+            remoteSongCache[stableId(song)] = song
+            array.put(songJson(song))
+        }
+        while (remoteSongCache.size > 500) remoteSongCache.remove(remoteSongCache.keys.first())
+        return JSONObject().put("songs", array).put("page", page).put("pageSize", pageSize)
+            .put("hasPrevious", page > 1).put("hasMore", hasMore)
+    }
+
+    /** 分页返回歌手列表，供手机端"歌星"浏览弹窗使用。 */
+    private fun remoteSingersJson(query: Map<String, String>): JSONObject {
+        if (!library.muse.isAvailable()) throw IllegalStateException(getString(R.string.ui_a_0435))
+        val page = (query["page"]?.toIntOrNull() ?: 1).coerceAtLeast(1)
+        val pageSize = (query["pageSize"]?.toIntOrNull() ?: 10).coerceIn(1, 50)
+        val (area, type) = singerFilter(query["category"].orEmpty().trim())
+        val keyword = query["q"].orEmpty().trim()
+        val offset = (page - 1) * pageSize
+        val rows = if (keyword.isEmpty()) library.muse.singers(area, type, offset, pageSize)
+        else library.muse.searchSingers(keyword, area, type, offset, pageSize)
+        val total = if (keyword.isEmpty()) library.muse.singerCount(area, type)
+        else library.muse.searchSingerCount(keyword, area, type)
+        val array = JSONArray()
+        rows.forEach { row ->
+            array.put(JSONObject()
+                .put("id", row.getOrNull(0))
+                .put("name", row.getOrNull(1))
+                .put("type", row.getOrNull(2))
+                .put("region", row.getOrNull(3))
+                .put("popularity", row.getOrNull(4)?.toString()?.toIntOrNull() ?: 0)
+                .put("image", row.getOrNull(5)))
+        }
+        return JSONObject().put("singers", array).put("page", page).put("pageSize", pageSize)
+            .put("total", total).put("hasPrevious", page > 1)
+            .put("hasMore", offset + pageSize < total)
+    }
+
+    /** 分页返回某歌手的歌曲。 */
+    private fun remoteSingerSongsJson(query: Map<String, String>): JSONObject {
+        if (!library.muse.isAvailable()) throw IllegalStateException(getString(R.string.ui_a_0435))
+        val singerId = query["singerId"]?.trim().orEmpty()
+        if (singerId.isEmpty()) throw IllegalArgumentException(getString(R.string.ui_a_0436))
+        val page = (query["page"]?.toIntOrNull() ?: 1).coerceAtLeast(1)
+        val pageSize = (query["pageSize"]?.toIntOrNull() ?: 10).coerceIn(1, 50)
+        val offset = (page - 1) * pageSize
+        val songs = library.muse.songsBySinger(singerId, offset, pageSize + 1)
+        val hasMore = songs.size > pageSize
+        val total = library.muse.countSongsBySinger(singerId)
+        return remoteSongPageJson(songs.take(pageSize), page, pageSize, hasMore)
+            .put("total", total)
+    }
+
+    /** 分页返回全曲库歌曲，供手机端"歌名"浏览弹窗使用。 */
+    private fun remoteSongCatalogJson(query: Map<String, String>): JSONObject {
+        if (!library.muse.isAvailable()) throw IllegalStateException(getString(R.string.ui_a_0435))
+        val page = (query["page"]?.toIntOrNull() ?: 1).coerceAtLeast(1)
+        val pageSize = (query["pageSize"]?.toIntOrNull() ?: 10).coerceIn(1, 50)
+        val offset = (page - 1) * pageSize
+        val keyword = query["q"].orEmpty().trim()
+        val language = query["language"].orEmpty().trim()
+        val wordCount = (query["wordcount"]?.toIntOrNull() ?: 0).coerceIn(0, 6)
+        val songs: MutableList<Song>
+        val total: Int
+        when {
+            keyword.isNotEmpty() -> {
+                songs = library.muse.searchSongs(keyword, offset, pageSize)
+                total = library.muse.searchSongCount(keyword)
+            }
+            language.isNotEmpty() && language != KtvRaw.get(R.string.ui_a_0069) -> {
+                songs = library.muse.songsByLanguage(language, offset, pageSize)
+                total = library.muse.countByLanguage(language)
+            }
+            wordCount > 0 -> {
+                songs = library.muse.songsByWordCount(wordCount, offset, pageSize)
+                total = library.muse.countByWordCount(wordCount)
+            }
+            else -> {
+                songs = library.muse.hdSongs(offset, pageSize)
+                total = library.muse.songCount()
+            }
+        }
+        return remoteSongPageJson(songs, page, pageSize, offset + pageSize < total)
+            .put("total", total)
+    }
+
+    /** 歌名浏览页的语种筛选项，取曲库 DISTINCT language。 */
+    private fun remoteCatalogLanguagesJson(): JSONObject {
+        val array = JSONArray().put(KtvRaw.get(R.string.ui_a_0069))
+        if (library.muse.isAvailable()) library.muse.languages().forEach { array.put(it) }
+        return JSONObject().put("languages", array)
+    }
+
+    /** 已下载歌曲：本地曲库中已落盘、可直接点播的歌曲。 */
+    private fun remoteDownloadsJson(query: Map<String, String>): JSONObject {
+        val page = (query["page"]?.toIntOrNull() ?: 1).coerceAtLeast(1)
+        val pageSize = (query["pageSize"]?.toIntOrNull() ?: 10).coerceIn(1, 30)
+        val all = localSongInventory().values.toList()
+        val offset = (page - 1) * pageSize
+        val pageSongs = all.drop(offset).take(pageSize)
+        return remoteSongPageJson(pageSongs, page, pageSize, offset + pageSize < all.size)
+            .put("total", all.size)
+    }
+
+    /** 下载中/等待中的任务（plus 无 transferStatus，进度直接用 task.progress）。 */
+    private fun remoteDownloadTasksJson(): JSONObject {
+        if (Looper.myLooper() != main.looper) {
+            val snapshot = java.util.concurrent.FutureTask<JSONObject> { remoteDownloadTasksJson() }
+            check(main.post(snapshot)) { getString(R.string.ui_a_0437) }
+            return try { snapshot.get(3, TimeUnit.SECONDS) }
+            catch (error: Exception) { snapshot.cancel(false); throw error }
+        }
+        val activeStates = setOf(KtvRaw.get(R.string.ui_a_0014), KtvRaw.get(R.string.ui_a_0438),
+            KtvRaw.get(R.string.ui_a_0084), KtvRaw.get(R.string.ui_a_0247))
+        val array = JSONArray()
+        downloads.filter { it.state in activeStates }.forEach { task ->
+            val state = when (task.state) {
+                KtvRaw.get(R.string.ui_a_0084) -> "downloading"
+                KtvRaw.get(R.string.ui_a_0247) -> "cancelling"
+                else -> "waiting"
+            }
+            val item = songJson(task.song)
+                .put("downloadState", state)
+                .put("downloadStateText", task.state)
+                .put("downloadProgress", task.progress.coerceIn(0, 99))
+                .put("downloadSpeed", 0L)
+                .put("downloadCancelled", task.cancelled)
+            remoteSongCache[stableId(task.song)] = task.song
+            array.put(item)
+        }
+        while (remoteSongCache.size > 500) remoteSongCache.remove(remoteSongCache.keys.first())
+        return JSONObject().put("tasks", array).put("total", array.length())
+    }
+
+    /** 排行榜：不带 playlistId 返回榜单分类，带 playlistId 返回该榜歌曲分页。 */
+    private fun remoteRankJson(query: Map<String, String>): JSONObject {
+        if (!library.muse.isAvailable()) throw IllegalStateException(getString(R.string.ui_a_0435))
+        val playlistId = query["playlistId"]?.trim().orEmpty()
+        if (playlistId.isEmpty()) {
+            val categories = JSONArray()
+            library.muse.rankPlaylists().forEach { row ->
+                categories.put(JSONObject().put("id", row[0]).put("name", row[1])
+                    .put("count", row[3]?.toIntOrNull() ?: 0))
+            }
+            return JSONObject().put("categories", categories)
+        }
+        val page = (query["page"]?.toIntOrNull() ?: 1).coerceAtLeast(1)
+        val pageSize = (query["pageSize"]?.toIntOrNull() ?: 10).coerceIn(1, 30)
+        val offset = (page - 1) * pageSize
+        val songs = library.muse.rankSongs(playlistId, offset, pageSize + 1)
+        val hasMore = songs.size > pageSize
+        val total = library.muse.rankSongCount(playlistId)
+        return remoteSongPageJson(songs.take(pageSize), page, pageSize, hasMore)
+            .put("total", total)
     }
 
     private fun remoteQueueJson(): JSONObject {

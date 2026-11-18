@@ -5,20 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#17052f">
   <title data-i18n="title">麦动 KTV 手机点歌</title>
-  <link rel="stylesheet" href="/mobile/app.css">
-  <link rel="stylesheet" href="/mobile/logo.css">
+  <link rel="stylesheet" href="/mobile/app.css?v=26">
+  <link rel="stylesheet" href="/mobile/logo.css?v=4">
 </head>
 <body>
   <div class="aurora aurora-one"></div><div class="aurora aurora-two"></div><div class="mesh"></div>
-  <div id="offline" class="offline hidden"><span></span><span data-i18n="offline">连接中断，正在重新连接…</span></div>
+  <div id="offline" class="offline hidden"><span></span><b class="i18n" data-i18n="offline">连接中断，正在重新连接…</b></div>
   <div class="app-shell">
     <header class="topbar">
       <div class="brand">
-        <div class="brand-mark"><img src="/res/drawable-nodpi/ktv_logo.png" alt="Maidong KTV"></div>
-        <div><h1>麦动 <em>KTV</em></h1><p id="connection"><span></span></p></div>
+        <div class="brand-mark"><img src="/res/drawable-nodpi/ktv_logo.png" alt="麦动 KTV"></div>
+        <div><h1>麦动 <em>KTV</em></h1><p id="connection"><span></span><b class="i18n" data-i18n="connecting">正在连接麦动 KTV…</b></p></div>
       </div>
-      <div class="top-actions">
-        <button id="langButton" class="lang-button" type="button" aria-label="Switch to English">EN</button>
+      <div class="topbar-actions">
+        <button id="langButton" class="lang-button" type="button" data-i18n-aria="switchLang" aria-label="Switch to English">EN</button>
         <button id="queueBadge" class="queue-badge" data-page="queue"><b>0</b><span data-i18n="queueBadge">已点歌曲</span></button>
       </div>
     </header>
@@ -27,68 +27,90 @@
       <section id="remote" class="page active">
         <article class="hero-card">
           <div class="hero-glow"></div><div class="album"><div class="disc"><span>♪</span></div></div>
-          <div class="hero-copy"><div class="eyebrow"><span class="playing-dot"></span><span data-i18n="nowPlaying">正在播放</span></div><h2 id="nowTitle">暂无歌曲</h2><p id="nowSinger">请先点一首喜欢的歌</p><div class="sound-wave"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+          <div class="hero-copy"><div class="eyebrow"><span class="playing-dot"></span><b class="i18n" data-i18n="nowPlaying">正在播放</b></div><h2 id="nowTitle">暂无歌曲</h2><p id="nowSinger">请先点一首喜欢的歌</p><div class="sound-wave"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
         </article>
 
         <div class="controls">
           <button data-action="replay"><span class="control-icon">↻</span><span data-i18n="replay">重唱</span></button>
-          <button id="playButton" class="primary" data-action="pause"><span class="control-icon">Ⅱ</span><span>暂停</span></button>
+          <button id="playButton" class="primary" data-action="pause"><span class="control-icon">Ⅱ</span><span data-i18n="pause">暂停</span></button>
           <button data-action="next"><span class="control-icon">›|</span><span data-i18n="next">切歌</span></button>
         </div>
 
         <article class="glass-card audio-panel">
           <div class="panel-title"><div><span class="tiny-icon">♪</span><b data-i18n="soundControl">声音控制</b></div><small data-i18n="instant">即时生效</small></div>
-          <div class="seg"><button id="accompany" data-vocal="accompany"><span data-i18n="vocalBadgeAccompany">伴</span><span data-i18n="accompany">伴唱</span></button><button id="original" data-vocal="original"><span data-i18n="vocalBadgeOriginal">原</span><span data-i18n="original">原唱</span></button></div>
-          <div class="audio-row"><span><i class="volume-icon">♪</i><span data-i18n="musicVolume">音乐音量</span></span><b><em id="musicValue">85</em>%</b><input id="musicVolume" type="range" min="0" max="100" value="85"></div>
-          <div class="audio-row mic-hw"><span><i class="volume-icon mic">●</i><span data-i18n="micVolume">麦克风音量</span></span><small data-i18n="micHwHint">由功放/混音器硬件调节</small><input id="micVolume" type="range" min="0" max="100" value="70" disabled></div>
+          <div class="seg"><button id="accompany" data-vocal="accompany"><span data-i18n="vocalBadgeAccompany">伴</span><b class="i18n" data-i18n="accompany">伴唱</b></button><button id="original" data-vocal="original"><span data-i18n="vocalBadgeOriginal">原</span><b class="i18n" data-i18n="original">原唱</b></button></div>
+          <label><span><i class="volume-icon">♪</i><b class="i18n" data-i18n="musicVolume">音乐音量</b></span><b><em id="musicValue">70</em>%</b><input id="musicVolume" type="range" min="0" max="100" value="70"></label>
+          <label><span><i class="volume-icon mic">●</i><b class="i18n" data-i18n="micVolume">麦克风音量</b></span><b><em id="micValue">70</em>%</b><input id="micVolume" type="range" min="0" max="100" value="70"></label>
         </article>
 
-        <article class="glass-card eq-panel">
-          <button type="button" class="panel-title eq-title" id="eqCollapse" aria-expanded="false">
-            <div><span class="tiny-icon">≡</span><b data-i18n="equalizer">均衡器</b></div>
-            <span class="eq-title-right"><small id="eqState">已关闭</small><i class="eq-chevron">▾</i></span>
-          </button>
-          <div id="eqBody" class="eq-body hidden">
-            <div class="seg eq-switch">
-              <button type="button" id="eqToggle">开启均衡器</button>
-              <button type="button" id="eqReset" data-i18n="eqReset">恢复标准</button>
-            </div>
-            <div id="eqBands" class="eq-bands"></div>
-            <div id="eqPresets" class="eq-presets"></div>
-            <p class="eq-hint" id="eqHint">均衡器作用于本机播放输出，不改动系统音量</p>
-          </div>
-        </article>
-
-        <article class="next-card"><div class="next-number">02</div><div><small data-i18n="nextUp">下一首</small><b id="nextSong">队列为空</b></div><button data-page="queue"><span data-i18n="viewQueue">查看队列</span> <span>›</span></button></article>
+        <article class="next-card"><div class="next-number">02</div><div><small data-i18n="nextUp">下一首</small><b id="nextSong">队列为空</b></div><button data-page="queue"><b class="i18n" data-i18n="viewQueue">查看队列</b> <span>›</span></button></article>
       </section>
 
       <section id="search" class="page">
         <div class="page-heading"><div><p data-i18n="songLibrary">SONG LIBRARY</p><h2 data-i18n="wantToSing">想唱什么？</h2></div><span data-i18n="vastLibrary">海量本地曲库</span></div>
-        <div class="search-mode" role="group" data-i18n-aria="searchModeAria">
-          <button type="button" data-search-mode="song" class="active" data-i18n="song">歌曲</button>
+        <div class="search-mode" role="group" data-i18n-aria="searchModeAria" aria-label="搜索方式">
+          <button type="button" data-search-mode="song" class="active" data-i18n="songTitle">歌名</button>
           <button type="button" data-search-mode="singer" data-i18n="singer">歌手</button>
         </div>
-        <form id="searchForm" class="search-box"><span class="search-icon"></span><input id="query" autocomplete="off" data-i18n-placeholder="inputSong" placeholder="输入歌曲名或拼音"><button type="submit" data-i18n="search">搜索</button></form>
+        <form id="searchForm" class="search-box"><span class="search-icon"></span><input id="query" autocomplete="off" placeholder="输入歌曲名或拼音" data-i18n-placeholder="inputSong"><button type="submit" data-i18n="search">搜索</button></form>
         <div id="searchResultBlock" class="search-result-block hidden">
           <div class="block-title"><h3 id="resultTitle">歌曲搜索结果</h3><span id="resultSummary"></span></div>
           <div id="results" class="list"></div><button id="more" class="more hidden" data-i18n="moreSongs">加载更多歌曲</button>
         </div>
-        <div id="hot" class="hot-block">
-          <div class="block-title"><h3 data-i18n="hotRanking">热歌排行</h3><span id="hotSummary">正在加载…</span></div>
-          <div id="hotList" class="list ranking-list"></div>
-          <div class="rank-pager"><button id="hotPrev" type="button" data-i18n="prevPage">上一页</button><b id="hotPage">第 1 页</b><button id="hotNext" type="button" data-i18n="nextPage">下一页</button></div>
+        <div id="browseSection" class="browse-section">
+          <div class="browse-section-head"><small data-i18n="browseEyebrow">BROWSE LIBRARY</small><h3 id="browseSectionTitle" data-i18n="browseTitle">按歌星 / 歌名浏览</h3></div>
+          <div class="search-mode browse-mode" role="group" data-i18n-aria="browseTabsAria" aria-label="浏览分类">
+            <button type="button" data-browse-tab="singer" data-i18n="browseSinger">歌星</button>
+            <button type="button" data-browse-tab="song" class="active" data-i18n="browseSong">歌名</button>
+            <button type="button" data-browse-tab="language" data-i18n="language">语言</button>
+          </div>
+          <div id="browseFilters" class="browse-filters hidden">
+            <div id="browseChips" class="browse-chips"></div>
+            <div id="browseQueryRow" class="browse-query-row"><input id="browseQuery" type="search" autocomplete="off" data-i18n-placeholder="browseQuerySinger" placeholder="输入歌手名或拼音/首字母"><button id="browseQueryBtn" type="button" data-i18n="search">搜索</button></div>
+            <div id="browseLetters" class="letter-chips"></div>
+          </div>
+          <div id="browseCrumb" class="browse-crumb hidden"><button id="browseBack" type="button">‹ <span data-i18n="browseBack">返回</span></button><b id="browseCrumbText"></b></div>
+          <div class="block-title"><h3 id="browseListTitle" data-i18n="browseSingerList">歌星列表</h3><span id="browseSummary"></span></div>
+          <div id="browseList" class="browse-list"></div>
+          <div id="browsePager" class="rank-pager"><button id="browsePrev" type="button" data-i18n="prevPage">上一页</button><b id="browsePage">第 1/1 页</b><button id="browseNext" type="button" data-i18n="nextPage">下一页</button></div>
         </div>
       </section>
 
       <section id="queue" class="page">
         <div class="page-heading queue-heading"><div><p data-i18n="playQueue">PLAY QUEUE</p><h2 data-i18n="queuedSongs">已点歌单</h2></div><span id="queueCount">0 首</span></div>
-        <div class="queue-tip"><i class="tip-icon">i</i><span data-i18n="pinTip">置顶歌曲将排在当前歌曲之后</span></div><div id="queueList" class="list"></div>
+        <div class="queue-tip"><span>i</span><b class="i18n" data-i18n="pinTip">置顶歌曲将排在当前歌曲之后</b></div><div id="queueList" class="list"></div>
+      </section>
+
+      <section id="downloads" class="page">
+        <div class="page-heading"><div><p data-i18n="downloadsEyebrow">MY MUSIC</p><h2 id="downloadsTitle" data-i18n="downloadedSongs">已下载歌曲</h2></div><span id="downloadsCount">0 首</span></div>
+        <div class="search-mode download-mode" role="group" data-i18n-aria="downloadsTabsAria" aria-label="下载分类">
+          <button type="button" data-download-tab="downloaded" class="active" data-i18n="downloadsTabDownloaded">已下载</button>
+          <button type="button" data-download-tab="active" data-i18n="downloadsTabActive">下载中</button>
+        </div>
+        <div class="block-title"><h3 id="downloadsSubtitle" data-i18n="downloadedList">本地曲库</h3><span id="downloadsSummary"></span></div>
+        <div id="downloadsList" class="list ranking-list"></div>
+        <div id="downloadsPager" class="rank-pager"><button id="downloadsPrev" type="button" data-i18n="prevPage">上一页</button><b id="downloadsPage">第 1/1 页</b><button id="downloadsNext" type="button" data-i18n="nextPage">下一页</button></div>
+      </section>
+
+      <section id="rank" class="page">
+        <div class="page-heading"><div><p data-i18n="rankEyebrow">CHARTS</p><h2 data-i18n="rankings">排行榜</h2></div><span data-i18n="rankHint">选择榜单</span></div>
+        <div id="rankCategories" class="chips"></div>
+        <div class="block-title"><h3 id="rankTitle">—</h3><span id="rankSummary"></span></div>
+        <div id="rankList" class="list ranking-list"></div>
+        <div class="rank-pager"><button id="rankPrev" type="button" data-i18n="prevPage">上一页</button><b id="rankPage">第 1/1 页</b><button id="rankNext" type="button" data-i18n="nextPage">下一页</button></div>
       </section>
     </main>
 
-    <nav><button data-page="remote" class="active"><i class="nav-remote"></i><span data-i18n="remote">遥控</span></button><button data-page="search"><i class="nav-search"></i><span data-i18n="searchNav">搜歌</span></button><button data-page="queue"><i class="nav-queue"></i><span data-i18n="queuedNav">已点</span><b id="navCount" class="hidden">0</b></button></nav>
+    <nav>
+      <button data-page="remote" class="active"><i class="nav-remote"></i><span data-i18n="remote">遥控</span></button>
+      <button data-page="search"><i class="nav-search"></i><span data-i18n="searchNav">搜歌</span></button>
+      <button data-page="queue"><i class="nav-queue"></i><span data-i18n="queuedNav">已点</span><b id="navCount" class="hidden">0</b></button>
+      <button data-page="rank"><i class="nav-rank"></i><span data-i18n="rankNav">排行榜</span></button>
+      <button data-page="downloads"><i class="nav-download"></i><span data-i18n="downloadsNav">下载</span></button>
+    </nav>
   </div>
   <div id="toast"></div>
-  <script src="/mobile/app.js"></script>
+
+  <script src="/mobile/app.js?v=26"></script>
 </body>
 </html>
