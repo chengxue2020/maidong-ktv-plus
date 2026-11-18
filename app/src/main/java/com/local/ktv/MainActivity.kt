@@ -557,6 +557,10 @@ class MainActivity : AppCompatActivity() {
         val startupShouldPlay = languageResume?.shouldPlay ?: true
         startupSong?.let { restoredSong ->
             play(restoredSong, languageResume?.positionMs ?: 0, startupShouldPlay)
+            // 语言切换重建后：若续播歌曲仍在下载，把 UI 回调重新挂到新 Activity。
+            if (SongOkDownloadManager.isDownloading(restoredSong)) {
+                SongOkDownloadManager.reattachCallback(restoredSong, downloadUiCallback(restoredSong, null))
+            }
             updateBottomBar(restoredSong, startupShouldPlay)
         } ?: run {
             // 启动时没有恢复的播放与已点歌曲: 曲库就绪后自动随机播放本地已下载歌曲
@@ -5958,7 +5962,12 @@ class MainActivity : AppCompatActivity() {
         if (::stateDatabase.isInitialized) runCatching {
             stateIo.execute { stateDatabase.updateDownload(song, "queued", 0) }
         }
-        download(song, object : DownloadCallback {
+        download(song, downloadUiCallback(song, extraCallback))
+    }
+
+    /** 下载 UI 回调：正常下载与 Activity 重建后重新挂接共用，保证新界面收到进度/完成/失败通知。 */
+    private fun downloadUiCallback(song: Song, extraCallback: DownloadCallback?): DownloadCallback =
+        object : DownloadCallback {
             override fun onDownloadStart(song: Song) {
                 if (extraCallback != null) extraCallback.onDownloadStart(song)
                 if (::stateDatabase.isInitialized) runCatching {
@@ -6044,8 +6053,7 @@ class MainActivity : AppCompatActivity() {
                     if (wasPendingQueue) toast(getString(R.string.ui_p_083, song.title))
                 })
             }
-        })
-    }
+        }
 
     /**
      * 检查指定歌曲是否正在下载中。

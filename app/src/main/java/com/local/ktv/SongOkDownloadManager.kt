@@ -90,6 +90,20 @@ object SongOkDownloadManager {
         return tasks.containsKey(key) || pending.contains(key)
     }
 
+    /**
+     * 语言切换等原因重建 Activity 后，把进度/完成回调替换为新 Activity 的实现。
+     * plus 版回调是单槽位 Map：旧 Activity 的回调原本会在 taskEnd 时被 remove，
+     * 重建后直接替换成新 Activity 的回调即可，让新界面收到进度与完成通知。
+     * 仅当任务确实进行中时才替换，返回是否成功挂接。
+     */
+    @JvmStatic
+    fun reattachCallback(song: Song, callback: DownloadCallback): Boolean {
+        val key = songKey(song)
+        if (!tasks.containsKey(key) && !pending.contains(key)) return false
+        callbacks[key] = callback
+        return true
+    }
+
     @JvmStatic
     fun download(song: Song, callback: DownloadCallback?) {
         if (isDownloaded(song)) {
