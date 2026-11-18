@@ -8,7 +8,7 @@ android {
     compileSdk 35
 
     defaultConfig {
-        applicationId "com.local.ktv"
+        applicationId "com.local.ktv.muse"
         minSdk 19
         targetSdk 25
         versionCode 42
