@@ -250,7 +250,7 @@
     <string name="ui_a_0247" formatted="false">正在取消</string>
     <string name="ui_a_0248" formatted="false">U盘</string>
     <string name="ui_a_0249" formatted="false">本地导入</string>
-    <string name="ui_a_0250" formatted="false">请把歌曲放入 /sdcard/MaidongKTV/import、/sdcard/MaidongKTV/songs、U盘/KTV 或 U盘/songs，支持 mp4/mkv/avi/mp3/flac/wav。</string>
+    <string name="ui_a_0250" formatted="false">请把歌曲放入 /sdcard/MaidongKTV-SEA/import、/sdcard/MaidongKTV-SEA/songs、U盘/KTV 或 U盘/songs，支持 mp4/mkv/avi/mp3/flac/wav。</string>
     <string name="ui_a_0251" formatted="false">🎤  演唱模式</string>
     <string name="ui_a_0252" formatted="false">🔊  音频控制</string>
     <string name="ui_a_0253" formatted="false">🌐  声道设置</string>
@@ -378,7 +378,7 @@
     <string name="ui_a_0375" formatted="false">录音评分</string>
     <string name="ui_a_0376" formatted="false">打开</string>
     <string name="ui_a_0377" formatted="false">本地 APK / 升级包</string>
-    <string name="ui_a_0378" formatted="false">暂无 APK，请放入 /sdcard/MaidongKTV/apps 或 U盘/apps</string>
+    <string name="ui_a_0378" formatted="false">暂无 APK，请放入 /sdcard/MaidongKTV-SEA/apps 或 U盘/apps</string>
     <string name="ui_a_0379" formatted="false">广播</string>
     <string name="ui_a_0380" formatted="false">广播功能：开</string>
     <string name="ui_a_0381" formatted="false">广播功能：关</string>
@@ -487,7 +487,7 @@
     <string name="ui_a_0484" formatted="false">本地版记录灯效状态；接入实际灯控盒时可把这些模式映射到串口、HTTP 或红外命令。</string>
     <string name="ui_a_0485" formatted="false">影片操作</string>
     <string name="ui_a_0486" formatted="false">扫描影片目录</string>
-    <string name="ui_a_0487" formatted="false">目录：/sdcard/MaidongKTV/movies 或 U盘/movies</string>
+    <string name="ui_a_0487" formatted="false">目录：/sdcard/MaidongKTV-SEA/movies 或 U盘/movies</string>
     <string name="ui_a_0488" formatted="false">用户 MV / 本地影片</string>
     <string name="ui_a_0489" formatted="false">暂无影片</string>
     <string name="ui_a_0490" formatted="false">连接：</string>

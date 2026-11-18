@@ -249,7 +249,7 @@
     <string name="ui_a_0247" formatted="false">Cancelling</string>
     <string name="ui_a_0248" formatted="false">USB</string>
     <string name="ui_a_0249" formatted="false">Import from local</string>
-    <string name="ui_a_0250" formatted="false">Please place songs in /sdcard/MaidongKTV/import, /sdcard/MaidongKTV/songs, USB/KTV, or USB/songs. Supported formats: mp4/mkv/avi/mp3/flac/wav</string>
+    <string name="ui_a_0250" formatted="false">Please place songs in /sdcard/MaidongKTV-SEA/import, /sdcard/MaidongKTV-SEA/songs, USB/KTV, or USB/songs. Supported formats: mp4/mkv/avi/mp3/flac/wav</string>
     <string name="ui_a_0251" formatted="false">🎤  Singing mode</string>
     <string name="ui_a_0252" formatted="false">🔊  Audio controls</string>
     <string name="ui_a_0253" formatted="false">🌐  Channel settings</string>
@@ -377,7 +377,7 @@
     <string name="ui_a_0375" formatted="false">RecordingScoring</string>
     <string name="ui_a_0376" formatted="false">Open</string>
     <string name="ui_a_0377" formatted="false">Local APK / update package</string>
-    <string name="ui_a_0378" formatted="false">No APK found. Please place it in /sdcard/MaidongKTV/apps or USB/apps</string>
+    <string name="ui_a_0378" formatted="false">No APK found. Please place it in /sdcard/MaidongKTV-SEA/apps or USB/apps</string>
     <string name="ui_a_0379" formatted="false">Broadcast</string>
     <string name="ui_a_0380" formatted="false">Broadcasting: On</string>
     <string name="ui_a_0381" formatted="false">Broadcasting: Off</string>
@@ -486,7 +486,7 @@
     <string name="ui_a_0484" formatted="false">This local version records light-effect states. When a real light controller is connected, these modes can be mapped to serial, HTTP, or IR commands.</string>
     <string name="ui_a_0485" formatted="false">Movie actions</string>
     <string name="ui_a_0486" formatted="false">Scan the video directory</string>
-    <string name="ui_a_0487" formatted="false">Directory: /sdcard/MaidongKTV/movies or USB/movies</string>
+    <string name="ui_a_0487" formatted="false">Directory: /sdcard/MaidongKTV-SEA/movies or USB/movies</string>
     <string name="ui_a_0488" formatted="false">User MV / local videos</string>
     <string name="ui_a_0489" formatted="false">No videos</string>
     <string name="ui_a_0490" formatted="false">Connection:</string>

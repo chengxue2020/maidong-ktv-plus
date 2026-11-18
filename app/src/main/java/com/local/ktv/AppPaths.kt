@@ -9,7 +9,7 @@ import java.io.FileOutputStream
 /**
  * 麦动 KTV 的存储命名空间。
  *
- * ⚠️ **历史实现把根目录写死成 `/storage/emulated/0/MaidongKTV`**，在部分定制 TV 盒子
+ * ⚠️ **历史实现把根目录写死成 `/storage/emulated/0/MaidongKTV-SEA`**，在部分定制 TV 盒子
  * （极米 H1S / GMUI2.0 / Android 5.1.1 = API 22）上该路径不可写：`ensureDirectories()`
  * 里 `check(it.exists() || it.mkdirs())` 失败抛异常，**App 一打开就闪退**。
  *
@@ -23,7 +23,7 @@ object AppPaths {
     private const val TAG = "AppPaths"
 
     /** 历史路径（作为候选之一保留，并与老版本数据保持兼容）。 */
-    const val ROOT_PATH = "/storage/emulated/0/MaidongKTV"
+    const val ROOT_PATH = "/storage/emulated/0/MaidongKTV-SEA"
 
     @Volatile private var baseDir: File = File(ROOT_PATH)
 
@@ -75,14 +75,14 @@ object AppPaths {
 
         val candidates = LinkedHashMap<String, File>()
         runCatching { Environment.getExternalStorageDirectory() }.getOrNull()?.let {
-            candidates["env(${it.absolutePath})"] = File(it, "MaidongKTV")
+            candidates["env(${it.absolutePath})"] = File(it, "MaidongKTV-SEA")
         }
         candidates["legacy($ROOT_PATH)"] = File(ROOT_PATH)
         runCatching { app.getExternalFilesDir(null) ?: app.filesDir }.getOrNull()?.let {
-            candidates["private(${it.absolutePath})"] = File(it, "MaidongKTV")
+            candidates["private(${it.absolutePath})"] = File(it, "MaidongKTV-SEA")
         }
         runCatching { app.filesDir }.getOrNull()?.let {
-            candidates["internal(${it.absolutePath})"] = File(it, "MaidongKTV")
+            candidates["internal(${it.absolutePath})"] = File(it, "MaidongKTV-SEA")
         }
 
         val envState = runCatching { Environment.getExternalStorageState() }.getOrNull() ?: "?"
