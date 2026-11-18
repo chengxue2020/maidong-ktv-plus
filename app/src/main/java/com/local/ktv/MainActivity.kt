@@ -10538,7 +10538,11 @@ class MainActivity : AppCompatActivity() {
             list.adapter = tvAdapter().apply { add(getString(R.string.ui_a_0759)) }
             return
         }
-        list.dividerHeight = 0
+        // 行间留透明间隔(露出列表底色), 让每首歌的圆角背景块边界清晰、不再紧贴/重叠。
+        // 间隔高度同步传给 fitRowHeight 从均分行高中扣除, 保证铺满且不挤出最后一行。
+        val rowGapPx = dp(6)
+        list.divider = ColorDrawable(Color.TRANSPARENT)
+        list.dividerHeight = rowGapPx
         val mode = when (browseMode) {
             "rank", "ordered", "downloads", "sang" -> browseMode
             else -> "catalog"
@@ -10579,7 +10583,7 @@ class MainActivity : AppCompatActivity() {
         if (existing != null) listAdapter.notifyDataSetChanged()
         // 布局完成后按实际可视高度拉满各行, 消除投影/高分屏底部空白。
         if (rowsPerPage > 0) {
-            list.post { if (list.adapter === listAdapter) listAdapter.fitRowHeight(list.height) }
+            list.post { if (list.adapter === listAdapter) listAdapter.fitRowHeight(list.height, rowGapPx) }
         }
 
         val targetPosition = focusedMarker?.let(listAdapter::adapterPositionFor)

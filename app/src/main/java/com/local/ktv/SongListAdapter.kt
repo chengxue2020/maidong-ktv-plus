@@ -58,11 +58,13 @@ class SongListAdapter(
      * 让行高铺满可用高度: 把列表可视高度按每页行数均分(分页列表专用)。
      * 超出 min/max 范围时收敛, 避免过小/过大。滚动列表(rowsPerPage<=0)忽略。
      */
-    fun fitRowHeight(availableHeightPx: Int) {
+    fun fitRowHeight(availableHeightPx: Int, rowGapPx: Int = 0) {
         if (rowsPerPage <= 0 || availableHeightPx <= 0) return
         val minPx = dp(52)
         val maxPx = dp(160)
-        val fitted = (availableHeightPx / rowsPerPage).coerceIn(minPx, maxPx)
+        // 扣掉行间 divider 占用的高度, 加间隔后各行仍能铺满可视高度、不会挤出最后一行。
+        val usable = availableHeightPx - rowGapPx * (rowsPerPage - 1)
+        val fitted = (usable / rowsPerPage).coerceIn(minPx, maxPx)
         if (fitted != rowHeightPx) {
             rowHeightPx = fitted
             notifyDataSetChanged()
@@ -101,7 +103,10 @@ class SongListAdapter(
                     } ?: View(context)
                     addView(
                         cell,
-                        LinearLayout.LayoutParams(0, -1, 1f),
+                        LinearLayout.LayoutParams(0, -1, 1f).apply {
+                            // 两列网格: 左列右侧留间隔, 让相邻背景块边界清晰(右列不缩进以保持右边缘对齐)。
+                            if (column == 0) marginEnd = dp(6)
+                        },
                     )
                 }
             }
