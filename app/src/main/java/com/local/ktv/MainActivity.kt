@@ -5644,7 +5644,11 @@ class MainActivity : AppCompatActivity() {
             playbackPreparing = false
             currentMediaPlayer = mp
             applyPlaybackMode()
-            if (startPositionMs > 0) player!!.seekTo(startPositionMs)
+            // 无条件 seek 到目标位置：切歌/点歌时 startPositionMs=0，必须显式归零，
+            // 不能依赖 IJK 在 stop→reset→prepareAsync 链里隐式把 currentPosition 清零
+            // （个别机型会残留上一首的进度，导致切歌后画面/歌词从中间开始）。
+            // 语言切换续播时 startPositionMs>0，则跳到保存的进度。
+            player!!.seekTo(startPositionMs)
             prepareExternalVocal(song, startPositionMs)
             if (playWhenPrepared) {
                 player!!.start()
