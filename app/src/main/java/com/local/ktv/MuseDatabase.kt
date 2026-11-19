@@ -585,11 +585,14 @@ class MuseDatabase @JvmOverloads constructor(initialSourceFile: File? = null) {
         columns: List<String>,
         args: MutableList<String>,
     ): String {
-        val latinQuery = query.all { it.code < 128 }
+        val latinQuery = query.all { it.code < 128 || it.isWhitespace() }
         return if (latinQuery) {
-            // 拼音/英文:仅用前缀 GLOB 命中索引列(name_cap 首字母 / name_full 全拼)。
+            // 拼音/英文:仅用前缀 GLOB 命中索引列(name_cap 首字母 / name_full 全拼去空格)。
             // 之前对 name/name_trim 也做 GLOB 会退化成 67 万行全表扫描,导致检索极慢。
-            val pattern = query.uppercase(Locale.ROOT).replace("[", "[[]") + "*"
+            // 官方曲库里英文歌的 name_cap/name_full 都不带空格(如 ABM / ALLBYMYSELF)，
+            // 所以英文输入需要先去掉空白，才能让 "MY HEART WILL GO ON" 命中 "MYHEARTWILLGOON"。
+            val normalizedQuery = query.filterNot { it.isWhitespace() }
+            val pattern = normalizedQuery.uppercase(Locale.ROOT).replace("[", "[[]") + "*"
             val indexed = columns.filter { it == "name_cap" || it == "name_full" }.ifEmpty { columns }
             repeat(indexed.size) { args += pattern }
             indexed.joinToString(prefix = "(", postfix = ")", separator = " OR ") {
