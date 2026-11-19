@@ -246,7 +246,12 @@ class SongListAdapter(
         orientation = if (stacked) LinearLayout.VERTICAL else LinearLayout.HORIZONTAL
         gravity = Gravity.CENTER_VERTICAL
         if (stacked) {
-            addView(text(song.title.orEmpty(), 16, Color.WHITE, Gravity.START or Gravity.CENTER_VERTICAL), LinearLayout.LayoutParams(-1, 0, 1f))
+            // 歌名：长歌名用按需跑马灯(超宽才滚，先静止 1.5 秒)；歌手名保持原样。
+            addView(MarqueeTitleView(context).apply {
+                text = song.title.orEmpty()
+                textSize = 16f
+                setTextColor(Color.WHITE)
+            }, LinearLayout.LayoutParams(-1, 0, 1f))
             addView(text(song.singer.orEmpty(), 14, Color.rgb(193, 193, 193), Gravity.START or Gravity.CENTER_VERTICAL), LinearLayout.LayoutParams(-1, 0, 1f))
         } else {
             addView(text(song.title.orEmpty(), 16, Color.WHITE, Gravity.START or Gravity.CENTER_VERTICAL), LinearLayout.LayoutParams(0, -1, 1f).apply { marginEnd = dp(12) })
