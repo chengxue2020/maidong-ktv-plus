@@ -73,6 +73,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.widget.ImageViewCompat
 import com.google.zxing.BarcodeFormat
+import com.google.zxing.EncodeHintType
 import com.google.zxing.qrcode.QRCodeWriter
 import com.local.ktv.KtvStore.Companion.stableId
 import com.local.ktv.Song.Companion.local
@@ -3489,7 +3490,7 @@ class MainActivity : AppCompatActivity() {
         // 左：白色圆角卡片承载二维码，对比度更好、更精致。
         val qrCard = FrameLayout(this).apply {
             background = ContextCompat.getDrawable(context, R.drawable.bg_qr_card)
-            setPadding(dp(8), dp(8), dp(8), dp(8))
+            setPadding(dp(2), dp(2), dp(2), dp(2))
         }
         // 位图按最终显示尺寸生成，保证任何分辨率下二维码都清晰可扫。
         val qr = ImageView(this)
@@ -3623,8 +3624,9 @@ class MainActivity : AppCompatActivity() {
         if (!isFullScreen) return
         val url = remoteUrl()
         if (url.isBlank()) return
-        val qrSize = dp(if (compactUi) 68 else 84)
-        val totalWidth = dp(if (compactUi) 78 else 96)
+        // 二维码及容器放大到原来的 1.3 倍(68→88/84→109, 容器 78→101/96→125)。
+        val qrSize = dp(if (compactUi) 88 else 109)
+        val totalWidth = dp(if (compactUi) 101 else 125)
         val box = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER
@@ -4560,7 +4562,9 @@ class MainActivity : AppCompatActivity() {
 
     private fun qrBitmap(text: String, size: Int): Bitmap {
         try {
-            val matrix = QRCodeWriter().encode(text, BarcodeFormat.QR_CODE, size, size)
+            // MARGIN=1 减小二维码四周静区白边(默认 4)，让二维码图案更大、更少白边(与 ori 一致)。
+            val hints = mapOf(EncodeHintType.MARGIN to 1)
+            val matrix = QRCodeWriter().encode(text, BarcodeFormat.QR_CODE, size, size, hints)
             val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.RGB_565)
             for (y in 0 until size) {
                 for (x in 0 until size) {
