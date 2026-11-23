@@ -3,6 +3,7 @@ package com.local.ktv
 import android.content.Context
 import android.graphics.Color
 import android.view.Gravity
+import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
@@ -89,7 +90,8 @@ class SongListAdapter(
         mode == renderMode && pageOffset == renderPageOffset
 
     fun adapterPositionFor(focusMarker: String): Int? {
-        val key = focusMarker.removePrefix(FOCUS_PREFIX)
+        // 右侧操作图标的 marker 形如 focus:song:KEY|action|N, 需剥掉 |action| 后缀才能定位到歌曲行。
+        val key = focusMarker.removePrefix(FOCUS_PREFIX).substringBefore("|action|")
         val index = songs.indexOfFirst { songKey(it) == key }
         return index.takeIf { it >= 0 }?.div(columns)
     }
@@ -198,11 +200,16 @@ class SongListAdapter(
                 LinearLayout.LayoutParams(dp(47), dp(34)),
             )
             addView(songInfo(song, stacked = false), LinearLayout.LayoutParams(0, dp(34), 1f))
+            val actions = ArrayList<View>()
             if (!state.current) {
-                addView(icon(R.drawable.ic_add_to_top) { callbacks.onTop(song) }, LinearLayout.LayoutParams(dp(30), dp(30)))
-                addView(icon(R.drawable.ic_delete) { callbacks.onDelete(song) }, LinearLayout.LayoutParams(dp(30), dp(30)))
+                val top = icon(R.drawable.ic_add_to_top) { callbacks.onTop(song) }
+                val delete = icon(R.drawable.ic_delete) { callbacks.onDelete(song) }
+                addView(top, LinearLayout.LayoutParams(dp(30), dp(30)))
+                addView(delete, LinearLayout.LayoutParams(dp(30), dp(30)))
+                actions.add(top)
+                actions.add(delete)
             }
-            configureSongCard(this, song, index)
+            configureSongCard(this, song, index, actions)
         }
     }
 
@@ -221,22 +228,22 @@ class SongListAdapter(
                     progressDrawable = ContextCompat.getDrawable(context, R.drawable.bg_download_progress)
                 }, LinearLayout.LayoutParams(dp(120), dp(8)).apply { marginEnd = dp(8) })
             }
-            when {
-                state.failed || state.paused -> addView(
-                    icon(R.drawable.ic_download_retry) { callbacks.onPauseResume(song) },
-                    LinearLayout.LayoutParams(dp(30), dp(30)),
-                )
-                state.downloading -> addView(
-                    icon(R.drawable.ic_pause) { callbacks.onPauseResume(song) },
-                    LinearLayout.LayoutParams(dp(30), dp(30)),
-                )
-                state.local -> addView(
-                    icon(R.drawable.ott_ic_play) { callbacks.onPrimary(song) },
-                    LinearLayout.LayoutParams(dp(30), dp(30)),
-                )
+            // 主操作图标(重试/暂停/播放)按当前状态只显示一个, 与删除图标一起纳入遥控器导航。
+            val primary = when {
+                state.failed || state.paused -> icon(R.drawable.ic_download_retry) { callbacks.onPauseResume(song) }
+                state.downloading -> icon(R.drawable.ic_pause) { callbacks.onPauseResume(song) }
+                state.local -> icon(R.drawable.ott_ic_play) { callbacks.onPrimary(song) }
+                else -> null
             }
-            addView(icon(R.drawable.ic_delete) { callbacks.onDelete(song) }, LinearLayout.LayoutParams(dp(30), dp(30)))
-            configureSongCard(this, song, index)
+            val actions = ArrayList<View>()
+            primary?.let {
+                addView(it, LinearLayout.LayoutParams(dp(30), dp(30)))
+                actions.add(it)
+            }
+            val delete = icon(R.drawable.ic_delete) { callbacks.onDelete(song) }
+            addView(delete, LinearLayout.LayoutParams(dp(30), dp(30)))
+            actions.add(delete)
+            configureSongCard(this, song, index, actions)
         }
     }
 
@@ -246,8 +253,9 @@ class SongListAdapter(
         setBackgroundResource(R.drawable.ott_bg_item)
         addView(text((index + 1).toString(), 16, Color.WHITE, Gravity.CENTER), LinearLayout.LayoutParams(dp(47), dp(34)))
         addView(songInfo(song, stacked = false), LinearLayout.LayoutParams(0, dp(34), 1f))
-        addView(icon(R.drawable.ic_order_song) { callbacks.onPrimary(song) }, LinearLayout.LayoutParams(dp(30), dp(30)))
-        configureSongCard(this, song, index)
+        val order = icon(R.drawable.ic_order_song) { callbacks.onPrimary(song) }
+        addView(order, LinearLayout.LayoutParams(dp(30), dp(30)))
+        configureSongCard(this, song, index, listOf(order))
     }
 
     private fun songInfo(song: Song, stacked: Boolean): View = LinearLayout(context).apply {
@@ -289,7 +297,7 @@ class SongListAdapter(
         }
     }
 
-    private fun configureSongCard(card: View, song: Song, songIndex: Int) {
+    private fun configureSongCard(card: View, song: Song, songIndex: Int, actions: List<View> = emptyList()) {
         card.id = cardId(songIndex)
         val state = stateFor(song)
         val stateText = when {
@@ -304,10 +312,74 @@ class SongListAdapter(
             KtvRaw.display(R.string.ui_p_116,
                 song.title.orEmpty(), song.singer.orEmpty(), stateText),
         )
-        (card as? ViewGroup)?.descendantFocusability = ViewGroup.FOCUS_BLOCK_DESCENDANTS
         installPressAnimation(card)
         card.setOnClickListener { callbacks.onPrimary(song) }
         card.setOnLongClickListener { callbacks.onMore(song); true }
+        val group = card as? ViewGroup
+        if (actions.isNotEmpty() && group != null) {
+            // 有操作图标(已点/下载/已唱): 行自身优先聚焦, 并给图标装遥控器左右导航,
+            // 让"暂停/恢复下载""删除"等图标能被遥控器选中(对齐 ori)。
+            installRowActionNavigation(group, song, songIndex, actions)
+        } else {
+            // 无操作图标(目录网格/排行榜): 整行锁成一个焦点, 子 View 不参与聚焦。
+            group?.descendantFocusability = ViewGroup.FOCUS_BLOCK_DESCENDANTS
+        }
+    }
+
+    /**
+     * 单列歌曲行的遥控器导航(移植 ori 的 installSingleNavigation):
+     * 行自身先聚焦; 按右键进入第一个操作图标, 图标间左右移动, 上下键在行间移动。
+     * 每个图标带 |action|N 后缀的 marker, 焦点锚定恢复时由 adapterPositionFor 剥后缀定位到行。
+     */
+    private fun installRowActionNavigation(row: ViewGroup, song: Song, index: Int, actions: List<View>) {
+        row.descendantFocusability = ViewGroup.FOCUS_BEFORE_DESCENDANTS
+        fun visibleActions() = actions.filter { it.visibility == View.VISIBLE && it.isEnabled }
+        fun vertical(key: Int): Boolean {
+            val next = index + if (key == KeyEvent.KEYCODE_DPAD_DOWN) 1 else -1
+            if (next !in songs.indices) return false
+            val list = row.parent as? android.widget.ListView ?: return false
+            val target = list.getChildAt(next - list.firstVisiblePosition)
+            if (target?.requestFocus() != true) {
+                list.setSelectionFromTop(next, if (next > index) row.height else 0)
+                list.post { list.getChildAt(next - list.firstVisiblePosition)?.requestFocus() }
+            }
+            return true
+        }
+        row.setOnKeyListener { _, key, event ->
+            when (key) {
+                KeyEvent.KEYCODE_DPAD_RIGHT -> {
+                    val target = visibleActions().firstOrNull()
+                    if (event.action == KeyEvent.ACTION_DOWN) target?.requestFocus() == true else target != null
+                }
+                KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_DPAD_DOWN ->
+                    if (event.action == KeyEvent.ACTION_DOWN) vertical(key) else true
+                else -> false
+            }
+        }
+        actions.forEachIndexed { actionIndex, button ->
+            button.setAccessibleFocus(
+                FOCUS_PREFIX + songKey(song) + "|action|" + actionIndex,
+                KtvRaw.display(R.string.ui_a_0877, song.title.orEmpty()),
+            )
+            button.setOnKeyListener { _, key, event ->
+                when (key) {
+                    KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_RIGHT -> {
+                        if (event.action == KeyEvent.ACTION_DOWN) {
+                            val visible = visibleActions()
+                            val at = visible.indexOf(button)
+                            val target = if (key == KeyEvent.KEYCODE_DPAD_LEFT)
+                                visible.getOrNull(at - 1) ?: row
+                            else visible.getOrNull(at + 1) ?: button
+                            target.requestFocus()
+                        }
+                        true
+                    }
+                    KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_DPAD_DOWN ->
+                        if (event.action == KeyEvent.ACTION_DOWN) vertical(key) else true
+                    else -> false
+                }
+            }
+        }
     }
 
     private fun installPressAnimation(view: View) {
