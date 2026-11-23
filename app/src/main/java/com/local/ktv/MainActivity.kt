@@ -7850,8 +7850,17 @@ class MainActivity : AppCompatActivity() {
         syncPlayerInfo()
         // 隐藏已点的子页面辅助控件
         if (subCategoryScroll != null) subCategoryScroll!!.setVisibility(View.GONE)
+        // 首页(菜单界面)显示时把默认焦点落到"歌名"卡片, 遥控器一进首页即可按确认搜歌。
+        // 从子页面返回时 restoreFocusBookmark 会递增 focusRestoreSerial 并恢复到进入前的卡片,
+        // 这里以 serial 校验避让, 不抢占专项焦点恢复; 触屏模式也不主动设焦。
+        val focusSerialAtShow = focusRestoreSerial
         window.decorView.post {
             prepareTvFocusableTree(window.decorView)
+            if (focusRestoreSerial == focusSerialAtShow && !window.decorView.isInTouchMode &&
+                homeCardSong?.isShown == true && homeCardSong?.isFocusable == true
+            ) {
+                homeCardSong?.requestFocus()
+            }
         }
     }
 
