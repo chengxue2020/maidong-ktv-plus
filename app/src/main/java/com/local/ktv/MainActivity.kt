@@ -354,9 +354,9 @@ class MainActivity : AppCompatActivity() {
     /** 当前浏览模式的总页数  */
     private var browseTotalPages = 0
 
-    /** 原版一屏展示量：歌曲 2x5、歌手 4x2、排行榜 1x6。 */
+    /** 一屏展示量：歌曲 2x5、歌手 4x2、排行榜 1x10。 */
     private fun browsePageSize(): Int = when (browseMode) {
-        "rank" -> 6
+        "rank" -> 10
         "singer_list" -> 8
         else -> MuseDatabase.PAGE_SIZE
     }
@@ -2711,8 +2711,8 @@ class MainActivity : AppCompatActivity() {
         fullScreenChromeVisible = visible
         fullScreenControls?.visibility = if (visible) View.VISIBLE else View.GONE
         fullScreenProgressRow?.visibility = if (visible) View.VISIBLE else View.GONE
-        // 右上角二维码跟随控制层一起出现/隐藏（不再按"手机是否在点歌"自动隐藏）。
-        fullScreenQrOverlay?.visibility = if (visible) View.VISIBLE else View.GONE
+        // 右上角二维码全屏时常显, 不跟随控制层隐藏(与 ori 一致)。
+        fullScreenQrOverlay?.visibility = View.VISIBLE
         main.removeCallbacks(hideFullScreenChromeRunnable)
         if (visible && isFullScreen) {
             val controls = fullScreenControls
@@ -3650,8 +3650,8 @@ class MainActivity : AppCompatActivity() {
         }
         container.addView(box, params)
         box.bringToFront()
-        // 跟随控制层显隐：控制层收起时二维码也不显示(新建时按当前状态初始化)。
-        box.visibility = if (fullScreenChromeVisible) View.VISIBLE else View.GONE
+        // 全屏时常显：不跟随控制层收起而隐藏(与 ori 一致)。
+        box.visibility = View.VISIBLE
         // 同手机点歌二维码: 展示型表面不做焦点填充。
         TvFocusStyler.suppressFill(box)
         fullScreenQrOverlay = box
@@ -5996,7 +5996,10 @@ class MainActivity : AppCompatActivity() {
                             break
                         }
                     }
-                    if (currentTabIndex == 6) loadDownloadedList()
+                    // 进度刷新只重绘行状态(内部走焦点锚定), 不能调用 loadDownloadedList():
+                    // 后者会 showSubPageShell() 重建整个子页面并重置焦点, 高频进度回调下焦点会
+                    // 被顶栏的中英文切换键抢走。与 ori 保持一致。
+                    if (currentTabIndex == 6) renderSongList()
                     if (currentSong?.equals(song) == true && playbackPreparing) updateDownloadProgress(song, progress)
                 })
             }
@@ -10511,7 +10514,7 @@ class MainActivity : AppCompatActivity() {
         val requestedLanguage = searchLanguage
         val requestedSearchQuery = activeSearchQuery
         val pageSize = when (requestedMode) {
-            "rank" -> 6
+            "rank" -> 10
             "singer_list" -> 8
             else -> MuseDatabase.PAGE_SIZE
         }
@@ -10688,19 +10691,61 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // 歌曲列表焦点锚定: 列表刷新(notifyDataSetChanged/重建行)会让当前获得焦点的行 View
+    // 被回收, Android 随即把焦点回退到顶栏第一个可聚焦控件(中英文切换键)。与 ori 保持一致,
+    // 刷新前记下焦点行的 marker, 刷新后两个时机重新聚焦到该行, 避免焦点跑偏。
+    private data class SongFocusAnchor(val marker: String, val scope: String, val inputSerial: Int)
+    private var songFocusAnchor: SongFocusAnchor? = null
+
+    private fun songFocusScope(): String =
+        listOf(currentPage, browseMode, browseParam, activeSearchQuery, browsePage, currentTabIndex).joinToString("\u0001")
+
+    private fun rememberSongFocus(): SongFocusAnchor? {
+        val list = songList ?: return null
+        if (window.decorView.isInTouchMode) {
+            songFocusAnchor = null
+            return null
+        }
+        val scope = songFocusScope()
+        songFocusAnchor?.takeIf { it.scope == scope && it.inputSerial == focusRestoreSerial }?.let { return it }
+        val focused = window.decorView.findFocus()?.takeIf { isDescendantOf(it, list) }
+        val marker = focused?.focusMarker()?.takeIf { it.startsWith(SongListAdapter.FOCUS_PREFIX) }
+        return marker?.let { SongFocusAnchor(it, scope, focusRestoreSerial) }.also { songFocusAnchor = it }
+    }
+
+    private fun retainSongFocus(anchor: SongFocusAnchor?) {
+        anchor ?: return
+        val list = songList ?: return
+        fun restore() {
+            if (focusRestoreSerial != anchor.inputSerial || songFocusScope() != anchor.scope ||
+                !window.decorView.hasWindowFocus() || window.decorView.isInTouchMode) return
+            val exact = findViewByFocusMarker(list, anchor.marker)
+            val target = exact?.takeIf { it.isShown && it.isFocusable }
+                ?: findViewByFocusMarker(list, anchor.marker.substringBefore("|action|"))
+                    ?.takeIf { it.isShown && it.isFocusable }
+            if (target != null && !target.hasFocus()) target.requestFocus()
+        }
+        // ListView 会在下一次 layout 中移动焦点, 因此紧跟 layout 后再复查一次。
+        list.post { restore() }
+        list.postDelayed({ restore() }, 60L)
+    }
+
     /**
      * 轻量刷新当前歌曲列表 Adapter (不重建), 用于下载状态变更后即时更新 UI。
      */
     private fun refreshSongAdapter() {
+        val list = songList ?: return
+        val anchor = rememberSongFocus()
         modernSongAdapter?.let { adapter ->
-            if (songList?.adapter === adapter) adapter.notifyDataSetChanged()
+            if (list.adapter === adapter) adapter.notifyDataSetChanged()
         }
+        retainSongFocus(anchor)
     }
 
     /**
      * 渲染歌曲列表
      */
-    private fun renderSongList() {
+    private fun renderSongListContents() {
         val list = songList ?: return
         val focusedView = window.decorView.findFocus()?.takeIf { isDescendantOf(it, list) }
         val focusedMarker = focusedView?.focusMarker()
@@ -10719,22 +10764,22 @@ class MainActivity : AppCompatActivity() {
             list.adapter = tvAdapter().apply { add(getString(R.string.ui_a_0759)) }
             return
         }
-        // 行间留透明间隔(露出列表底色), 让每首歌的圆角背景块边界清晰、不再紧贴/重叠。
-        // 间隔高度同步传给 fitRowHeight 从均分行高中扣除, 保证铺满且不挤出最后一行。
-        val rowGapPx = dp(6)
-        list.divider = ColorDrawable(Color.TRANSPARENT)
-        list.dividerHeight = rowGapPx
         val mode = when (browseMode) {
             "rank", "ordered", "downloads", "sang" -> browseMode
             else -> "catalog"
         }
+        // 排行榜: 行间留 2dp 透明间隔, 行高=可视高度/10(扣除间隔)精确铺满, 不出滚动条。
+        // 其它目录页: 行间留 6dp 透明间隔, 让圆角背景块边界清晰。
+        val rowGapPx = if (mode == "rank") dp(2) else dp(6)
+        list.divider = ColorDrawable(Color.TRANSPARENT)
+        list.dividerHeight = rowGapPx
         val pageOffset = if (mode == "rank") browsePage * browsePageSize() else 0
         val existing = modernSongAdapter?.takeIf { it.matches(mode, pageOffset) && list.adapter === it }
-        // 分页网格/排行列表: 行高自适应铺满屏幕(2列目录每页5行, 排行单列每页6行);
+        // 分页网格/排行列表: 行高自适应铺满屏幕(2列目录每页5行, 排行单列每页10行);
         // 可滚动的队列/下载/已唱列表保持自然行高(rowsPerPage=0)。
         val rowsPerPage = when (mode) {
             "catalog" -> 5
-            "rank" -> 6
+            "rank" -> 10
             else -> 0
         }
         val listAdapter = existing ?: SongListAdapter(
@@ -10763,8 +10808,17 @@ class MainActivity : AppCompatActivity() {
         }
         if (existing != null) listAdapter.notifyDataSetChanged()
         // 布局完成后按实际可视高度拉满各行, 消除投影/高分屏底部空白。
+        // 排行榜(rank): 行高 = 可视高度/10 精确铺满(exactFill), 无间隔无滚动条。
+        // 目录(catalog): 行高缩为 0.9 倍, 保留 6dp 间隔。
         if (rowsPerPage > 0) {
-            list.post { if (list.adapter === listAdapter) listAdapter.fitRowHeight(list.height, rowGapPx) }
+            val isRank = mode == "rank"
+            val heightScale = if (mode == "catalog") 0.9f else 1f
+            list.post {
+                if (list.adapter !== listAdapter) return@post
+                // ListView 的 height 含 padding, 行项绘制在 padding 之内; 排行榜要精确铺满须扣掉上下 padding。
+                val usableHeight = if (isRank) list.height - list.paddingTop - list.paddingBottom else list.height
+                listAdapter.fitRowHeight(usableHeight, rowGapPx, heightScale, isRank)
+            }
         }
 
         val targetPosition = focusedMarker?.let(listAdapter::adapterPositionFor)
@@ -10784,6 +10838,12 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    private fun renderSongList() {
+        val anchor = rememberSongFocus()
+        renderSongListContents()
+        retainSongFocus(anchor)
     }
 
     private fun findViewByFocusMarker(root: View, marker: String): View? {

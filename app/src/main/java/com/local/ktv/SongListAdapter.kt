@@ -58,13 +58,20 @@ class SongListAdapter(
      * 让行高铺满可用高度: 把列表可视高度按每页行数均分(分页列表专用)。
      * 超出 min/max 范围时收敛, 避免过小/过大。滚动列表(rowsPerPage<=0)忽略。
      */
-    fun fitRowHeight(availableHeightPx: Int, rowGapPx: Int = 0) {
+    fun fitRowHeight(availableHeightPx: Int, rowGapPx: Int = 0, heightScale: Float = 1f, exactFill: Boolean = false) {
         if (rowsPerPage <= 0 || availableHeightPx <= 0) return
-        val minPx = dp(52)
-        val maxPx = dp(160)
-        // 扣掉行间 divider 占用的高度, 加间隔后各行仍能铺满可视高度、不会挤出最后一行。
-        val usable = availableHeightPx - rowGapPx * (rowsPerPage - 1)
-        val fitted = (usable / rowsPerPage).coerceIn(minPx, maxPx)
+        val fitted = if (exactFill) {
+            // 排行榜: (可视高度 - 间隔) / 每页数, 10 行连同间隔精确铺满。
+            // 下限按歌名字号(16sp)推算: 单行完整显示约需 字号×1.4 + 上下 padding, 避免矮屏裁掉歌名。
+            val minByText = dp((16f * 1.4f).toInt() + 12)
+            ((availableHeightPx - rowGapPx * (rowsPerPage - 1)) / rowsPerPage).coerceAtLeast(minByText)
+        } else {
+            val minPx = dp(46)
+            val maxPx = dp(160)
+            // 扣掉行间 divider 占用的高度, 加间隔后各行仍能铺满可视高度、不会挤出最后一行。
+            val usable = availableHeightPx - rowGapPx * (rowsPerPage - 1)
+            ((usable / rowsPerPage) * heightScale).toInt().coerceIn(minPx, maxPx)
+        }
         if (fitted != rowHeightPx) {
             rowHeightPx = fitted
             notifyDataSetChanged()
@@ -168,12 +175,13 @@ class SongListAdapter(
             } else {
                 text(order.toString(), 16, Color.WHITE, Gravity.CENTER)
             }
-            addView(badge, LinearLayout.LayoutParams(dp(47), dp(48)))
-            addView(songInfo(song, stacked = false), LinearLayout.LayoutParams(0, dp(48), 1f))
+            // 高度用 MATCH_PARENT 跟随均分行高, 行高变矮时内容自动居中、不溢出。
+            addView(badge, LinearLayout.LayoutParams(dp(47), -1))
+            addView(songInfo(song, stacked = false), LinearLayout.LayoutParams(0, -1, 1f))
             if (!state.local || state.queued) {
-                addView(icon(if (state.queued) R.drawable.ic_order_song else R.drawable.ott_ic_download, null), LinearLayout.LayoutParams(dp(40), dp(40)))
+                addView(icon(if (state.queued) R.drawable.ic_order_song else R.drawable.ott_ic_download, null), LinearLayout.LayoutParams(dp(40), -1))
             }
-            addView(icon(R.drawable.ott_ic_more, null), LinearLayout.LayoutParams(dp(40), dp(40)))
+            addView(icon(R.drawable.ott_ic_more, null), LinearLayout.LayoutParams(dp(40), -1))
             configureSongCard(this, song, index)
         }
     }
@@ -187,12 +195,12 @@ class SongListAdapter(
             addView(
                 if (state.current) icon(R.drawable.ott_ic_playing, null)
                 else text((index + 1).toString(), 16, Color.WHITE, Gravity.CENTER),
-                LinearLayout.LayoutParams(dp(47), dp(48)),
+                LinearLayout.LayoutParams(dp(47), dp(34)),
             )
-            addView(songInfo(song, stacked = false), LinearLayout.LayoutParams(0, dp(48), 1f))
+            addView(songInfo(song, stacked = false), LinearLayout.LayoutParams(0, dp(34), 1f))
             if (!state.current) {
-                addView(icon(R.drawable.ic_add_to_top) { callbacks.onTop(song) }, LinearLayout.LayoutParams(dp(36), dp(36)))
-                addView(icon(R.drawable.ic_delete) { callbacks.onDelete(song) }, LinearLayout.LayoutParams(dp(36), dp(36)))
+                addView(icon(R.drawable.ic_add_to_top) { callbacks.onTop(song) }, LinearLayout.LayoutParams(dp(30), dp(30)))
+                addView(icon(R.drawable.ic_delete) { callbacks.onDelete(song) }, LinearLayout.LayoutParams(dp(30), dp(30)))
             }
             configureSongCard(this, song, index)
         }
@@ -204,8 +212,8 @@ class SongListAdapter(
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
             setBackgroundResource(R.drawable.ott_bg_download)
-            addView(text((index + 1).toString(), 16, Color.WHITE, Gravity.CENTER), LinearLayout.LayoutParams(dp(47), dp(48)))
-            addView(songInfo(song, stacked = false), LinearLayout.LayoutParams(0, dp(48), 1f))
+            addView(text((index + 1).toString(), 16, Color.WHITE, Gravity.CENTER), LinearLayout.LayoutParams(dp(47), dp(34)))
+            addView(songInfo(song, stacked = false), LinearLayout.LayoutParams(0, dp(34), 1f))
             if (state.downloading) {
                 addView(ProgressBar(context, null, android.R.attr.progressBarStyleHorizontal).apply {
                     max = 100
@@ -216,18 +224,18 @@ class SongListAdapter(
             when {
                 state.failed || state.paused -> addView(
                     icon(R.drawable.ic_download_retry) { callbacks.onPauseResume(song) },
-                    LinearLayout.LayoutParams(dp(36), dp(36)),
+                    LinearLayout.LayoutParams(dp(30), dp(30)),
                 )
                 state.downloading -> addView(
                     icon(R.drawable.ic_pause) { callbacks.onPauseResume(song) },
-                    LinearLayout.LayoutParams(dp(36), dp(36)),
+                    LinearLayout.LayoutParams(dp(30), dp(30)),
                 )
                 state.local -> addView(
                     icon(R.drawable.ott_ic_play) { callbacks.onPrimary(song) },
-                    LinearLayout.LayoutParams(dp(36), dp(36)),
+                    LinearLayout.LayoutParams(dp(30), dp(30)),
                 )
             }
-            addView(icon(R.drawable.ic_delete) { callbacks.onDelete(song) }, LinearLayout.LayoutParams(dp(36), dp(36)))
+            addView(icon(R.drawable.ic_delete) { callbacks.onDelete(song) }, LinearLayout.LayoutParams(dp(30), dp(30)))
             configureSongCard(this, song, index)
         }
     }
@@ -236,9 +244,9 @@ class SongListAdapter(
         orientation = LinearLayout.HORIZONTAL
         gravity = Gravity.CENTER_VERTICAL
         setBackgroundResource(R.drawable.ott_bg_item)
-        addView(text((index + 1).toString(), 16, Color.WHITE, Gravity.CENTER), LinearLayout.LayoutParams(dp(47), dp(48)))
-        addView(songInfo(song, stacked = false), LinearLayout.LayoutParams(0, dp(48), 1f))
-        addView(icon(R.drawable.ic_order_song) { callbacks.onPrimary(song) }, LinearLayout.LayoutParams(dp(36), dp(36)))
+        addView(text((index + 1).toString(), 16, Color.WHITE, Gravity.CENTER), LinearLayout.LayoutParams(dp(47), dp(34)))
+        addView(songInfo(song, stacked = false), LinearLayout.LayoutParams(0, dp(34), 1f))
+        addView(icon(R.drawable.ic_order_song) { callbacks.onPrimary(song) }, LinearLayout.LayoutParams(dp(30), dp(30)))
         configureSongCard(this, song, index)
     }
 
@@ -271,7 +279,7 @@ class SongListAdapter(
     private fun icon(resource: Int, action: (() -> Unit)?): ImageView = ImageView(context).apply {
         setImageResource(resource)
         scaleType = ImageView.ScaleType.CENTER_INSIDE
-        setPadding(dp(7), dp(7), dp(7), dp(7))
+        setPadding(dp(3), dp(3), dp(3), dp(3))
         isFocusable = action != null
         isClickable = action != null
         action?.let { callback ->

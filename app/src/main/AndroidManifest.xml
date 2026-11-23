@@ -38,7 +38,7 @@
     <application
         android:name=".KtvApplication"
         android:allowBackup="true"
-        android:banner="@drawable/banner"
+        android:banner="@drawable/tv_launcher_banner"
         android:hardwareAccelerated="true"
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher_round"
@@ -60,6 +60,7 @@
 
         <activity
             android:name=".MainActivity"
+            android:banner="@drawable/tv_launcher_banner"
             android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize"
             android:exported="true"
             android:launchMode="singleInstance"
