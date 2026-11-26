@@ -60,6 +60,8 @@ const I18N = {
     downloadStateWaiting: "等待下载",
     downloadStateDownloading: "下载中",
     downloadStateCancelling: "正在取消",
+    downloadStateFailed: "下载失败",
+    downloadStatePaused: "已暂停",
     downloadSpeedKb: "{n} KB/s",
     downloadSpeedMb: "{n} MB/s",
     rankEyebrow: "CHARTS",
@@ -233,6 +235,8 @@ const I18N = {
     downloadStateWaiting: "Waiting",
     downloadStateDownloading: "Downloading",
     downloadStateCancelling: "Cancelling",
+    downloadStateFailed: "Failed",
+    downloadStatePaused: "Paused",
     downloadSpeedKb: "{n} KB/s",
     downloadSpeedMb: "{n} MB/s",
     rankEyebrow: "CHARTS",
@@ -514,6 +518,8 @@ function languageDisplayName(lang) {
 function downloadStateLabel(song) {
   if (song.downloadState === "downloading") return t("downloadStateDownloading");
   if (song.downloadState === "cancelling") return t("downloadStateCancelling");
+  if (song.downloadState === "failed") return t("downloadStateFailed");
+  if (song.downloadState === "paused") return t("downloadStatePaused");
   return t("downloadStateWaiting");
 }
 
@@ -543,19 +549,33 @@ function syncQueuedButtons() {
 function songRow(song, queue = false, current = false, index = 0, ranking = false, downloadTask = false) {
   const number = current ? "♪" : String(index + 1).padStart(2, "0");
   const [label, tone] = sourceLabel(song);
-  const queued = !queue && isQueuedSong(song.id);
-  const actions = queue && !current
-    ? `<button class="top">${t("top")}</button><button class="delete" aria-label="${t("delete")}">×</button>`
-    : !queue ? `<button class="order"${queued ? " disabled" : ""}>${queued ? t("ordered") : t("order")}</button>` : "";
-  const stateCode = ["waiting", "downloading", "cancelling"].includes(song.downloadState)
+  const queued = !queue && !downloadTask && isQueuedSong(song.id);
+  let actions;
+  if (downloadTask) {
+    // 下载任务行: 失败/暂停/取消可恢复, 每行都可删除任务(对齐 TV 下载界面)。
+    const canResume = ["failed", "paused", "cancelling"].includes(song.downloadState);
+    actions = (canResume
+      ? `<button class="download-resume" aria-label="${t("resume")}">${t("resume")}</button>` : "")
+      + `<button class="download-remove" aria-label="${t("delete")}">×</button>`;
+  } else {
+    actions = queue && !current
+      ? `<button class="top">${t("top")}</button><button class="delete" aria-label="${t("delete")}">×</button>`
+      : !queue ? `<button class="order"${queued ? " disabled" : ""}>${queued ? t("ordered") : t("order")}</button>` : "";
+  }
+  const stateCode = ["waiting", "downloading", "cancelling", "failed", "paused"].includes(song.downloadState)
     ? song.downloadState : "waiting";
-  const progress = Math.min(99, Math.max(0, Number(song.downloadProgress) || 0));
+  const progress = Math.min(100, Math.max(0, Number(song.downloadProgress) || 0));
   const speedText = stateCode === "downloading" ? downloadSpeedText(song.downloadSpeed) : "";
   const taskBadge = downloadTask
     ? `<span class="download-badge ${stateCode}">${downloadStateLabel(song)}${speedText ? " · " + speedText : ""}</span>`
     : "";
-  const taskBar = downloadTask && stateCode !== "waiting"
-    ? `<div class="download-progress"><i style="width:${progress}%"></i><span>${progress}%</span></div>`
+  // 进度条: 仅进行中的任务显示。
+  // ⚠️ 真机 LocalRemoteServer 下发 CSP: style-src 'self', 会拦截一切内联 style 属性,
+  // 所以这里绝对不能写 style="" —— 必须全部用外部 CSS 类(.track / .pct-N),
+  // 宽度由 .pct-0 ... .pct-100 承载(定义在 app.css), JS 只输出类名。
+  const pctClass = "pct-" + Math.round(progress);
+  const taskBar = downloadTask && (stateCode === "waiting" || stateCode === "downloading")
+    ? `<div class="download-progress"><div class="track"><i class="${pctClass}"></i></div><span>${progress}%</span></div>`
     : "";
   // Active tasks show their download state instead of the generic source badge
   // (which would say "Need Download" for online songs).
@@ -1210,6 +1230,18 @@ document.addEventListener("click", async (event) => {
     try {
       await api("/api/v1/queue/" + encodeURIComponent(row.dataset.id), { method: "DELETE" });
       toast(t("removed")); loadQueue(); refresh();
+    } catch (error) { toast(error.message); }
+  }
+  if (row && button.classList.contains("download-resume")) {
+    try {
+      await api("/api/v1/downloads/retry", { method: "POST", body: JSON.stringify({ songId: row.dataset.id }) });
+      toast(t("resume")); loadDownloadTasks(true);
+    } catch (error) { toast(error.message); }
+  }
+  if (row && button.classList.contains("download-remove")) {
+    try {
+      await api("/api/v1/downloads/" + encodeURIComponent(row.dataset.id), { method: "DELETE" });
+      toast(t("delete")); loadDownloadTasks(true);
     } catch (error) { toast(error.message); }
   }
 });

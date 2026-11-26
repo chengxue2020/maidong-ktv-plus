@@ -4143,6 +4143,9 @@ class MainActivity : AppCompatActivity() {
                 method == "GET" && path == "/api/v1/catalog-languages" -> remoteOk(remoteCatalogLanguagesJson())
                 method == "GET" && path == "/api/v1/downloads" -> remoteOk(remoteDownloadsJson(query))
                 method == "GET" && path == "/api/v1/download-tasks" -> remoteOk(remoteDownloadTasksJson())
+                method == "POST" && path == "/api/v1/downloads/retry" -> remoteDownloadRetry(JSONObject(body))
+                path.startsWith("/api/v1/downloads/") && method == "DELETE" ->
+                    remoteDownloadDelete(URLDecoder.decode(path.substringAfterLast('/'), "UTF-8"))
                 method == "GET" && path == "/api/v1/rank" -> remoteOk(remoteRankJson(query))
                 method == "GET" && path == "/api/v1/queue" -> remoteOk(remoteQueueJson())
                 method == "POST" && path == "/api/v1/queue" -> remoteOrder(JSONObject(body))
@@ -4419,7 +4422,16 @@ class MainActivity : AppCompatActivity() {
             .put("total", all.size)
     }
 
-    /** 下载中/等待中的任务（plus 无 transferStatus，进度直接用 task.progress）。 */
+    /**
+     * 判断是否为下载失败状态。项目里失败文本有多种写法:
+     * - KtvRaw.get(ui_a_0554) → "失败:" / "Failed:"
+     * - 硬编码 "失败："(全角冒号, 启动恢复/streamDownload 异常路径)
+     * 统一以"失败"/"Failed"前缀识别, 避免手机端漏同步。
+     */
+    private fun isDownloadFailureState(state: String): Boolean =
+        state.startsWith("失败") || state.startsWith("Failed", ignoreCase = true)
+
+    /** 下载中/等待中/失败的任务（plus 无 transferStatus，进度直接用 task.progress）。 */
     private fun remoteDownloadTasksJson(): JSONObject {
         if (Looper.myLooper() != main.looper) {
             val snapshot = java.util.concurrent.FutureTask<JSONObject> { remoteDownloadTasksJson() }
@@ -4429,11 +4441,20 @@ class MainActivity : AppCompatActivity() {
         }
         val activeStates = setOf(KtvRaw.get(R.string.ui_a_0014), KtvRaw.get(R.string.ui_a_0438),
             KtvRaw.get(R.string.ui_a_0084), KtvRaw.get(R.string.ui_a_0247))
+        // 暂停/已取消状态也算可恢复任务(TV 端 toggleDownloadPause 会重新下载)。
+        val recoverableStates = setOf(KtvRaw.get(R.string.ui_a_0534), KtvRaw.get(R.string.ui_a_0245))
+        // 失败歌也返回给手机端(带恢复/删除按钮), 与 TV 下载界面口径一致。
+        // 注意: 失败状态在 project 里有多种写法 —— ui_a_0554("失败:"/"Failed:")、硬编码"失败："(全角,
+        // 启动恢复与 streamDownload 异常路径), 必须统一识别, 否则这些失败歌不会同步到手机端。
         val array = JSONArray()
-        downloads.filter { it.state in activeStates }.forEach { task ->
-            val state = when (task.state) {
-                KtvRaw.get(R.string.ui_a_0084) -> "downloading"
-                KtvRaw.get(R.string.ui_a_0247) -> "cancelling"
+        downloads.filter { task ->
+            task.state in activeStates || isDownloadFailureState(task.state) || task.state in recoverableStates
+        }.forEach { task ->
+            val state = when {
+                isDownloadFailureState(task.state) -> "failed"
+                task.state in recoverableStates -> "paused"
+                task.state == KtvRaw.get(R.string.ui_a_0084) -> "downloading"
+                task.state == KtvRaw.get(R.string.ui_a_0247) -> "cancelling"
                 else -> "waiting"
             }
             val item = songJson(task.song)
@@ -4447,6 +4468,38 @@ class MainActivity : AppCompatActivity() {
         }
         while (remoteSongCache.size > 500) remoteSongCache.remove(remoteSongCache.keys.first())
         return JSONObject().put("tasks", array).put("total", array.length())
+    }
+
+    /** 手机端按 id 找下载任务里的歌曲(失败/暂停的歌也都在 downloads 集合里)。 */
+    private fun remoteDownloadSongById(id: String): Song? =
+        downloads.firstOrNull { stableId(it.song) == id }?.song ?: remoteSongCache[id]
+
+    /** 恢复下载(失败/暂停/取消的任务): 复用 TV 端 downloadSong, 会重置状态并重新入 downloads。 */
+    private fun remoteDownloadRetry(json: JSONObject): LocalRemoteServer.ApiResponse {
+        val id = json.optString("songId").trim()
+        if (id.isEmpty()) return remoteError(400, "MISSING_SONG_ID", KtvRaw.get(R.string.ui_a_0439))
+        val song = remoteDownloadSongById(id)
+            ?: return remoteError(404, "TASK_NOT_FOUND", KtvRaw.get(R.string.ui_a_0440))
+        main.post {
+            // 清掉旧的失败任务记录, 再重新下载(downloadSong 内部会 removeAll + add 新任务)。
+            downloads.removeAll { stableId(it.song) == id }
+            downloadSong(song)
+            if (currentTabIndex == 6) loadDownloadedList()
+        }
+        return remoteOk(JSONObject().put("message", KtvRaw.get(R.string.ui_p_042)), 201)
+    }
+
+    /** 删除下载任务(失败/暂停/取消的任务): 只移除任务记录, 不动已存在的本地文件。 */
+    private fun remoteDownloadDelete(id: String): LocalRemoteServer.ApiResponse {
+        val song = downloads.firstOrNull { stableId(it.song) == id }?.song
+            ?: return remoteError(404, "TASK_NOT_FOUND", KtvRaw.get(R.string.ui_a_0440))
+        main.post {
+            SongOkDownloadManager.cancelDownload(song)
+            downloads.removeAll { stableId(it.song) == id }
+            runCatching { stateIo.execute { stateDatabase.removeDownload(song) } }
+            if (currentTabIndex == 6) loadDownloadedList()
+        }
+        return remoteOk(JSONObject().put("message", KtvRaw.get(R.string.ui_p_042)))
     }
 
     /** 排行榜：不带 playlistId 返回榜单分类，带 playlistId 返回该榜歌曲分页。 */
@@ -10961,7 +11014,7 @@ class MainActivity : AppCompatActivity() {
             local = hasPlayableLocalFile(song),
             pending = sid in pendingQueueSongIds,
             downloading = isDownloading(song),
-            failed = taskState.startsWith("失败"),
+            failed = isDownloadFailureState(taskState),
             paused = taskState.contains("暂停") || taskState.contains("中断"),
             progress = task?.progress ?: SongOkDownloadManager.getDownloadProgress(song),
         )
