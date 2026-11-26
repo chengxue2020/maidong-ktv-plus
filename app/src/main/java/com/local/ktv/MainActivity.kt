@@ -409,6 +409,10 @@ class MainActivity : AppCompatActivity() {
     private var playWhenPrepared = true
     private var playbackGeneration = 0L
     private val pendingQueueSongIds = LinkedHashSet<String>()
+    // 已点歌单的显示顺序(含待下载占位歌): 点歌即入, 与此顺序一致; 播放队列 orderQueue 仍只放已下载歌。
+    private val queueOrderIds = mutableListOf<String>()
+    // 轮到播放时仍未下载、被跳过的待下载歌: 下载完成后插到显示顺序的第3首位置。
+    private val skippedPendingIds = LinkedHashSet<String>()
     private var suppressCompletionUntil = 0L
     private val autoFullscreenRunnable = Runnable {
         val eligible = autoFullscreenSeconds > 0 && currentSong != null && playWhenPrepared && !isFullScreen
@@ -497,6 +501,9 @@ class MainActivity : AppCompatActivity() {
             stateDatabase.restoreOrSeed(orderQueue!!, sangHistory)
         }.getOrElse { KtvStateDatabase.RestoredState(null, "idle") }
         currentSong = restoredState.currentSong
+        // 显示顺序按恢复出的播放队列重建; pending 歌不跨重启保留(与 pendingQueueSongIds 现有语义一致)。
+        queueOrderIds.clear()
+        orderQueue!!.forEach { queueOrderAdd(stableId(it)) }
         playWhenPrepared = restoredState.playbackState != "paused"
         runCatching {
             stateDatabase.restoreDownloads().forEach { snapshot ->
@@ -1832,6 +1839,7 @@ class MainActivity : AppCompatActivity() {
         )
         actions.addView(button(getString(R.string.ui_a_0233), View.OnClickListener { v: View? ->
             orderQueue!!.clear()
+            clearQueueOrderState()
             renderQueue()
             saveState()
         }), LinearLayout.LayoutParams(dp(110), dp(54)))
@@ -3888,6 +3896,7 @@ class MainActivity : AppCompatActivity() {
                 } else if ("clear_queue" == a) {
                     main.post(Runnable {
                         orderQueue!!.clear()
+                        clearQueueOrderState()
                         saveState()
                         renderQueue()
                         status!!.setText(getString(R.string.ui_a_0429))
@@ -3899,6 +3908,8 @@ class MainActivity : AppCompatActivity() {
                         main.post(Runnable {
                             if (pos >= 0 && pos < orderQueue!!.size) {
                                 val removed = orderQueue.removeAt(pos)
+                                queueOrderRemove(stableId(removed))
+                                pendingQueueSongIds.remove(stableId(removed))
                                 saveState()
                                 renderQueue()
                                 status!!.setText(getString(R.string.ui_a_0430) + removed.title)
@@ -4160,6 +4171,8 @@ class MainActivity : AppCompatActivity() {
                 val ids = LinkedHashSet<String>()
                 now?.let { ids += stableId(it) }
                 orderQueue?.forEach { ids += stableId(it) }
+                // 点歌后本地还没有的歌(待下载)也算"已点",避免手机端按钮被心跳刷回"点歌"。
+                pendingQueueSongIds.forEach { ids += it }
                 ids.forEach { put(it) }
             })
             put("playing", player?.isPlaying == true)
@@ -4460,7 +4473,25 @@ class MainActivity : AppCompatActivity() {
 
     private fun remoteQueueJson(): JSONObject {
         val array = JSONArray()
-        orderQueue?.toList()?.forEach { array.put(songJson(it)) }
+        // id -> (Song, 状态)。已进播放队列的歌为 local; 已点但仍在下载中的为 pending。
+        val byId = LinkedHashMap<String, Pair<Song, String>>()
+        orderQueue?.forEach { song -> byId[stableId(song)] = song to "local" }
+        pendingQueueSongIds.forEach { id ->
+            if (!byId.containsKey(id)) {
+                val song = downloads.firstOrNull { stableId(it.song) == id }?.song ?: remoteSongCache[id]
+                if (song != null) byId[id] = song to "pending"
+            }
+        }
+        // 严格按显示顺序输出: pending 歌在其点歌位置占位; 下载完/被跳过后由 queueOrderIds 决定新位置。
+        // 显示顺序里没有的(兼容旧数据/异常路径)统一补到末尾, 保证不漏歌。
+        queueOrderIds.forEach { id ->
+            byId.remove(id)?.let { (song, state) ->
+                array.put(songJson(song).put("queueState", state))
+            }
+        }
+        byId.values.forEach { (song, state) ->
+            array.put(songJson(song).put("queueState", state))
+        }
         return JSONObject().put("queue", array)
     }
 
@@ -4555,6 +4586,8 @@ class MainActivity : AppCompatActivity() {
         item.put("category", song.category)
         item.put("language", song.language)
         item.put("remote", song.remote)
+        // 本地是否已有可播放文件(廉价判断),供手机端各歌单把无意义的"在线"改标"本地/待下载"。
+        item.put("localReady", hasPlayableLocalFile(song) || SongOkDownloadManager.getLocalFile(song).isFile)
         item.put("favorite", store.isFavorite(song))
         item.put("playCount", song.playCount)
         item.put("hasOriginal", hasUrl(song.originalUrl) || hasUrl(song.originalPath))
@@ -4858,6 +4891,7 @@ class MainActivity : AppCompatActivity() {
             val localPath = song.path
             if (!song.remote && (localPath.isNullOrEmpty() || !File(localPath).exists())) {
                 orderQueue.removeAt(i)
+                queueOrderRemove(stableId(song))
             }
         }
         saveState()
@@ -5468,6 +5502,7 @@ class MainActivity : AppCompatActivity() {
                 local.lyricPath = if (lyricFile.exists()) lyricFile.getAbsolutePath() else ""
                 main.post(Runnable {
                     orderQueue!!.add(local)
+                    queueOrderAdd(stableId(local))
                     saveState()
                     refreshLibrary(null)
                     busy(false, getString(R.string.ui_p_025) + local.title)
@@ -6040,14 +6075,27 @@ class MainActivity : AppCompatActivity() {
                     // 立刻进公放候选缓存：不必等下次预热扫描，新下载的歌马上能被随机到。
                     randomCandidates[stableId(song)] = song
                     refreshSongAdapter()
-                    val shouldAddToQueue = pendingQueueSongIds.remove(stableId(song))
+                    val id = stableId(song)
+                    val shouldAddToQueue = pendingQueueSongIds.remove(id)
+                    // 轮到它当下一首时仍未下载完 → 被跳过 → 下载完插到已点歌单第 3 首位置。
+                    // 未被跳过则保持点歌时的显示位置不变。
+                    val wasSkipped = skippedPendingIds.remove(id)
+                    if (wasSkipped && queueOrderIds.contains(id)) {
+                        queueOrderIds.remove(id)
+                        queueOrderIds.add(2.coerceAtMost(queueOrderIds.size), id)
+                    }
                     Log.i(
                         TAG,
-                        "downloadComplete song=${stableId(song)} pendingQueue=$shouldAddToQueue " +
+                        "downloadComplete song=$id pendingQueue=$shouldAddToQueue skipped=$wasSkipped " +
                             "current=${currentSong?.let(::stableId)} preparing=$playbackPreparing path=$localPath",
                     )
-                    if (shouldAddToQueue) addReadySongToQueue(song)
+                    if (shouldAddToQueue) {
+                        addReadySongToQueue(song) // 内部按 queueOrderIds 位置插入播放队列
+                        remoteStateVersion++ // 下载完入队后通知远程手机端刷新已点状态
+                    }
                     if (currentTabIndex == 6) loadDownloadedList()
+                    // 已点页(含待下载占位歌): 下载完成后刷新, 去掉"待下载"标签并更新徽标。
+                    if (currentTabIndex == 4) { renderSongList(); updateOrderBadge() }
                     if (currentSong?.equals(song) == true && playbackPreparing) hideDownloadProgress()
                     if (!shouldAddToQueue && currentSong?.equals(song) == true && playbackPreparing) {
                         switchToLocalPlayback(song)
@@ -6062,7 +6110,10 @@ class MainActivity : AppCompatActivity() {
                     stateDatabase.updateDownload(song, "failed", 0, error = error)
                 }
                 main.post(Runnable {
-                    val wasPendingQueue = pendingQueueSongIds.remove(stableId(song))
+                    val failedId = stableId(song)
+                    val wasPendingQueue = pendingQueueSongIds.remove(failedId)
+                    // 下载失败的歌不再占位, 从已点歌单显示顺序中也移除。
+                    if (wasPendingQueue) queueOrderRemove(failedId)
                     if (currentSong != null && currentSong!!.equals(song)) playbackPreparing = false
                     for (task in downloads) {
                         if (task.song === song || task.song.id != null && task.song.id == song.id) {
@@ -6072,6 +6123,8 @@ class MainActivity : AppCompatActivity() {
                     }
                     refreshSongAdapter()
                     if (currentTabIndex == 6) loadDownloadedList()
+                    // 下载失败: 已点页移除该待下载占位歌。
+                    if (wasPendingQueue && currentTabIndex == 4) { renderSongList(); updateOrderBadge() }
                     if (currentSong?.equals(song) == true) hideDownloadProgress()
                     if (wasPendingQueue) toast(getString(R.string.ui_p_083, song.title))
                 })
@@ -6139,6 +6192,7 @@ class MainActivity : AppCompatActivity() {
         }
         // 队列为空(最后一首已播完/随机续播中未点歌)
         if (orderQueue!!.isEmpty()) {
+            markSkippedPendingBeforeNext()
             if (fromCompletion && autoNext) {
                 // 公放清单里的这首播完了：计数 +1，然后取清单里的下一首（同一轮不重复）。
                 currentSong?.takeIf { RandomPlayQueue.isCurrentTrack(it) }?.let { finished ->
@@ -6183,6 +6237,8 @@ class MainActivity : AppCompatActivity() {
         }
         saveState()
         renderQueue()
+        // 轮到播放时仍未下载完的 pending 歌已被跳过, 记录后供其下载完成后重排位置。
+        markSkippedPendingBeforeNext()
         if ((!fromCompletion || autoNext) && !orderQueue.isEmpty()) {
             play(orderQueue!![0])
         } else if (fromCompletion && autoNext && orderQueue.isEmpty()) {
@@ -6218,6 +6274,8 @@ class MainActivity : AppCompatActivity() {
         val id = stableId(song)
         val index = orderQueue!!.indexOfFirst { stableId(it) == id }
         if (index >= 0) orderQueue!!.removeAt(index)
+        // 显示顺序同步: 播完的歌不再停留在已点歌单。
+        queueOrderRemove(id)
     }
 
     /**
@@ -6746,6 +6804,7 @@ class MainActivity : AppCompatActivity() {
         if (pos > 0 && pos < orderQueue.size) {
             val song = orderQueue.removeAt(pos)
             orderQueue.add(0, song)
+            queueOrderMoveToNext(stableId(song))
             saveState()
             renderQueue()
         }
@@ -6756,7 +6815,9 @@ class MainActivity : AppCompatActivity() {
         var pos = queueList!!.getCheckedItemPosition()
         if (pos < 0) pos = queueList!!.getSelectedItemPosition()
         if (pos >= 0 && pos < orderQueue.size) {
-            orderQueue.removeAt(pos)
+            val removed = orderQueue.removeAt(pos)
+            queueOrderRemove(stableId(removed))
+            pendingQueueSongIds.remove(stableId(removed))
             saveState()
             renderQueue()
         }
@@ -6907,6 +6968,8 @@ class MainActivity : AppCompatActivity() {
         store.favoriteIds.remove(id)
         for (ids in store.playlistSongs.values) ids.remove(id)
         removeSongFromList(orderQueue!!, id)
+        queueOrderRemove(id)
+        pendingQueueSongIds.remove(id)
         removeSongFromList(sangHistory, id)
         saveState()
         refreshLibrary(Runnable {
@@ -7087,11 +7150,12 @@ class MainActivity : AppCompatActivity() {
     private fun renderQueue() {
         if (queueAdapter == null) return
         queueAdapter!!.clear()
-        for (i in orderQueue!!.indices) queueAdapter!!.add(
-            (i + 1).toString() + ". " + orderQueue.get(
-                i
-            ).displayTitle()
-        )
+        val ordered = orderedListSongs()
+        for (i in ordered.indices) {
+            val song = ordered[i]
+            val pendingMark = if (stableId(song) in pendingQueueSongIds) " (" + KtvRaw.get(R.string.ui_a_0438) + ")" else ""
+            queueAdapter!!.add((i + 1).toString() + ". " + song.displayTitle() + pendingMark)
+        }
         queueAdapter!!.notifyDataSetChanged()
     }
 
@@ -7824,6 +7888,8 @@ class MainActivity : AppCompatActivity() {
                     return@OnItemLongClickListener true
                 }
                 orderQueue!!.remove(song)
+                queueOrderRemove(stableId(song))
+                pendingQueueSongIds.remove(stableId(song))
                 saveState()
                 loadOrderedList()
                 toast(getString(R.string.ui_p_039) + song.title)
@@ -9356,15 +9422,16 @@ class MainActivity : AppCompatActivity() {
         showSubPageShell(KtvRaw.get(R.string.ui_a_0633), getString(R.string.ui_a_0633))
         setupTabs()
         if (keyboardArea != null) keyboardArea!!.setVisibility(View.GONE)
-        listTitle!!.setText(getString(R.string.ui_a_0672) + orderQueue!!.size + ")")
+        val ordered = orderedListSongs()
+        listTitle!!.setText(getString(R.string.ui_a_0672) + ordered.size + ")")
         currentCategories.clear()
         currentCategoryIndex = 0
         browseMode = "ordered"
         browseParam = ""
         browsePage = 0
-        // 直接更新歌曲列表
+        // 直接更新歌曲列表(含待下载占位歌)。
         visibleSongs.clear()
-        visibleSongs.addAll(orderQueue)
+        visibleSongs.addAll(ordered)
         updateCategories()
         renderSongList()
         updateOrderBadge()
@@ -10783,7 +10850,7 @@ class MainActivity : AppCompatActivity() {
         val oldFocusedTop = focusedView?.top
         if (browseMode == "ordered") {
             visibleSongs.clear()
-            visibleSongs.addAll(orderQueue.orEmpty())
+            visibleSongs.addAll(orderedListSongs())
         } else if (browseMode == "sang") {
             visibleSongs.clear()
             visibleSongs.addAll(sangHistory)
@@ -10886,10 +10953,13 @@ class MainActivity : AppCompatActivity() {
     private fun songRowState(song: Song): SongRowState {
         val task = downloads.lastOrNull { stableId(it.song) == stableId(song) }
         val taskState = task?.state.orEmpty()
+        val sid = stableId(song)
+        // queued 按稳定 id 判定, 并包含待下载占位歌: 它们也算"已点"。
         return SongRowState(
             current = currentSong?.equals(song) == true,
-            queued = orderQueue!!.contains(song),
+            queued = orderQueue!!.any { stableId(it) == sid } || sid in pendingQueueSongIds,
             local = hasPlayableLocalFile(song),
+            pending = sid in pendingQueueSongIds,
             downloading = isDownloading(song),
             failed = taskState.startsWith("失败"),
             paused = taskState.contains("暂停") || taskState.contains("中断"),
@@ -10915,9 +10985,17 @@ class MainActivity : AppCompatActivity() {
 
     private fun moveQueuedSongToNext(song: Song) {
         if (currentSong?.equals(song) == true) return
-        orderQueue!!.remove(song)
-        val target = if (currentSong != null && orderQueue!!.isNotEmpty()) 1 else 0
-        orderQueue.add(target.coerceAtMost(orderQueue.size), song)
+        val id = stableId(song)
+        // 待下载歌还没进播放队列: 只调显示顺序, 不塞进 orderQueue(否则会播放未下载文件)。
+        // 下载完成后 addReadySongToQueue 会按新的显示顺序把它放回正确位置。
+        if (id in pendingQueueSongIds) {
+            queueOrderMoveToNext(id)
+        } else {
+            orderQueue!!.remove(song)
+            val target = if (currentSong != null && orderQueue!!.isNotEmpty()) 1 else 0
+            orderQueue.add(target.coerceAtMost(orderQueue.size), song)
+            queueOrderMoveToNext(id)
+        }
         persistRuntimeState()
         syncPlayerInfo()
         renderSongList()
@@ -10929,6 +11007,9 @@ class MainActivity : AppCompatActivity() {
             return
         }
         orderQueue!!.remove(song)
+        val id = stableId(song)
+        queueOrderRemove(id)
+        pendingQueueSongIds.remove(id)
         persistRuntimeState()
         syncPlayerInfo()
         renderSongList()
@@ -11054,6 +11135,8 @@ class MainActivity : AppCompatActivity() {
                             delItems,
                             DialogInterface.OnClickListener { d: DialogInterface?, w: Int ->
                                 val removed = orderQueue.removeAt(w)
+                                queueOrderRemove(stableId(removed))
+                                pendingQueueSongIds.remove(stableId(removed))
                                 if (currentSong != null && currentSong!!.equals(removed)) {
                                     playNext()
                                 }
@@ -11074,6 +11157,7 @@ class MainActivity : AppCompatActivity() {
                             getString(R.string.ui_ok),
                             DialogInterface.OnClickListener { d: DialogInterface?, w: Int ->
                                 orderQueue.clear()
+                                clearQueueOrderState()
                                 if (player != null) player!!.stopPlayback()
                                 playbackPreparing = false
                                 playWhenPrepared = false
@@ -11098,26 +11182,104 @@ class MainActivity : AppCompatActivity() {
      * 更新已点数量徽标(顶栏 + 子页面旧按钮)
      */
     private fun updateOrderBadge() {
-        val n = if (orderQueue == null) 0 else orderQueue.size
+        // 徽标数量含待下载占位歌, 与手机 H5 的 queuedIds 口径一致。
+        val n = if (queueOrderIds.isEmpty()) orderQueue?.size ?: 0 else queueOrderIds.size
         if (textTopOrderBadge != null) textTopOrderBadge!!.setText(n.toString())
         if (textOrderBadge != null) textOrderBadge!!.setText(n.toString())
+    }
+
+    // ---- 已点歌单显示顺序(queueOrderIds)维护 ----
+    // 显示顺序包含所有已点歌(含 pending 占位), 手机"已点"页按此顺序显示;
+    // 播放队列 orderQueue 只放已下载歌, pending 歌播放时天然跳过, 不改播放推进核心。
+
+    /** 点歌时把 id 追加到显示顺序末尾(去重)。返回是否新加入。 */
+    private fun queueOrderAdd(id: String): Boolean {
+        if (queueOrderIds.contains(id)) return false
+        queueOrderIds.add(id)
+        return true
+    }
+
+    /** 从显示顺序移除 id, 并清掉它的"被跳过"标记。 */
+    private fun queueOrderRemove(id: String) {
+        queueOrderIds.remove(id)
+        skippedPendingIds.remove(id)
+    }
+
+    /** 置顶: 把 id 移到"下一首待播"位置(currentSong 存在时 index=1, 否则 index=0)。 */
+    private fun queueOrderMoveToNext(id: String) {
+        queueOrderIds.remove(id)
+        val target = if (currentSong != null && queueOrderIds.isNotEmpty()) 1 else 0
+        queueOrderIds.add(target.coerceAtMost(queueOrderIds.size), id)
+    }
+
+    /** 清空已点歌单的全部显示顺序状态。 */
+    private fun clearQueueOrderState() {
+        queueOrderIds.clear()
+        pendingQueueSongIds.clear()
+        skippedPendingIds.clear()
+    }
+
+    /**
+     * 已点歌单的完整歌曲列表(含待下载占位), 严格按 queueOrderIds 显示顺序返回。
+     * 供 TV 端"已点"页渲染, 与手机 H5 的 remoteQueueJson 取歌口径一致。
+     */
+    private fun orderedListSongs(): List<Song> {
+        val byId = LinkedHashMap<String, Song>()
+        orderQueue.orEmpty().forEach { byId[stableId(it)] = it }
+        pendingQueueSongIds.forEach { id ->
+            if (!byId.containsKey(id)) {
+                val song = downloads.firstOrNull { stableId(it.song) == id }?.song ?: remoteSongCache[id]
+                if (song != null) byId[id] = song
+            }
+        }
+        val result = ArrayList<Song>()
+        queueOrderIds.forEach { id -> byId.remove(id)?.let(result::add) }
+        result.addAll(byId.values) // 兼容: 显示顺序里没有的(异常/旧数据)补到末尾, 不漏歌。
+        return result
+    }
+
+    /**
+     * 播放推进时: 显示顺序里排在"即将播放的第一首已下载歌"之前、仍未下载完的 pending 歌,
+     * 说明轮到它们时没下载完、被跳过了, 记入 skippedPendingIds。
+     * 这些歌下载完成后会被移到已点歌单第 3 首位置。
+     */
+    private fun markSkippedPendingBeforeNext() {
+        val nextReadyId = orderQueue?.firstOrNull()?.let(::stableId)
+        if (nextReadyId == null) {
+            // 已下载队列已空: 仍待下载的歌全部被跳过。
+            if (orderQueue.isNullOrEmpty() && pendingQueueSongIds.isNotEmpty()) {
+                skippedPendingIds.addAll(pendingQueueSongIds)
+            }
+            return
+        }
+        val nextIndex = queueOrderIds.indexOf(nextReadyId)
+        if (nextIndex <= 0) return
+        for (i in 0 until nextIndex) {
+            val id = queueOrderIds[i]
+            if (id in pendingQueueSongIds) skippedPendingIds.add(id)
+        }
     }
 
     /**
      * 添加歌曲到已点列表
      */
     private fun addToQueue(song: Song) {
+        val id = stableId(song)
         if (orderQueue!!.contains(song)) {
             toast(getString(R.string.ui_p_040) + song.title)
             return
         }
+        // 点歌即进入已点歌单显示顺序(无论本地是否已有); pending 歌在此占位。
+        queueOrderAdd(id)
         if (!isSongReadyForQueue(song)) {
-            val id = stableId(song)
             val newlyPending = pendingQueueSongIds.add(id)
             toast(
                 if (newlyPending) getString(R.string.ui_p_099, song.title)
                 else getString(R.string.ui_p_100, song.title),
             )
+            // 待下载歌也占位: 立即刷新徽标和已点页, 让 TV 端同步看到这首"待下载"歌。
+            updateOrderBadge()
+            if (currentTabIndex == 4) renderSongList()
             if (!isDownloading(song)) downloadSong(song)
             return
         }
@@ -11129,8 +11291,18 @@ class MainActivity : AppCompatActivity() {
 
     private fun addReadySongToQueue(song: Song) {
         if (orderQueue!!.contains(song)) return
+        val id = stableId(song)
+        queueOrderAdd(id) // 兜底: 恢复/导入等绕过 addToQueue 的路径
+        // 按显示顺序插入播放队列: 统计显示顺序中排在它前面、且已在播放队列里的歌数量。
+        // 这样"待下载完成后排到同一位置"在真实播放顺序上也成立, 且不改播放推进核心。
+        val displayIndex = queueOrderIds.indexOf(id)
+        var insertIndex = 0
+        for (i in 0 until displayIndex) {
+            val beforeId = queueOrderIds[i]
+            if (orderQueue!!.any { stableId(it) == beforeId }) insertIndex++
+        }
         val wasQueueEmpty = orderQueue!!.isEmpty()
-        orderQueue.add(song)
+        orderQueue.add(insertIndex.coerceAtMost(orderQueue.size), song)
         song.playCount++
         if (::stateDatabase.isInitialized) runCatching {
             stateIo.execute { stateDatabase.markSongClicked(song) }

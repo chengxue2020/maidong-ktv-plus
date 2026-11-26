@@ -108,6 +108,7 @@ const I18N = {
     sourceNas: "NAS 直读",
     sourceOnline: "需下载",
     sourceFallback: "在线",
+    queuePending: "待下载",
     order: "点歌",
     top: "置顶",
     delete: "删除",
@@ -280,6 +281,7 @@ const I18N = {
     sourceNas: "NAS drive",
     sourceOnline: "Need Download",
     sourceFallback: "Online",
+    queuePending: "Pending",
     order: "Select",
     top: "Priority",
     delete: "Delete",
@@ -446,6 +448,13 @@ function toast(text) {
 /* Display-only source label. Falls back to the stock binary payload when the
    server does not provide `source` (e.g. an older TV build). */
 function sourceLabel(song) {
+  // 已点歌单: local=已下载, pending=待下载/下载中。
+  if (song.queueState === "local") return [t("sourceLocal"), "ok"];
+  if (song.queueState === "pending") return [t("queuePending"), "warn"];
+  // 其他歌单: 用本地是否已下载替代无意义的"在线"(保留 badge 外框样式)。
+  if (typeof song.localReady === "boolean") {
+    return song.localReady ? [t("sourceLocal"), "ok"] : [t("queuePending"), "warn"];
+  }
   if (song.source === "local") return [t("sourceLocal"), "ok"];
   if (song.source === "nas") return [t("sourceNas"), "ok"];
   if (song.source === "online") return [t("sourceOnline"), "warn"];
@@ -574,8 +583,10 @@ function openPage(name) {
 }
 
 let refreshing = false;
+let refreshQueued = false;
 async function refresh() {
-  if (refreshing) return;
+  // 若已有刷新在跑(如心跳), 不丢弃本次请求, 而是排队一次, 保证点歌/下载完成后的状态能被拉取。
+  if (refreshing) { refreshQueued = true; return; }
   refreshing = true;
   try {
     const data = await api("/api/v1/state");
@@ -606,7 +617,10 @@ async function refresh() {
     uiState.heartbeatFailures += 1;
     if (uiState.heartbeatFailures >= 3) setConnected(false);
     console.warn("State refresh failed", error.message);
-  } finally { refreshing = false; }
+  } finally {
+    refreshing = false;
+    if (refreshQueued) { refreshQueued = false; refresh(); }
+  }
 }
 
 async function playerAction(action) {
@@ -1058,7 +1072,7 @@ async function orderBrowseSong(id) {
   if (!song) return;
   try {
     await api("/api/v1/queue", { method: "POST", body: JSON.stringify({ songId: song.id }) });
-    // 立即把该歌标记为已点并同步按钮(歌星二级页/搜歌列表/详情页不依赖 state 刷新)。
+    // 点歌即视为"已点"(不论本地是否已有): 本地没有的歌 TV 会标注为"待下载", 下载完自动转"本地"。
     if (!isQueuedSong(song.id)) uiState.queuedIds.push(song.id);
     syncQueuedButtons();
     toast(t("added"));
@@ -1212,6 +1226,7 @@ $("#musicVolume").addEventListener("change", (event) => updateAudio({ musicVolum
 let heartbeatTimer;
 let heartbeatRunning = false;
 let downloadsHeartbeatTick = 0;
+let queueHeartbeatTick = 0;
 async function heartbeat() {
   if (heartbeatRunning) return;
   heartbeatRunning = true;
@@ -1221,6 +1236,10 @@ async function heartbeat() {
     if (uiState.visible && $("#downloads").classList.contains("active") && ++downloadsHeartbeatTick % 2 === 0) {
       if (uiState.downloadTab === "active") loadDownloadTasks(true);
       else loadDownloads(uiState.downloadsPage, true);
+    }
+    // 已点页: 定期刷新, 让"待下载"的歌下载完成后自动变为"本地"。
+    if (uiState.visible && $("#queue").classList.contains("active") && ++queueHeartbeatTick % 2 === 0) {
+      loadQueue();
     }
   } finally {
     heartbeatRunning = false;

@@ -19,6 +19,8 @@ data class SongRowState(
     val current: Boolean = false,
     val queued: Boolean = false,
     val local: Boolean = false,
+    /** 已点但本地还没有、正在等待下载(在已点歌单中占位)。 */
+    val pending: Boolean = false,
     val downloading: Boolean = false,
     val failed: Boolean = false,
     val paused: Boolean = false,
@@ -200,6 +202,11 @@ class SongListAdapter(
                 LinearLayout.LayoutParams(dp(47), dp(34)),
             )
             addView(songInfo(song, stacked = false), LinearLayout.LayoutParams(0, dp(34), 1f))
+            // 待下载占位歌: 行内标注"待下载", 与手机 H5 已点歌单一致。
+            if (state.pending) {
+                addView(text(KtvRaw.display(R.string.ui_a_0438), 13, Color.rgb(255, 190, 90), Gravity.CENTER),
+                    LinearLayout.LayoutParams(-2, dp(34)).apply { marginEnd = dp(6) })
+            }
             val actions = ArrayList<View>()
             if (!state.current) {
                 val top = icon(R.drawable.ic_add_to_top) { callbacks.onTop(song) }
@@ -302,6 +309,7 @@ class SongListAdapter(
         val state = stateFor(song)
         val stateText = when {
             state.current -> KtvRaw.display(R.string.ui_p_108)
+            state.pending -> KtvRaw.display(R.string.ui_a_0438)
             state.queued -> KtvRaw.display(R.string.ui_a_0229)
             state.downloading -> KtvRaw.display(R.string.ui_p_109, state.progress)
             state.local -> KtvRaw.display(R.string.ui_p_110)
