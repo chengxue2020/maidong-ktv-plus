@@ -4155,6 +4155,13 @@ class MainActivity : AppCompatActivity() {
             put("current", now?.let { songJson(it) } ?: JSONObject.NULL)
             put("next", next?.let { songJson(it) } ?: JSONObject.NULL)
             put("queueSize", orderQueue?.size ?: 0)
+            // 已点歌曲 id(当前播放 + 等待播放),供手机端把搜歌/榜单中标为"已点"并禁用重复点歌。
+            put("queuedIds", JSONArray().apply {
+                val ids = LinkedHashSet<String>()
+                now?.let { ids += stableId(it) }
+                orderQueue?.forEach { ids += stableId(it) }
+                ids.forEach { put(it) }
+            })
             put("playing", player?.isPlaying == true)
             put("vocalMode", if (originalVocal) "original" else "accompany")
             put("musicVolume", musicVolume)

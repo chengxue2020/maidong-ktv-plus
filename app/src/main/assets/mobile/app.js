@@ -350,7 +350,7 @@ const I18N = {
 
 const uiState = {
   visible: true, connected: false, heartbeatFailures: 0,
-  lang: "zh", queueSongs: [],
+  lang: "zh", queueSongs: [], queuedIds: [],
   downloadsPage: 1, downloadsPageSize: 10, downloadsBusy: false, downloadsSongs: [], downloadsError: false,
   downloadsTotal: 0, downloadsTotalPages: 1, downloadsHasPrevious: false, downloadsHasMore: false,
   downloadTab: "downloaded", downloadTasks: [], downloadTasksBusy: false,
@@ -515,12 +515,29 @@ function downloadSpeedText(speed) {
   return t("downloadSpeedKb", { n: Math.max(1, Math.round(value / 1024)) });
 }
 
+function isQueuedSong(id) {
+  return uiState.queuedIds.some((queued) => String(queued) === String(id));
+}
+
+// 把已经渲染到 DOM 的点歌按钮按最新队列状态同步为"已点/禁用"。
+function syncQueuedButtons() {
+  $$("[data-browse-order-id], .song .order").forEach((button) => {
+    const id = button.dataset.browseOrderId || button.closest(".song")?.dataset.id;
+    if (!id) return;
+    const queued = isQueuedSong(id);
+    button.disabled = queued;
+    button.textContent = queued ? t("ordered")
+      : button.classList.contains("detail-order") ? t("browseOrderSong") : t("order");
+  });
+}
+
 function songRow(song, queue = false, current = false, index = 0, ranking = false, downloadTask = false) {
   const number = current ? "♪" : String(index + 1).padStart(2, "0");
   const [label, tone] = sourceLabel(song);
+  const queued = !queue && isQueuedSong(song.id);
   const actions = queue && !current
     ? `<button class="top">${t("top")}</button><button class="delete" aria-label="${t("delete")}">×</button>`
-    : !queue ? `<button class="order">${t("order")}</button>` : "";
+    : !queue ? `<button class="order"${queued ? " disabled" : ""}>${queued ? t("ordered") : t("order")}</button>` : "";
   const stateCode = ["waiting", "downloading", "cancelling"].includes(song.downloadState)
     ? song.downloadState : "waiting";
   const progress = Math.min(99, Math.max(0, Number(song.downloadProgress) || 0));
@@ -564,6 +581,12 @@ async function refresh() {
     const data = await api("/api/v1/state");
     const current = data.current || {};
     const count = data.queueSize || 0;
+    // 队列 id 变化时,同步把已点歌曲的点歌按钮置为"已点/禁用"。
+    const nextQueuedIds = Array.isArray(data.queuedIds) ? data.queuedIds : [];
+    if (JSON.stringify(nextQueuedIds) !== JSON.stringify(uiState.queuedIds)) {
+      uiState.queuedIds = nextQueuedIds;
+      syncQueuedButtons();
+    }
     $("#nowTitle").textContent = current.title || t("noSong");
     $("#nowSinger").textContent = current.singer || t("pickSong");
     $("#queueBadge b").textContent = count;
@@ -875,7 +898,7 @@ function renderBrowseDetail() {
       <div><span>${t("browseDetailLanguage")}</span><b>${escapeHtml(languageDisplayName(song.language) || t("noData"))}</b></div>
       <div><span>${t("browseDetailSource")}</span><b>${escapeHtml(label)}</b></div>
     </div>
-    <button type="button" class="detail-order" data-browse-order-id="${escapeHtml(song.id)}">${t("browseOrderSong")}</button>
+    <button type="button" class="detail-order" data-browse-order-id="${escapeHtml(song.id)}"${isQueuedSong(song.id) ? " disabled" : ""}>${isQueuedSong(song.id) ? t("ordered") : t("browseOrderSong")}</button>
     <p class="detail-hint">${t("browseSelectHint")}</p>
   </div>`;
   renderBrowsePager();
@@ -917,10 +940,11 @@ function renderBrowseList() {
     const offset = (b.page - 1) * b.pageSize;
     list.innerHTML = b.songs.map((song, index) => {
       const [label] = sourceLabel(song);
+      const queued = isQueuedSong(song.id);
       return `<div class="browse-song" data-browse-song-id="${escapeHtml(song.id)}">
         <div class="song-index">${String(offset + index + 1).padStart(2, "0")}</div>
         <div class="info"><b>${escapeHtml(song.title)}</b><p>${escapeHtml(song.singer)}${song.language ? " · " + escapeHtml(languageDisplayName(song.language)) : ""} · ${escapeHtml(label)}</p></div>
-        <button type="button" class="order" data-browse-order-id="${escapeHtml(song.id)}">${t("order")}</button>
+        <button type="button" class="order" data-browse-order-id="${escapeHtml(song.id)}"${queued ? " disabled" : ""}>${queued ? t("ordered") : t("order")}</button>
         <span class="arrow">›</span>
       </div>`;
     }).join("");
