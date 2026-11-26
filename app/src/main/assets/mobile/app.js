@@ -1058,6 +1058,9 @@ async function orderBrowseSong(id) {
   if (!song) return;
   try {
     await api("/api/v1/queue", { method: "POST", body: JSON.stringify({ songId: song.id }) });
+    // 立即把该歌标记为已点并同步按钮(歌星二级页/搜歌列表/详情页不依赖 state 刷新)。
+    if (!isQueuedSong(song.id)) uiState.queuedIds.push(song.id);
+    syncQueuedButtons();
     toast(t("added"));
     refresh();
   } catch (error) { toast(error.message); }
@@ -1178,7 +1181,9 @@ document.addEventListener("click", async (event) => {
   if (row && button.classList.contains("order")) {
     try {
       await api("/api/v1/queue", { method: "POST", body: JSON.stringify({ songId: row.dataset.id }) });
-      button.textContent = t("ordered"); button.disabled = true; toast(t("added")); refresh();
+      if (!isQueuedSong(row.dataset.id)) uiState.queuedIds.push(row.dataset.id);
+      syncQueuedButtons();
+      toast(t("added")); refresh();
     } catch (error) { toast(error.message); }
   }
   if (row && button.classList.contains("top")) {
