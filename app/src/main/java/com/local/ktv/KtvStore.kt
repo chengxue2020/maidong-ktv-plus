@@ -16,7 +16,6 @@ class KtvStore {
     @JvmField var originalVocal = true
     @JvmField var vocalChannelMode = "自动"
     @JvmField var musicVolume = DEFAULT_MUSIC_VOLUME
-    @JvmField var micVolume = 70
     @JvmField var tone = 0
     @JvmField var atmosphere = "标准"
     @JvmField var singMode = "普通演唱"
@@ -71,7 +70,6 @@ class KtvStore {
             originalVocal = root.optBoolean("originalVocal", true)
             vocalChannelMode = root.optString("vocalChannelMode", "自动")
             musicVolume = root.optInt("musicVolume", DEFAULT_MUSIC_VOLUME)
-            micVolume = root.optInt("micVolume", 70)
             tone = root.optInt("tone", 0)
             atmosphere = root.optString("atmosphere", "标准")
             singMode = root.optString("singMode", "普通演唱")
@@ -148,7 +146,6 @@ class KtvStore {
                 put("originalVocal", originalVocal)
                 put("vocalChannelMode", vocalChannelMode)
                 put("musicVolume", musicVolume)
-                put("micVolume", micVolume)
                 put("tone", tone)
                 put("atmosphere", atmosphere)
                 put("singMode", singMode)

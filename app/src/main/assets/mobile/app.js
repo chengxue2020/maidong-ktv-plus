@@ -22,7 +22,6 @@ const I18N = {
     vocalBadgeAccompany: "伴",
     vocalBadgeOriginal: "原",
     musicVolume: "音乐音量",
-    micVolume: "麦克风音量",
     nextUp: "下一首",
     emptyQueue: "队列为空",
     viewQueue: "查看队列",
@@ -214,7 +213,6 @@ const I18N = {
     vocalBadgeAccompany: "Off",
     vocalBadgeOriginal: "On",
     musicVolume: "Music volume",
-    micVolume: "Mic volume",
     nextUp: "Next Song",
     emptyQueue: "Queue is empty",
     viewQueue: "View queue",
@@ -612,9 +610,7 @@ async function refresh() {
     $("#playButton").dataset.action = data.playing ? "pause" : "resume";
     $("#playButton .control-icon").textContent = data.playing ? "Ⅱ" : "▶";
     $("#musicVolume").value = data.musicVolume ?? 70;
-    $("#micVolume").value = data.micVolume ?? 70;
     $("#musicValue").textContent = data.musicVolume ?? 70;
-    $("#micValue").textContent = data.micVolume ?? 70;
     $("#original").classList.toggle("active", data.vocalMode === "original");
     $("#accompany").classList.toggle("active", data.vocalMode !== "original");
     $("#nextSong").textContent = data.next?.title || t("emptyQueue");
@@ -1275,10 +1271,8 @@ $("#downloadsPrev").addEventListener("click", () => loadDownloads(uiState.downlo
 $("#downloadsNext").addEventListener("click", () => loadDownloads(uiState.downloadsPage + 1));
 $("#rankPrev").addEventListener("click", () => loadRank(uiState.rankPage - 1));
 $("#rankNext").addEventListener("click", () => loadRank(uiState.rankPage + 1));
-["music", "mic"].forEach((kind) => {
-  $("#" + kind + "Volume").addEventListener("input", (event) => { $("#" + kind + "Value").textContent = event.target.value; });
-  $("#" + kind + "Volume").addEventListener("change", (event) => updateAudio({ [kind + "Volume"]: Number(event.target.value) }));
-});
+$("#musicVolume").addEventListener("input", (event) => { $("#musicValue").textContent = event.target.value; });
+$("#musicVolume").addEventListener("change", (event) => updateAudio({ musicVolume: Number(event.target.value) }));
 let heartbeatTimer;
 let heartbeatRunning = false;
 let downloadsHeartbeatTick = 0;

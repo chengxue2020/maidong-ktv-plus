@@ -436,7 +436,6 @@ class MainActivity : AppCompatActivity() {
     private var originalVocal = true
     private var vocalChannelMode = "自动"
     private var musicVolume = KtvStore.DEFAULT_MUSIC_VOLUME
-    private var micVolume = 70
     private var tone = 0
     private var atmosphere = "标准"
     private var singMode = "普通演唱"
@@ -3205,7 +3204,6 @@ class MainActivity : AppCompatActivity() {
                 + getString(R.string.ui_a_0335) + vocalChannelMode
                 + getString(R.string.ui_a_0336) + singMode
                 + getString(R.string.ui_a_0337) + musicVolume
-                + getString(R.string.ui_a_0338) + micVolume
                 + getString(R.string.ui_a_0339) + tone
                 + getString(R.string.ui_a_0340) + atmosphere
                 + getString(R.string.ui_a_0341) + scoreSummary()
@@ -4160,7 +4158,6 @@ class MainActivity : AppCompatActivity() {
             put("playing", player?.isPlaying == true)
             put("vocalMode", if (originalVocal) "original" else "accompany")
             put("musicVolume", musicVolume)
-            put("micVolume", micVolume)
             // 均衡器状态(远程点歌页面的均衡器入口据此渲染频段)
             put("equalizer", equalizerJson())
         }
@@ -4506,7 +4503,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun remoteAudio(json: JSONObject): LocalRemoteServer.ApiResponse {
-        if (!json.has("vocalMode") && !json.has("musicVolume") && !json.has("micVolume")) {
+        if (!json.has("vocalMode") && !json.has("musicVolume")) {
             return remoteError(400, "MISSING_AUDIO_VALUE", KtvRaw.get(R.string.ui_a_0450))
         }
         val vocal = json.optString("vocalMode", "")
@@ -4514,14 +4511,12 @@ class MainActivity : AppCompatActivity() {
             return remoteError(400, "BAD_VOCAL_MODE", KtvRaw.get(R.string.ui_a_0451))
         }
         val music = if (json.has("musicVolume")) json.optInt("musicVolume", -1) else null
-        val mic = if (json.has("micVolume")) json.optInt("micVolume", -1) else null
-        if ((music != null && music !in 0..100) || (mic != null && mic !in 0..100)) {
+        if (music != null && music !in 0..100) {
             return remoteError(400, "BAD_VOLUME", KtvRaw.get(R.string.ui_a_0452))
         }
         main.post {
             if (vocal.isNotEmpty()) originalVocal = vocal == "original"
             music?.let { musicVolume = it }
-            mic?.let { micVolume = it }
             applyPlaybackMode()
             playerController?.setVocalMode(originalVocal)
             saveState()
@@ -11180,7 +11175,6 @@ class MainActivity : AppCompatActivity() {
         store.originalVocal = originalVocal
         store.vocalChannelMode = vocalChannelMode
         store.musicVolume = musicVolume
-        store.micVolume = micVolume
         // 均衡器状态同样随设置一起持久化(下次启动自动恢复)。
         store.eqEnabled = KtvEqualizer.enabled
         store.eqPreset = KtvEqualizer.preset
@@ -11258,7 +11252,6 @@ class MainActivity : AppCompatActivity() {
             useGlobalMix = store.eqGlobalMix && KtvEqualizer.globalMixSupported(),
         )
         KtvEqualizer.alignToDevice(KtvEqualizer.capabilities(this))
-        micVolume = store.micVolume
         tone = store.tone.coerceIn(-5, 5)
         atmosphere = store.atmosphere
         // 同上：演唱模式脏值归一化，防止"静音练唱"残留导致永久无声。
