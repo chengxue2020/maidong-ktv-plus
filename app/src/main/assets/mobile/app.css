@@ -23,6 +23,7 @@
 .topbar-actions{display:flex;align-items:center;gap:8px}
 .lang-button{height:36px;min-width:42px;padding:0 11px;border-radius:13px;background:rgba(255,255,255,.08);border:1px solid rgba(255,213,106,.32);color:var(--gold);font-size:12px;font-weight:800;letter-spacing:.5px;line-height:1}
 .lang-button:active{transform:scale(.94)}
+.top-next{min-width:36px;padding:0 9px;font-size:16px;letter-spacing:0}
 .i18n{font-weight:inherit}
 /* 5-tab navigation + two new icons. */
 nav{grid-template-columns:repeat(5,1fr)}
