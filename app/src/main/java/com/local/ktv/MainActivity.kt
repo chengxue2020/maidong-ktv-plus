@@ -5953,6 +5953,12 @@ class MainActivity : AppCompatActivity() {
      */
     private fun downloadSong(song: Song, extraCallback: DownloadCallback? = null, storageChecked: Boolean = false) {
         if (SongOkDownloadManager.isDownloading(song)) {
+            // 已在下载(含 Activity 重建后的场景): 确保 downloads 里有登记,
+            // 否则手机"下载中"页读不到这个任务。
+            if (downloads.none { stableId(it.song) == stableId(song) }) {
+                downloads.add(DownloadTask(song).apply { state = KtvRaw.get(R.string.ui_a_0084) })
+                refreshSongAdapter()
+            }
             if (extraCallback != null) extraCallback.onDownloadStart(song)
             return
         }
@@ -5966,6 +5972,13 @@ class MainActivity : AppCompatActivity() {
         if (::stateDatabase.isInitialized) runCatching {
             stateIo.execute { stateDatabase.updateDownload(song, "queued", 0) }
         }
+        // 发起下载时就把任务登记进 downloads, 与 ori 保持一致:
+        // 手机点歌后 TV 自动下载, 手机"下载中"页读的就是这个集合。
+        // 若只等 onDownloadStart 回调再 add, 当 SongOkDownloadManager 已判定该歌
+        // isDownloading 而提前 return 时, 回调里的 add 不会发生, 列表会一直为空。
+        downloads.removeAll { stableId(it.song) == stableId(song) }
+        downloads.add(DownloadTask(song).apply { state = KtvRaw.get(R.string.ui_a_0014) })
+        refreshSongAdapter()
         download(song, downloadUiCallback(song, extraCallback))
     }
 
