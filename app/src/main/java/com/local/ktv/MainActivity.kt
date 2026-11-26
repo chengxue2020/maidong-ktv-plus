@@ -4360,8 +4360,9 @@ class MainActivity : AppCompatActivity() {
         val total: Int
         when {
             keyword.isNotEmpty() -> {
-                songs = library.muse.searchSongs(keyword, offset, pageSize)
-                total = library.muse.searchSongCount(keyword)
+                // 关键字与字数筛选叠加: 手机端"歌名"页可同时输入关键字并选中字数。
+                songs = library.muse.searchSongs(keyword, offset, pageSize, wordCount = wordCount)
+                total = library.muse.searchSongCount(keyword, wordCount = wordCount)
             }
             language.isNotEmpty() && language != KtvRaw.get(R.string.ui_a_0069) -> {
                 songs = library.muse.songsByLanguage(language, offset, pageSize)

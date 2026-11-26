@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#17052f">
   <title data-i18n="title">麦动 KTV 手机点歌</title>
-  <link rel="stylesheet" href="/mobile/app.css?v=28">
+  <link rel="stylesheet" href="/mobile/app.css?v=30">
   <link rel="stylesheet" href="/mobile/logo.css?v=4">
 </head>
 <body>
@@ -53,10 +53,12 @@
             <button type="button" data-browse-tab="song" class="active" data-i18n="browseSong">歌名</button>
             <button type="button" data-browse-tab="language" data-i18n="browseLanguageTab">歌曲语言</button>
           </div>
+          <div id="browseSearchBlock" class="browse-search-block hidden">
+            <div id="browseQueryRow" class="browse-query-row"><div class="browse-query-input"><input id="browseQuery" type="search" autocomplete="off" data-i18n-placeholder="browseQuerySinger" placeholder="输入歌手名或拼音/首字母"><button id="browseKeyboardToggle" type="button" class="browse-keyboard-toggle" data-i18n-aria="browseKeyboardAria" aria-label="小键盘">⌨</button></div><button id="browseQueryBtn" type="button" data-i18n="search">搜索</button></div>
+            <div id="browseLetters" class="letter-chips hidden"></div>
+          </div>
           <div id="browseFilters" class="browse-filters hidden">
             <div id="browseChips" class="browse-chips"></div>
-            <div id="browseQueryRow" class="browse-query-row"><input id="browseQuery" type="search" autocomplete="off" data-i18n-placeholder="browseQuerySinger" placeholder="输入歌手名或拼音/首字母"><button id="browseQueryBtn" type="button" data-i18n="search">搜索</button></div>
-            <div id="browseLetters" class="letter-chips"></div>
           </div>
           <div id="browseCrumb" class="browse-crumb hidden"><button id="browseBack" type="button">‹ <span data-i18n="browseBack">返回</span></button><b id="browseCrumbText"></b></div>
           <div class="block-title"><h3 id="browseListTitle" data-i18n="browseSingerList">歌星列表</h3><span id="browseSummary"></span></div>
@@ -100,6 +102,6 @@
   </div>
   <div id="toast"></div>
 
-  <script src="/mobile/app.js?v=27"></script>
+  <script src="/mobile/app.js?v=34"></script>
 </body>
 </html>

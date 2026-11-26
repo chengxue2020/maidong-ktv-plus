@@ -141,7 +141,6 @@ const I18N = {
     browseSingerList: "歌星列表",
     browseSongList: "歌曲列表",
     browseLanguageList: "语言歌曲列表",
-    browseFilterLang: "语言",
     browseFilterWord: "字数",
     browseQuerySinger: "输入歌手名或拼音/首字母",
     browseQuerySong: "输入歌名或拼音/首字母",
@@ -172,7 +171,8 @@ const I18N = {
     browseOrderSong: "点歌",
     browseSelectHint: "点击歌曲可查看信息并点歌",
     browseBackspace: "退格",
-    browseClear: "清空"
+    browseClear: "清空",
+    browseKeyboardAria: "小键盘"
   },
   en: {
     title: "麦动 KTV Remote",
@@ -313,7 +313,6 @@ const I18N = {
     browseSingerList: "Singer list",
     browseSongList: "Song list",
     browseLanguageList: "Songs by language",
-    browseFilterLang: "Language",
     browseFilterWord: "Word count",
     browseQuerySinger: "Singer name or pinyin/initials",
     browseQuerySong: "Song name or pinyin/initials",
@@ -344,7 +343,8 @@ const I18N = {
     browseOrderSong: "Select",
     browseSelectHint: "Tap a song to see details and select it",
     browseBackspace: "Backspace",
-    browseClear: "Clear"
+    browseClear: "Clear",
+    browseKeyboardAria: "Keypad"
   }
 };
 
@@ -359,11 +359,12 @@ const uiState = {
   rankBusy: false, rankSongs: [], rankError: false, categoriesError: false,
   browse: {
     tab: "song", view: "list", returnView: "list", busy: false, error: false,
+    keyboardVisible: false,
     page: 1, pageSize: 10, total: 0, totalPages: 1, hasPrevious: false, hasMore: false,
     singers: [], songs: [], singer: null, song: null, singerListPage: 1,
     languages: [],
     singerFilter: { category: "全部", keyword: "" },
-    songFilter: { language: "全部", wordCount: 0, keyword: "" },
+    songFilter: { wordCount: 0, keyword: "" },
     languageFilter: { language: "全部" }
   }
 };
@@ -378,7 +379,8 @@ const BROWSE_WORD_COUNTS = [
   [0, "browseCatAll"], [1, "browseWord1"], [2, "browseWord2"], [3, "browseWord3"],
   [4, "browseWord4"], [5, "browseWord5"], [6, "browseWord6"]
 ];
-const BROWSE_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").concat(["0-9"]);
+const BROWSE_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+const BROWSE_DIGITS = "0123456789".split("");
 
 function t(key, vars) {
   const table = I18N[uiState.lang] || I18N.zh;
@@ -805,16 +807,20 @@ function renderBrowseFilters() {
   const b = uiState.browse;
   const show = b.view === "list";
   $("#browseFilters").classList.toggle("hidden", !show);
+  $("#browseSearchBlock").classList.toggle("hidden", !show);
   if (!show) return;
   const chips = $("#browseChips");
   if (b.tab === "language") {
+    $("#browseSearchBlock").classList.add("hidden");
     $("#browseQueryRow").classList.add("hidden");
     $("#browseLetters").classList.add("hidden");
     chips.innerHTML = browseLanguageChips(b.languageFilter.language);
     return;
   }
+  $("#browseSearchBlock").classList.remove("hidden");
   $("#browseQueryRow").classList.remove("hidden");
-  $("#browseLetters").classList.remove("hidden");
+  $("#browseLetters").classList.toggle("hidden", !b.keyboardVisible);
+  $("#browseKeyboardToggle").classList.toggle("active", b.keyboardVisible);
   const filter = activeBrowseFilter();
   const input = $("#browseQuery");
   input.value = filter.keyword;
@@ -826,10 +832,11 @@ function renderBrowseFilters() {
     input.placeholder = t("browseQuerySong");
     const wordChips = BROWSE_WORD_COUNTS.map(([value, key]) =>
       `<button type="button" class="browse-chip${value === filter.wordCount ? " active" : ""}" data-browse-wordcount="${value}">${t(key)}</button>`).join("");
-    chips.innerHTML = `<div class="filter-row"><span>${t("browseFilterLang")}</span><div class="browse-chips">${browseLanguageChips(filter.language)}</div></div><div class="filter-row"><span>${t("browseFilterWord")}</span><div class="browse-chips">${wordChips}</div></div>`;
+    chips.innerHTML = `<div class="filter-row"><span>${t("browseFilterWord")}</span><div class="browse-chips">${wordChips}</div></div>`;
   }
-  $("#browseLetters").innerHTML = BROWSE_LETTERS.map((letter) =>
-    `<button type="button" class="browse-letter" data-browse-letter="${letter}">${letter}</button>`).join("") +
+  // 字母与数字同页展示，退格/清空跟在 0-9 之后。
+  $("#browseLetters").innerHTML = BROWSE_LETTERS.concat(BROWSE_DIGITS).map((key) =>
+    `<button type="button" class="browse-letter" data-browse-letter="${key}">${key}</button>`).join("") +
     `<button type="button" class="browse-letter browse-letter-action" data-browse-letter-action="backspace" data-i18n-aria="browseBackspace" aria-label="退格">⌫</button>` +
     `<button type="button" class="browse-letter browse-letter-action" data-browse-letter-action="clear" data-i18n-aria="browseClear" aria-label="清空">×</button>`;
 }
@@ -940,12 +947,10 @@ async function loadBrowsePage(page) {
       data = await api(`/api/v1/singers?category=${encodeURIComponent(f.category)}&q=${encodeURIComponent(f.keyword)}&page=${page}&pageSize=${b.pageSize}`);
     } else if (b.tab === "language") {
       const lang = b.languageFilter.language;
-      data = lang === "全部"
-        ? await api(`/api/v1/song-catalog?page=${page}&pageSize=${b.pageSize}`)
-        : await api(`/api/v1/songs?q=${encodeURIComponent(lang)}&type=language&page=${page}&pageSize=${b.pageSize}`);
+      data = await api(`/api/v1/song-catalog?language=${encodeURIComponent(lang)}&page=${page}&pageSize=${b.pageSize}`);
     } else {
       const f = b.songFilter;
-      data = await api(`/api/v1/song-catalog?language=${encodeURIComponent(f.language)}&wordcount=${f.wordCount}&q=${encodeURIComponent(f.keyword)}&page=${page}&pageSize=${b.pageSize}`);
+      data = await api(`/api/v1/song-catalog?language=${encodeURIComponent("全部")}&wordcount=${f.wordCount}&q=${encodeURIComponent(f.keyword)}&page=${page}&pageSize=${b.pageSize}`);
     }
     b.page = data.page || page;
     b.total = data.total ?? (data.songs?.length || 0);
@@ -1103,30 +1108,30 @@ document.addEventListener("click", async (event) => {
     uiState.browse.page = 1; renderBrowseFilters(); loadBrowsePage(1); return;
   }
   if (button.dataset.browseLanguage) {
-    if (uiState.browse.tab === "language") {
-      uiState.browse.languageFilter.language = button.dataset.browseLanguage;
-    } else {
-      uiState.browse.songFilter.language = button.dataset.browseLanguage;
-      uiState.browse.songFilter.wordCount = 0; // 与 APK 一致：语言/字数为互斥维度
-    }
+    uiState.browse.languageFilter.language = button.dataset.browseLanguage;
     uiState.browse.page = 1; renderBrowseFilters(); loadBrowsePage(1); return;
   }
   if (button.dataset.browseWordcount) {
     uiState.browse.songFilter.wordCount = Number(button.dataset.browseWordcount) || 0;
-    uiState.browse.songFilter.language = "全部";
     uiState.browse.page = 1; renderBrowseFilters(); loadBrowsePage(1); return;
   }
   if (button.dataset.browseLetter || button.dataset.browseLetterAction) {
+    const letterAction = button.dataset.browseLetterAction;
     const filter = activeBrowseFilter();
     if (button.dataset.browseLetter) {
       // 与 APK 内置键盘一致：连续按键追加，可组成 YY / ZJL 等多字母筛选。
       filter.keyword = (filter.keyword + button.dataset.browseLetter).slice(0, 12);
-    } else if (button.dataset.browseLetterAction === "backspace") {
+    } else if (letterAction === "backspace") {
       filter.keyword = filter.keyword.slice(0, -1);
     } else {
       filter.keyword = "";
     }
     uiState.browse.page = 1; renderBrowseFilters(); loadBrowsePage(1); return;
+  }
+  if (button.id === "browseKeyboardToggle") {
+    uiState.browse.keyboardVisible = !uiState.browse.keyboardVisible;
+    renderBrowseFilters();
+    return;
   }
   if (button.id === "browseQueryBtn") { applyBrowseQuery(); return; }
   if (button.dataset.browseSinger) { openBrowseSinger(button.dataset.browseSinger, button.dataset.browseSingerName); return; }

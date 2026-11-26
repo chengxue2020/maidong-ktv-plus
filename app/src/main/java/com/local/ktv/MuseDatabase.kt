@@ -49,7 +49,13 @@ class MuseDatabase @JvmOverloads constructor(initialSourceFile: File? = null) {
         return null
     }
 
-    fun searchSongs(keyword: String?, offset: Int, limit: Int, language: String? = null): MutableList<Song> {
+    fun searchSongs(
+        keyword: String?,
+        offset: Int,
+        limit: Int,
+        language: String? = null,
+        wordCount: Int = 0,
+    ): MutableList<Song> {
         val query = keyword?.trim().orEmpty()
         if (query.isEmpty()) return mutableListOf()
         val args = mutableListOf<String>()
@@ -60,17 +66,19 @@ class MuseDatabase @JvmOverloads constructor(initialSourceFile: File? = null) {
         } else {
             ""
         }
+        // 关键字与字数筛选叠加: 与字数浏览页使用同一个 name_len 字段。
+        val wordCountCondition = wordCountSqlCondition(wordCount, "s.")
         args += limit.toString()
         args += offset.toString()
         return songs(
             "$SONG_SELECT WHERE s.deleted_at IS NULL " +
-                "AND $condition$languageCondition " +
+                "AND $condition$languageCondition$wordCountCondition " +
                 "$RECOMMEND_ORDER, s.name ASC LIMIT ? OFFSET ?",
             args.toTypedArray(),
         )
     }
 
-    fun searchSongCount(keyword: String?, language: String? = null): Int {
+    fun searchSongCount(keyword: String?, language: String? = null, wordCount: Int = 0): Int {
         val query = keyword?.trim().orEmpty()
         if (query.isEmpty()) return 0
         val args = mutableListOf<String>()
@@ -81,13 +89,21 @@ class MuseDatabase @JvmOverloads constructor(initialSourceFile: File? = null) {
         } else {
             ""
         }
+        val wordCountCondition = wordCountSqlCondition(wordCount, "")
         // 命中数达上限即提前终止扫描,避免为分页显示对整个歌曲表做完整 COUNT。
         args += SEARCH_COUNT_CAP.toString()
         return count(
             "SELECT COUNT(*) FROM (SELECT 1 FROM songs WHERE deleted_at IS NULL " +
-                "AND $condition$languageCondition LIMIT ?)",
+                "AND $condition$languageCondition$wordCountCondition LIMIT ?)",
             args.toTypedArray(),
         )
+    }
+
+    /** 字数筛选条件片段; wordCount<=0 时不附加条件, >=6 视为"六字以上"。 */
+    private fun wordCountSqlCondition(wordCount: Int, alias: String): String = when {
+        wordCount <= 0 -> ""
+        wordCount >= 6 -> " AND ${alias}name_len >= 6"
+        else -> " AND ${alias}name_len = $wordCount"
     }
 
     fun searchSongsBySingerKeyword(keyword: String?, offset: Int, limit: Int): MutableList<Song> {
