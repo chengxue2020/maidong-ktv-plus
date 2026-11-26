@@ -25,22 +25,7 @@ const I18N = {
     nextUp: "下一首",
     emptyQueue: "队列为空",
     viewQueue: "查看队列",
-    songLibrary: "SONG LIBRARY",
-    wantToSing: "想唱什么？",
-    vastLibrary: "海量本地曲库",
-    singer: "歌手",
-    song: "歌曲",
-    songTitle: "歌名",
-    language: "语言",
-    inputSinger: "输入歌手名或拼音",
-    inputSong: "输入歌曲名或拼音",
-    searchModeAria: "搜索方式",
     search: "搜索",
-    singerResults: "歌手搜索结果",
-    songResults: "歌曲搜索结果",
-    languageResults: "语言搜索结果",
-    searching: "正在搜索“{q}”",
-    moreSongs: "加载更多歌曲",
     hotRanking: "热歌排行",
     loading: "正在加载…",
     prevPage: "上一页",
@@ -127,10 +112,6 @@ const I18N = {
     top: "置顶",
     delete: "删除",
     playing: "正在播放",
-    noResults: "没有找到相关歌曲",
-    noResultsHint: "请更换关键词后重试",
-    moreSuffix: "，还有更多",
-    resultSummary: "“{q}” · 本地优先{more}",
     hotSummary: "第 {a}-{b} 首 · 本地优先",
     noHot: "暂无热歌排行",
     noData: "暂无数据",
@@ -138,7 +119,6 @@ const I18N = {
     retryPage: "请点击翻页重试",
     queueEmpty: "还没有点歌",
     queueEmptyHint: "去曲库选一首喜欢的歌吧",
-    inputRequired: "请输入{mode}名称",
     added: "已加入歌单",
     pinned: "已置顶为下一首",
     removed: "已从歌单移除",
@@ -151,8 +131,9 @@ const I18N = {
     browseSingerHint: "按歌手逐页挑选",
     browseSong: "歌名",
     browseSongHint: "按歌名逐页挑选",
+    browseLanguageTab: "歌曲语言",
     browseEyebrow: "BROWSE LIBRARY",
-    browseTitle: "按歌星 / 歌名浏览",
+    browseTitle: "按歌星 / 歌名 / 歌曲语言浏览",
     browseModalAria: "浏览曲库",
     browseClose: "关闭",
     browseTabsAria: "浏览分类",
@@ -216,22 +197,7 @@ const I18N = {
     nextUp: "Next Song",
     emptyQueue: "Queue is empty",
     viewQueue: "View queue",
-    songLibrary: "SONG LIBRARY",
-    wantToSing: "What do you want to sing?",
-    vastLibrary: "Full local library",
-    singer: "Singer",
-    song: "Song",
-    songTitle: "Song title",
-    language: "Language",
-    inputSinger: "Singer name or pinyin",
-    inputSong: "Song name or pinyin",
-    searchModeAria: "Search mode",
     search: "Search",
-    singerResults: "Singer results",
-    songResults: "Song results",
-    languageResults: "Language results",
-    searching: "Searching “{q}”",
-    moreSongs: "Load more songs",
     hotRanking: "Top charts",
     loading: "Loading…",
     prevPage: "Previous",
@@ -318,10 +284,6 @@ const I18N = {
     top: "Priority",
     delete: "Delete",
     playing: "Playing",
-    noResults: "No songs found",
-    noResultsHint: "Try a different keyword",
-    moreSuffix: ", more available",
-    resultSummary: "“{q}” · Local first{more}",
     hotSummary: "{a}-{b} · Local first",
     noHot: "No chart data yet",
     noData: "No data",
@@ -329,7 +291,6 @@ const I18N = {
     retryPage: "Turn the page to retry",
     queueEmpty: "No songs queued",
     queueEmptyHint: "Pick one from the library",
-    inputRequired: "Enter a {mode} name",
     added: "Added to queue",
     pinned: "Moved to priority",
     removed: "Removed from queue",
@@ -342,8 +303,9 @@ const I18N = {
     browseSingerHint: "Browse singers page by page",
     browseSong: "Songs",
     browseSongHint: "Browse songs page by page",
+    browseLanguageTab: "Song language",
     browseEyebrow: "BROWSE LIBRARY",
-    browseTitle: "Browse by singer / song",
+    browseTitle: "Browse by singer / song / language",
     browseModalAria: "Browse song library",
     browseClose: "Close",
     browseTabsAria: "Browse category",
@@ -387,9 +349,8 @@ const I18N = {
 };
 
 const uiState = {
-  page: 1, query: "", searchMode: "song", busy: false,
   visible: true, connected: false, heartbeatFailures: 0,
-  lang: "zh", searchResults: [], searchHasMore: false, queueSongs: [],
+  lang: "zh", queueSongs: [],
   downloadsPage: 1, downloadsPageSize: 10, downloadsBusy: false, downloadsSongs: [], downloadsError: false,
   downloadsTotal: 0, downloadsTotalPages: 1, downloadsHasPrevious: false, downloadsHasMore: false,
   downloadTab: "downloaded", downloadTasks: [], downloadTasksBusy: false,
@@ -635,38 +596,6 @@ async function updateAudio(values) {
     await api("/api/v1/player/audio", { method: "PATCH", body: JSON.stringify(values) });
     await refresh();
   } catch (error) { toast(error.message); }
-}
-
-async function search(reset = true) {
-  if (uiState.busy) return;
-  if (reset) {
-    uiState.page = 1;
-    uiState.query = $("#query").value.trim();
-    if (!uiState.query) {
-      toast(t("inputRequired", { mode: t(uiState.searchMode === "singer" ? "singer" : "songTitle") }));
-      $("#query").focus();
-      return;
-    }
-    uiState.searchResults = [];
-    $("#results").innerHTML = "";
-    $("#searchResultBlock").classList.remove("hidden");
-    $("#resultTitle").textContent = t(uiState.searchMode === "singer" ? "singerResults" : "songResults");
-    $("#resultSummary").textContent = t("searching", { q: uiState.query });
-  }
-  uiState.busy = true;
-  try {
-    // 老电视上曲库搜索较慢，单独放宽搜索请求的超时。
-    const data = await api(`/api/v1/songs?q=${encodeURIComponent(uiState.query)}&type=${uiState.searchMode}&page=${uiState.page}&pageSize=20`, {}, 30000);
-    const songs = data.songs || [];
-    const rows = songs.map((song, index) => songRow(song, false, false, (uiState.page - 1) * 20 + index)).join("");
-    uiState.searchResults.push(...songs);    if (rows) $("#results").insertAdjacentHTML("beforeend", rows);
-    else if (reset) $("#results").innerHTML = `<div class="empty">${t("noResults")}<br><small>${t("noResultsHint")}</small></div>`;
-    uiState.searchHasMore = !!data.hasMore;
-    $("#resultSummary").textContent = t("resultSummary", { q: uiState.query, more: data.hasMore ? t("moreSuffix") : "" });
-    $("#more").classList.toggle("hidden", !data.hasMore);
-    uiState.page += 1;
-  } catch (error) { toast(error.message); }
-  finally { uiState.busy = false; }
 }
 
 function setI18nText(selector, key) {
@@ -1106,12 +1035,6 @@ async function orderBrowseSong(id) {
 }
 
 function renderCachedLists() {
-  if (uiState.searchResults.length) {
-    $("#results").innerHTML = uiState.searchResults
-      .map((song, index) => songRow(song, false, false, index)).join("");
-  } else if (!$("#searchResultBlock").classList.contains("hidden") && uiState.query) {
-    $("#results").innerHTML = `<div class="empty">${t("noResults")}<br><small>${t("noResultsHint")}</small></div>`;
-  }
   if (uiState.queueSongs.length) {
     $("#queueList").innerHTML = uiState.queueSongs
       .map((song, index) => songRow(song, true, index === 0, index)).join("");
@@ -1155,15 +1078,6 @@ function applyLanguage(lang, persist = true) {
   $("#langButton").setAttribute("aria-label", t("switchLang"));
 
   renderConnectionText();
-  $("#query").placeholder = t(uiState.searchMode === "singer" ? "inputSinger" : "inputSong");
-  if (!$("#searchResultBlock").classList.contains("hidden")) {
-    $("#resultTitle").textContent = t(uiState.searchMode === "singer" ? "singerResults" : "songResults");
-    if (uiState.query) {
-      $("#resultSummary").textContent = t("resultSummary", {
-        q: uiState.query, more: uiState.searchHasMore ? t("moreSuffix") : ""
-      });
-    }
-  }
   renderCachedLists();
 }
 
@@ -1231,16 +1145,6 @@ document.addEventListener("click", async (event) => {
   if (button.dataset.page) openPage(button.dataset.page);
   if (button.dataset.action) playerAction(button.dataset.action);
   if (button.dataset.vocal) updateAudio({ vocalMode: button.dataset.vocal });
-  if (button.dataset.searchMode) {
-    uiState.searchMode = button.dataset.searchMode;
-    $$('[data-search-mode]').forEach((item) => item.classList.toggle("active", item === button));
-    $("#query").placeholder = t(uiState.searchMode === "singer" ? "inputSinger" : "inputSong");
-    $("#query").value = "";
-    $("#results").innerHTML = "";
-    $("#searchResultBlock").classList.add("hidden");
-    $("#more").classList.add("hidden");
-    $("#query").focus();
-  }
   const row = button.closest(".song");
   if (row && button.classList.contains("order")) {
     try {
@@ -1262,11 +1166,9 @@ document.addEventListener("click", async (event) => {
   }
 });
 
-$("#searchForm").addEventListener("submit", (event) => { event.preventDefault(); search(); });
 $("#browseQuery").addEventListener("keydown", (event) => {
   if (event.key === "Enter") { event.preventDefault(); applyBrowseQuery(); }
 });
-$("#more").addEventListener("click", () => search(false));
 $("#downloadsPrev").addEventListener("click", () => loadDownloads(uiState.downloadsPage - 1));
 $("#downloadsNext").addEventListener("click", () => loadDownloads(uiState.downloadsPage + 1));
 $("#rankPrev").addEventListener("click", () => loadRank(uiState.rankPage - 1));

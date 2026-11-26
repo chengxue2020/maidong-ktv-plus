@@ -94,7 +94,7 @@ nav{grid-template-columns:repeat(5,1fr)}
 .detail-order{width:100%;height:44px;margin-top:16px;border-radius:14px;background:linear-gradient(135deg,#ffdf7f,#ffb84a);color:#35123d;font-size:14px;font-weight:800}
 .detail-hint{margin:8px 0 0;font-size:10px;color:#b9a9c9}
 /* Inline singer / song browser (replaces the old hot-ranking block) */
-.browse-section{padding-top:22px;margin-top:25px;border-top:1px solid rgba(255,255,255,.1)}
+.browse-section{padding-top:6px;margin-top:0;border-top:0}
 .browse-section-head small{display:block;color:var(--gold);font-size:10px;letter-spacing:1.2px;font-weight:800}
 .browse-section-head h3{margin:3px 0 0;font-size:17px}
 .browse-section .browse-mode{grid-template-columns:repeat(3,1fr);margin-top:12px}
