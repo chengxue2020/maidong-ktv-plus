@@ -66,22 +66,6 @@
             android:layout_height="1dp"
             android:layout_weight="1" />
 
-        <!-- 中英文切换：紧邻「已点」，点击后切换整个 App 的界面语言 -->
-        <TextView
-            android:id="@+id/btn_top_language"
-            android:layout_width="wrap_content"
-            android:layout_height="32dp"
-            android:layout_marginStart="6dp"
-            android:background="@drawable/bg_btn_top_action"
-            android:gravity="center"
-            android:minWidth="48dp"
-            android:paddingStart="10dp"
-            android:paddingEnd="10dp"
-            android:text="@string/ui_lang_short_en"
-            android:textColor="#FFFFFFFF"
-            android:textSize="13sp"
-            android:textStyle="bold" />
-
         <!-- 已点数量 -->
         <LinearLayout
             android:id="@+id/btn_top_order"

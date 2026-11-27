@@ -744,7 +744,14 @@ class MainActivity : AppCompatActivity() {
                 if (ok) {
                     refreshLibrary {
                         showDatabaseLoading(false, "", null)
-                        showHomePage()
+                        // 设置页切换语言导致 Activity 重建后，回到设置页而不是首页（对齐 ori）。
+                        val returnToSettings = prefs()?.getBoolean(KEY_RETURN_TO_SETTINGS, false) == true
+                        if (returnToSettings) {
+                            prefs()?.edit()?.putBoolean(KEY_RETURN_TO_SETTINGS, false)?.apply()
+                            showSettingsPage(false)
+                        } else {
+                            showHomePage()
+                        }
                         if (usedOldDatabase && bootstrapError != null) toast(getString(R.string.ui_p_004))
                         if (catalogRefreshPending) refreshCurrentCatalogPage()
                         // 启动自动随机播放: 仅当启动时无恢复播放/空队列且允许顺序播放时触发一次。
@@ -2409,17 +2416,6 @@ class MainActivity : AppCompatActivity() {
 
     /** 控制按钮显示下一次动作；播放框提示显示本次切换后实际生效的模式。 */
     private fun vocalActionText(): String = if (originalVocal) getString(R.string.ui_a_0306) else getString(R.string.ui_a_0305)
-
-    /** 语言按钮显示「点击后将切换到的语言」：中文界面显示 EN，英文界面显示「中文」。 */
-    private fun refreshLanguageButtonText() {
-        val label = if (KtvApplication.isEnglish()) {
-            getString(R.string.ui_lang_short_zh)
-        } else {
-            getString(R.string.ui_lang_short_en)
-        }
-        btnTopLanguage?.text = label
-        btnTopLanguage?.contentDescription = getString(R.string.ui_set_language)
-    }
 
     /**
      * 语言切换会重建 Activity 并释放播放器：切换前记录当前歌曲的进度与播放/暂停状态，
@@ -7401,9 +7397,6 @@ class MainActivity : AppCompatActivity() {
     /** 顶栏搜索按钮  */
     private var btnTopSearch: TextView? = null
 
-    /** 顶栏语言切换按钮(中/英)  */
-    private var btnTopLanguage: TextView? = null
-
     /** 顶栏已点按钮(整条)  */
     private var btnTopOrder: LinearLayout? = null
     private var textTopOrderLabel: TextView? = null
@@ -7667,8 +7660,6 @@ class MainActivity : AppCompatActivity() {
         contentFrame = findViewById<FrameLayout?>(R.id.content_frame)
         browsePagination = findViewById<View?>(R.id.browse_pagination)
         btnTopSearch = findViewById<TextView?>(R.id.btn_top_search)
-        btnTopLanguage = findViewById<TextView?>(R.id.btn_top_language)
-        refreshLanguageButtonText()
         btnTopOrder = findViewById<LinearLayout?>(R.id.btn_top_order)
         textTopOrderLabel = findViewById<TextView?>(R.id.text_top_order_label)
         textTopOrderBadge = findViewById<TextView?>(R.id.text_top_order_badge)
@@ -7740,10 +7731,6 @@ class MainActivity : AppCompatActivity() {
 
         // 设置顶栏按钮事件
         if (btnTopSearch != null) btnTopSearch!!.setOnClickListener(View.OnClickListener { v: View? -> showQuickSearchPage() })
-        // 语言切换：先记录当前歌曲进度，AppCompat 重建 Activity 后从原位置恢复。
-        btnTopLanguage?.setOnClickListener(View.OnClickListener { v: View? ->
-            switchLanguageKeepingPlayback(!KtvApplication.isEnglish())
-        })
         if (btnTopOrder != null) btnTopOrder!!.setOnClickListener(View.OnClickListener { v: View? -> showOrderListPage() })
         if (btnTopVocal != null) btnTopVocal!!.setOnClickListener(View.OnClickListener { v: View? -> toggleOriginalVocal() })
         if (btnTopNext != null) btnTopNext!!.setOnClickListener(View.OnClickListener { v: View? -> playNext() })
@@ -7876,7 +7863,7 @@ class MainActivity : AppCompatActivity() {
         if (btnPrevPage != null) btnPrevPage!!.setOnClickListener(View.OnClickListener { v: View? -> prevPage() })
         if (btnNextPage != null) btnNextPage!!.setOnClickListener(View.OnClickListener { v: View? -> nextPage() })
         listOfNotNull(
-            btnTopSearch, btnTopLanguage, btnTopOrder, btnTopVocal, btnTopNext, btnTopPause, btnTopReplay, btnTopTone,
+            btnTopSearch, btnTopOrder, btnTopVocal, btnTopNext, btnTopPause, btnTopReplay, btnTopTone,
             btnBottomGuess, btnBottomMobileOrder, btnBottomSettings, btnBottomExit, btnBack, btnPrevPage, btnNextPage,
             homeCardRank, homeCardSong, homeCardSinger, homeCardLocal, homeCardRegular,
             homeCardFavorite, homeCardCategory,
@@ -8679,7 +8666,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun clearHomeTopFocusNavigation() {
         listOfNotNull(
-            btnTopSearch, btnTopLanguage, btnTopOrder, btnTopVocal, btnTopNext, btnTopPause, btnTopReplay, btnTopTone,
+            btnTopSearch, btnTopOrder, btnTopVocal, btnTopNext, btnTopPause, btnTopReplay, btnTopTone,
         ).forEach { it.nextFocusDownId = View.NO_ID }
     }
 
@@ -9628,6 +9615,19 @@ class MainActivity : AppCompatActivity() {
         browsePagination?.visibility = View.GONE
 
         val entries = listOf(
+            SettingsEntry(
+                R.drawable.ott_ic_language,
+                getString(R.string.ui_set_language),
+                if (KtvApplication.isEnglish()) getString(R.string.ui_set_lang_en) else getString(R.string.ui_set_lang_zh),
+                getString(R.string.ui_set_language_action),
+            ) {
+                val toEnglish = !KtvApplication.isEnglish()
+                // 记录标志：Activity 因语言切换重建后自动回到设置页（对齐 ori）。
+                prefs()?.edit()?.putBoolean(KEY_RETURN_TO_SETTINGS, true)?.apply()
+                // toast 文案按目标语言给出（切换后当前 resources 即将变为目标语言）。
+                toast(if (toEnglish) "Switched to English" else getString(R.string.ui_a_0679))
+                switchLanguageKeepingPlayback(toEnglish)
+            },
             SettingsEntry(R.drawable.ott_ic_data_setting, getString(R.string.ui_sec_data), getString(R.string.ui_set_data_sub)) { showSettingsSection(1) },
             SettingsEntry(R.drawable.ott_ic_play, getString(R.string.ui_sec_playback), getString(R.string.ui_set_playback_sub)) { showSettingsSection(2) },
             SettingsEntry(R.drawable.ott_ic_sound, getString(R.string.ui_a_0740)) { showSoundSettingsDialog() },
@@ -11987,6 +11987,8 @@ class MainActivity : AppCompatActivity() {
         private const val PREFS = "ktv"
         private const val KEY_CATALOG_URL = "catalog_url"
         private const val KEY_SHOW_MOBILE_QR = "show_mobile_qr"
+        // 设置页切换语言后 Activity 重建，凭此一次性标志回到设置页（对齐 ori）。
+        private const val KEY_RETURN_TO_SETTINGS = "return_to_settings"
         private const val REQUEST_MIC_PERMISSION = 12
 
         private const val TAG = "MainActivity"
